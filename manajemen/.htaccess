@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+ 
+RewriteEngine on
+ 
+RewriteCond %{REQUEST_FILENAME} !-d
+ 
+RewriteCond %{REQUEST_FILENAME}.php -f
+ 
+RewriteRule ^(.*)$ $1.php
+
+RewriteRule ^manajemen/index$ /manajemen/index.php [L]
+RewriteRule ^manajemen/produksi/index$ /manajemen/produksi/index.php [L]
+ 
+</IfModule>

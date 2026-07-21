@@ -1,0 +1,305 @@
+<?php
+    session_start();
+
+    include 'koneksi.php'; 
+    include 'assets/components/Sessions/sesDistri.php';
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Distributor | Wanoja</title>
+</head> 
+<body>
+    <!-- NAVBAR -->
+    <? include "assets/components/Navbar/navbar.php"; ?>
+    <!-- NAVBAR END -->
+
+    <!-- MAIN CONTENT -->
+    <div class="container mt-5">
+        <table id="myJudul" class="w3-table-all w3-centered">
+            <tr>
+                <th style="width:5%;"></th>
+                <th style="width:90%;">Data Pengiriman</th>
+                <th style="width:5%;"></th>
+            </tr>
+        </table>
+    </div>
+
+    <div class="container">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p align="right">
+                        <input type="radio" onclick="javascript:window.location.href='formpengiriman.php?id=<?= $invoice ?>&berat=<?= $berat ?>';" checked="checked"> Dropship
+                        <input type="radio" onclick="javascript:window.location.href='formpengiriman2.php?id=<?= $invoice ?>&berat=<?= $berat ?>';"> Kirim Ke Alamat Pribadi
+                    </p>
+
+                    <form method="post">
+                        <div class="form-group">
+                            <label>Nama Pengirim</label>
+                            <input type="text" class="form-control" name="namapengirim" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Telepon Pengirim</label>
+                            <input type="text" class="form-control" name="tlppengirim" required maxlength="17">
+                        </div>
+
+                        <hr>
+
+                        <div class="form-group">
+                            <label>Nama Penerima</label>
+                            <input type="text" class="form-control" name="namapenerima" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Telepon Penerima</label>
+                            <input type="text" class="form-control" name="tlppenerima" required maxlength="17">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Alamat</label>
+                            <textarea class="form-control" name="alamat" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Kode POS</label>
+                            <input type="text" class="form-control" name="kodepos" value="<?= $_SESSION['admin_mitra']['kodepos']; ?>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prov">Provinsi Tujuan</label><br>
+                            <select class="form-control" id="prov" name="prov" required>
+                                <option disabled='disabled' selected>~Pilih Provinsi Tujuan~</option>
+                                <?php
+                                include "koneksi.php";
+                                $idprov = $_SESSION["admin_mitra"]["provinsi"];
+                                $ambil = $koneksi->query("SELECT * FROM tb_ro_provinces");
+                                while ($row = $ambil->fetch_assoc()) {
+                                    ?>
+                                    <option value="<?= $row['province_id']; ?>|<?= $row['province_name']; ?>"><?= $row['province_name']; ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="kabupaten">Kota/Kabupaten Tujuan</label><br>
+                            <select class="form-control" id="kabupaten" name="kabupaten" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="kecamatan">Kecamatan Tujuan</label><br>
+                            <select class="form-control" id="kecamatan" name="kecamatan" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="berat">Berat (gram)</label><br>
+                            <input class="form-control" id="berat" type="text" name="berat" value="<?= $berat; ?>" readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="kurir">Kurir</label><br>
+                            <select class="form-control" id="kurir" name="kurir" required>
+                                <option disabled='disabled' selected>~Pilih Kurir Pengiriman~</option>
+                                <option value="OR|jne">JNE</option>
+                                <option value="OR|tiki">TIKI</option>
+                                <option value="OR|pos">POS INDONESIA</option>
+                                <option value="OR|wahana">WAHANA</option>
+                                <option value="OR|sicepat">SICEPAT</option>
+                                <option value='OR|jnt'>J&T</option>
+                                <option value='OR|lion'>LION</option>
+                                <option value='OR|anteraja'>Anteraja</option>
+                                <option value='OR|ide'>ID Express</option>
+                                <optgroup label="Lainnya (Ongkir Manual)">
+                                    <option value='OM|idetruck'>ID Express Truck</option>
+                                    <option value='OM|jntcargo'>J&T Cargo</option>
+                                    <option value='OM|jtr'>JTR</option>
+                                    <option value='OM|Ahsan'>Ahsan</option>
+                                    <option value='OM|Baraka'>Baraka</option>
+                                    <option value='OM|Dakota'>Dakota</option>
+                                    <option value='OM|IndahCargo'>IndahCargo</option>
+                                    <option value='OM|Adam Cargo'>Adam Cargo</option>
+                                    <option value='OM|Pegasus'>Pegasus</option>
+                                    <option value='OM|Gosend'>GoSend</option>
+                                    <option value='OM|KALOG'>KALOG</option>
+                                    <option value='OM|Sentral'>Sentral</option>
+                                    <option value='OM|CMC KARGO'>CMC CARGO</option>
+                                    <option value='OM|Triplogic'>Triplogic</option>
+                                    <option value='OM|Ambil ke Pusat'>Ambil Ke Pusat</option>
+                                    <option value='OM|Disatukan'>Disatukan Paket Lainnya</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="ongkir">
+                            <label for="layanan">Layanan</label><br>
+                            <select class="form-control" name="layanan" id="layanan">
+                                <option value='layanan'>-kosong-</option>
+                            </select>
+                            <label><font color="grey">*Jika Memilih Kurir dengan Kategori "Lainnya (Ongkir Manual)" lanjut pilih "Kirim" jika opsi layanan masih kosong</font></label>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <center><button type="submit" class="btn btn-primary btn-lg" name="kirim">Kirim</button></center>
+    </form>
+
+    <!-- MAIN CONTENT END -->
+    <br><br><br><br>
+
+    <!-- PHP -->
+    <?php
+    include "koneksi.php";
+    if(isset($_POST['kirim'])){
+        
+        $namapengirim = addslashes(htmlspecialchars($_POST["namapengirim"]));
+        $tlppengirim = addslashes(htmlspecialchars($_POST["tlppengirim"]));
+        $namapenerima = addslashes(htmlspecialchars($_POST["namapenerima"]));
+        $tlppenerima = addslashes(htmlspecialchars($_POST["tlppenerima"]));
+        $alamat = addslashes(htmlspecialchars($_POST["alamat"]));
+        
+        $provinsi_id = $_POST["prov"];
+        $result_explode = explode('|', $provinsi_id);
+        $provinsi = $result_explode[1];
+        
+        $kabupaten_id = $_POST["kabupaten"];
+        $result_explode = explode('|', $kabupaten_id);
+        $kabupaten = $result_explode[1];
+        
+        $kecamatan_id = $_POST["kecamatan"];
+        $result_explode = explode('|', $kecamatan_id);
+        $kecamatan = $result_explode[1];
+
+        $layanan = $_POST["layanan"];
+        $result_explode = explode('|', $layanan);
+        $layananku = $result_explode[0]; 
+
+        $ekspedisinya = $_POST["kurir"];
+        $result_explode = explode('|', $ekspedisinya);
+        $om = $result_explode[0];
+        $ekspedisi = $result_explode[1];
+
+        if ($layanan == 'layanan') {
+            echo "<script>alert('Gagal Simpan, Jenis layanan masih kosong');</script>";
+            echo "<script>location='formpengiriman.php?id=$_GET[id]&berat=$_GET[berat]'</script>";
+            return false;
+        }
+        if ($layanan == '' && $om <> 'OM') {
+            echo "<script>alert('Gagal Simpan, Jenis layanan masih kosong');</script>";
+            echo "<script>location='formpengiriman.php?id=$_GET[id]&berat=$_GET[berat]'</script>";
+            return false;
+        }
+        
+        $berat = $_POST["berat"];
+        
+        $result_explode = explode('|', $layanan);
+        $ongkir2 = $result_explode[1];
+        $ongkir = (int) $ongkir2;
+        
+        $kodepos = $_POST["kodepos"];
+        $invoice = $_GET["id"];
+        $total = 0;
+
+        
+        
+        $sql = "SELECT subtotal FROM ordermitra WHERE invoice='$invoice' ";
+        $query = $koneksi->query($sql);
+        while($row = $query->fetch_assoc()){
+            $total = $total + $row['subtotal'];
+        }
+        $total = $total + $ongkir;
+
+        $sqlcek = "SELECT * FROM orderpengiriman WHERE invoice='$invoice' ";
+        $query = $koneksi->query($sqlcek);
+        $pengirimancek = $query->fetch_assoc();
+
+        if ($pengirimancek) {
+            $querydelete = "DELETE FROM orderpengiriman WHERE invoice = '$invoice'";
+            $sqldelete = mysqli_query($koneksi, $querydelete); 
+            $query = "insert into orderpengiriman (idorderp,namapengirim,tlppengirim,namapenerima,tlppenerima,alamat,provinsi,kota,kecamatan,ekspedisi,layanan,berat,ongkir,dropship,kodepos,invoice,total,diskonramadhan,tgl) values (null,'$namapengirim','$tlppengirim','$namapenerima','$tlppenerima','$alamat','$provinsi','$kabupaten','$kecamatan','$ekspedisi','$layananku','$berat','$ongkir','ya','$kodepos','$invoice','$total',0,NOW())"; 
+            $sql = mysqli_query($koneksi, $query); 
+        } else {
+            $query = "insert into orderpengiriman (idorderp,namapengirim,tlppengirim,namapenerima,tlppenerima,alamat,provinsi,kota,kecamatan,ekspedisi,layanan,berat,ongkir,dropship,kodepos,invoice,total,diskonramadhan,tgl) values (null,'$namapengirim','$tlppengirim','$namapenerima','$tlppenerima','$alamat','$provinsi','$kabupaten','$kecamatan','$ekspedisi','$layananku','$berat','$ongkir','ya','$kodepos','$invoice','$total',0,NOW())";
+            $sql = mysqli_query($koneksi, $query); 
+        }
+                
+        if ($sql == TRUE) {
+            if (substr($invoice, 0, 1) == "F") {
+                echo "<script>alert('data berhasil ditambah');</script>";
+                echo "<script>location='detailorder_get.php?id=$invoice'</script>";
+            } else {
+                echo "<script>alert('data berhasil ditambah');</script>";
+                echo "<script>location='detailorder.php?id=$invoice'</script>";
+            }
+        } else {
+            echo "<script>alert('Gagal Simpan, Coba Lagi $namapengirim,$tlppengirim,$namapenerima,$tlppenerima,$alamat,$provinsi,$kabupaten,$kecamatan,$ekspedisi,$layananku,$berat,$ongkir,tidak,$kodepos,$invoice,$total');</script>";
+            echo "<script>location='formpengiriman.php?id=$_GET[id]&berat=$_GET[berat]'</script>";
+        }
+    }
+    ?>
+
+    <!-- PHP END -->
+
+    <!-- FOOTER -->
+    <? include 'menubawah.php'; ?>
+    <!-- FOOTER END -->
+
+    <!-- SCRIPT -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#prov').change(function(){
+                var provinsi = $('#prov').val();
+                $.ajax({
+                    type : 'GET',
+                    url : 'cek_kabupaten2.php',
+                    data : 'prov_id=' + provinsi,
+                    success: function (data) {
+                        $("#kabupaten").html(data);
+                    }
+                });
+            });
+
+            $('#kabupaten').change(function(){
+                var kabupaten = $('#kabupaten').val();
+                $.ajax({
+                    type : 'GET',
+                    url : 'cek_kecamatan2.php',
+                    data : 'kabupaten_id=' + kabupaten,
+                    success: function (data) {
+                        $("#kecamatan").html(data);
+                    }
+                });
+            });
+
+            $("#kurir").change(function(){
+                var asal = $('#asal').val();
+                var kab = $('#kabupaten').val();
+                var kec = $('#kecamatan').val();
+                var kurir = $('#kurir').val();
+                var berat = $('#berat').val();
+                $.ajax({
+                    type : 'POST',
+                    url : 'cek_ongkir.php',
+                    data : {'kab_id' : kab, 'kec_id' : kec, 'kurir' : kurir, 'asal' : asal, 'berat' : berat},
+                    success: function (data) {
+                        $("#layanan").html(data);
+                    }
+                });
+            });
+        });
+    </script>
+    <!-- END SCRIPT -->
+</body>
+</html>

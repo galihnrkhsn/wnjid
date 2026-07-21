@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Custom Rompi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.2.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/500/fabric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body style="max-width:100%;width:1140px;margin:auto;">
+    <!-- <nav class="container navbar navbar-light pt-3 pb-3" style="background-color: grey !important; width: 100%;">
+        <div class="container-fluid justify-content-start">
+            <a href="https://wnj-custom.netlify.app/" class="btn btn-outline"><i style="color:white;" class="bi bi-chevron-left"></i></a>
+            <h3 class="mb-0 ps-1" style="color:white;">Custom Rompi</h3>
+        </div>
+    </nav> -->
+
+    <!-- <div id="mockupWrapper" class="container-fluid" style="justify-content: center;display: flex;padding-top: 20px;">
+        <img name="tshirtview" id="mockup" style="width: 530px;height: 630px;position: relative;background-color: rgb(91, 91, 91);" src="img/crew_front.png">
+        <div id="drawingArea" style="position: absolute;top: 100px;left: 160px;z-index: 10;width: 200px;height: 400px;">
+            <canvas id="tcanvas" width=200 height="400" class="hover" style="-webkit-user-select: none;"></canvas>
+        </div>
+    </div> -->
+
+    <div id="templateTopi" class="d-flex flex-column" style="position: absolute;top: 100px;left: 15px;z-index: 22;">
+
+    </div>
+    <div id="shirtDiv" class="page mb-3" style="width:400px;margin: auto; position: relative; background-color: #edeae5;">
+        <div id="mockupContainer">
+            <img name="tshirtview" id="mikirompi" src="img/rompi-nude.jpg" style="width: 100%;position: relative;">
+        </div>
+        <!-- <canvas id="tcanvas" width="200" height="100"></canvas> -->
+        <div id="drawingArea" style="position: absolute;top: 145px;left: 90px;z-index: 10;width: 200px;height: 30px;">
+            <div class="canvas-container" style="width: 200px; height: 30px; position: relative; user-select: none;">
+                <canvas id="tcanvas" width="100" height="100" class="hover lower-canvas" style="user-select: none; position: absolute; width: 110px; height: 400px; left: 0px; top: 0px; touch-action: none;"></canvas>
+                <canvas class="upper-canvas hover" width="200"
+                    height="400" style="user-select: none; position: absolute; width: 200px; height: 30px; left: 0px; top: 0px; touch-action: none;"></canvas></div>
+        </div>
+        <div id="drawingArea2" style="position: absolute;top: 165px;left: 90px;z-index: 10;width: 200px;height: 30px;">
+            <div class="canvas-container" style="width: 200px; height: 30px; position: relative; user-select: none;">
+                <canvas id="tcanvas2" width="100" height="100" class="hover lower-canvas" style="user-select: none; position: absolute; width: 110px; height: 400px; left: 0px; top: 0px; touch-action: none;"></canvas>
+                <canvas class="upper-canvas hover" width="200"
+                    height="400" style="user-select: none; position: absolute; width: 200px; height: 30px; left: 0px; top: 0px; touch-action: none;"></canvas></div>
+        </div>
+        <div class="container d-flex justify-content-center" id="listCustomImage">
+
+        </div>
+    </div>
+    <div class="row justify-content-center" style="--bs-gutter-x:0;" id="orderForm">
+        <!-- <div class="col-12 row mb-4 align-items-end">
+            <div class="col-6">
+                <label for="qty" class="mb-2">Jumlah Order</label>
+            </div>
+            <div class="col-6">
+                <input type="number" class="form-control" name="qty" id="qty" placeholder="0">
+            </div>
+        </div> -->
+        <div class="col-12 mb-4 row" style="justify-content: center;padding: 0;">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Custom</th>
+                        <th>Font / Warna</th>
+                        <!-- <th>Ukuran & Warna</th> -->
+                    </tr>
+                </thead>
+                <tbody id="listCustomTeks">
+                </tbody>
+            </table>
+        </div>
+        <div class="col-12 row" style="margin-bottom: ;">
+            <div class="col-6 offset-3">
+                <!-- <button type="button" class="btn btn-primary" style="width: 100%;" onclick="addNewCustom()"><i class="bi bi-plus"></i><span class="ms-1">Add</span></button> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="container navbar navbar-light" style="background-color: grey !important;max-width: 100%; width: 1140px; position: fixed;bottom: 0;">
+        <div class="row justify-content-center" style="width: 100%;    margin-right: 0px;margin-left: 0px;">
+            <div class="col-6 row">
+                <div class="col-4">
+                    <span style="font-weight: 600;color: white;">Total</span>
+                </div>
+                <div class="col-4">
+                    <span style="color: white;">3pcs</span>
+                </div>
+                <div class="col-12">
+                    <span style="font-weight: 600;text-align: center;margin: auto;color: white;">Rp. 350.000</span>
+                </div>
+            </div>
+            <div class="col-6 d-flex align-items-center justify-content-center">
+                <a onClick="addToCartButton()" id="addToCart" class="btn btn-dark" style="width: 100%;"><i class="bi bi-list"></i><span class="ms-1">Add to cart</span></a>
+            </div>
+        </div>
+    </div> -->
+</body>
+<script src="js/init.js"></script>
+<script>
+    console.log(window.innerWidth)
+    if(window.innerWidth <= 1200){
+        console.log($('body').width());
+    }
+</script>
+</html>

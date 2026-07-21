@@ -1,0 +1,28 @@
+{
+  "files": {
+    "main.css": "/static/css/main.f6e247db.css",
+    "main.js": "/static/js/main.f5bd1398.js",
+    "static/js/787.1dd1191b.chunk.js": "/static/js/787.1dd1191b.chunk.js",
+    "static/media/a.jpg": "/static/media/a.6f05406485cb660ff068.jpg",
+    "static/media/b.jpg": "/static/media/b.8a0cb5e2ad73be61407c.jpg",
+    "static/media/nabar.png": "/static/media/nabar.591ecd1b23be07ef4567.png",
+    "static/media/pricelist.png": "/static/media/pricelist.1ac683bae1a63b3bdeb8.png",
+    "static/media/readystock.png": "/static/media/readystock.cbbf0e7f86d6db360677.png",
+    "static/media/submitra.png": "/static/media/submitra.fffb4981608124fa07fc.png",
+    "static/media/support_ticket.png": "/static/media/support_ticket.3288c3d0aefeb888410a.png",
+    "static/media/preorder.png": "/static/media/preorder.56ca36e2c391502de3f9.png",
+    "static/media/maintenance.jpg": "/static/media/maintenance.bd7e75f13731c0f906eb.jpg",
+    "static/media/katalog.png": "/static/media/katalog.e05391d843b8f9223be0.png",
+    "static/media/resi.png": "/static/media/resi.e27feaa27deb87c3e40b.png",
+    "static/media/ads.png": "/static/media/ads.a7469ed0d33493babad4.png",
+    "static/media/mystock.png": "/static/media/mystock.53cd9a32e3861af02030.png",
+    "index.html": "/index.html",
+    "main.f6e247db.css.map": "/static/css/main.f6e247db.css.map",
+    "main.f5bd1398.js.map": "/static/js/main.f5bd1398.js.map",
+    "787.1dd1191b.chunk.js.map": "/static/js/787.1dd1191b.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f6e247db.css",
+    "static/js/main.f5bd1398.js"
+  ]
+}

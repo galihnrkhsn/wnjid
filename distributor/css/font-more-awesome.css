@@ -1,0 +1,53 @@
+@font-face {
+    font-family: 'FontMoreAwesome';
+    src: url('../fonts/FontMoreAwesome.otf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.fa-profil:before {
+    font-family: FontMoreAwesome;
+    content: "A";
+}
+
+.fa-sub:before {
+    font-family: FontMoreAwesome;
+    content: "B";
+}
+
+.fa-mystock:before {
+    font-family: FontMoreAwesome;
+    content: "C";
+}
+
+.fa-nyabar:before {
+    font-family: FontMoreAwesome;
+    content: "D";
+}
+
+.fa-ads:before {
+    font-family: FontMoreAwesome;
+    content: "G";
+}
+
+.fa-keep:before {
+    font-family: FontMoreAwesome;
+    content: "H";
+}
+
+.fa-katalog:before {
+    font-family: FontMoreAwesome;
+    content: "I";
+}
+
+.fa-price:before {
+    font-family: FontMoreAwesome;
+    content: "J";
+}
+
+.fa-resi:before {
+    font-family: FontMoreAwesome;
+    content: "K";
+}
+
+

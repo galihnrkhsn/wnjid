@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>TShirt Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/500/fabric.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Le styles -->
+    <!-- <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-minicolors/2.3.6/jquery.minicolors.css" /> -->
+    <!-- CSS only -->
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+</head>
+
+<body style="margin: auto;width: 400px;">
+    <nav class="container navbar navbar-light pt-3 pb-3" style="background-color: grey !important; width: 100%;">
+        <div class="container-fluid justify-content-start">
+            <a href="index.html" class="btn btn-outline"><i style="color:white;" class="bi bi-chevron-left"></i></a>
+            <h3 class="mb-0 ps-1" style="color:white;">List Custom Order</h3>
+        </div>
+    </nav>
+    <table class="table display" id="example" style="width:100%">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Custom Teks</th>
+                <th scope="col">Ukuran Baju</th>
+                <th scope="col">Warna Baju</th>
+                <th scope="col">*</th>
+            </tr>
+        </thead>
+        <tbody id="listCustomOrderTable">
+            <!-- <tr>
+                <td>1</td>
+                <td><a href="index.html">Teks 1</a></td>
+                <td>Bayi</td>
+                <td>Gold</td>
+            </tr> -->
+        </tbody>
+    </table>
+    <div class="container navbar navbar-light" style="background-color: grey !important; width: 400px; position: fixed;bottom: 0;">
+        <div class="row justify-content-center" style="width: 100%;    margin-right: 0px;margin-left: 0px;">
+            <div class="col-6 row">
+                <div class="col-4">
+                    <span style="font-weight: 600;color: white;">Total</span>
+                </div>
+                <div class="col-4">
+                    <span style="color: white;">3pcs</span>
+                </div>
+                <div class="col-12">
+                    <span style="font-weight: 600;text-align: center;margin: auto;color: white;">Rp. 350.000</span>
+                </div>
+            </div>
+            <div class="col-6 d-flex">
+                <button class="btn btn-dark" style="width: 100%;">Kirim</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+<link href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css" rel="stylesheet">
+<script>
+    $(document).ready(function() {
+        $('#example').DataTable();
+    });
+    var storedData = JSON.parse(localStorage.getItem('customOrderDataMikiHat'));
+    console.log(storedData);
+    var listOrder = ``;
+    if (storedData != null) {
+        for (let i = 0; i < storedData.length; i++) {
+            listOrder += `
+        <tr>
+            <td>` + (i + 1) + `</td>
+            <td><a href="index.html?id=` + i + `&teks=` + storedData[i].customTeks + `">` + storedData[i].customTeks + `</a></td>
+            <td>Bayi</td>
+            <td>Gold</td>
+            <td><button onclick="removeData(` + i + `)" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></td>
+        </tr>
+    `;
+        }
+    }
+    $('#listCustomOrderTable').append(listOrder).html()
+
+
+    function removeData(indexI, indexJ) {
+        if (storedData[indexI].customTeksData.length == 1) {
+            storedData.splice(indexI, 1);
+            removeLocalStorageData();
+        } else {
+            storedData[indexI].customTeksData.splice(0, 1);
+            removeLocalStorageData();
+        }
+    }
+
+    function removeLocalStorageData() {
+        localStorage.removeItem('customOrderDataMikiHat');
+        localStorage.setItem('customOrderDataMikiHat', JSON.stringify(storedData));
+        window.location.reload();
+    }
+</script>
+
+</html>

@@ -1,0 +1,30 @@
+@media only screen and (max-width: 399px) {
+    #shirtDiv {
+        width: 100% !important;
+    }
+}
+
+@font-face {
+    font-family: 'Amazing Mother';
+    src: url("../font/aAmazingMother.otf");
+}
+
+@font-face {
+    font-family: 'Awal Ramadhan';
+    src: url("../font/aAwalRamadhan.otf");
+}
+
+@font-face {
+    font-family: 'BlackJack';
+    src: url("../font/blackjack.otf");
+}
+
+@font-face {
+    font-family: 'Halaney Demo';
+    src: url("../font/Halaney-Demo.otf");
+}
+
+.select2-container--bootstrap-5 {
+    width: 100% !important;
+}
+

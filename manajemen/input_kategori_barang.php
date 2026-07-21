@@ -1,0 +1,304 @@
+<?php
+    session_start();
+
+    include 'koneksi.php';
+
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
+        echo "
+            <script>alert('Anda harus login terlebih dahulu!');</script>
+            <script>location='login-multi.php';</script>
+        ";
+        header("Location: login-multi.php");
+        exit();
+    }
+
+    $id = $_SESSION['user_id'];
+    $role = $_SESSION['user_level'];
+    $idpoproduk = $_GET['id'];
+
+    $query = $koneksi->query("SELECT * FROM user_manajemen INNER JOIN role WHERE user_manajemen.id = '$id'");
+    $user = $query->fetch_assoc();
+    $username = $user['username'];
+
+
+    date_default_timezone_set('Asia/Jakarta');
+    $dateNow = date("Y-m-d");
+    $dayKemarin = date( 'Y-m-d', strtotime( $dateNow . ' -1 day' ) );
+    $dayLusa = date( 'Y-m-d', strtotime( $dateNow . ' -2 day' ) );
+
+    function convertToIndonesianDate($date) {
+        // Create a timestamp from the provided date
+        $timestamp = strtotime($date);
+
+        // Define arrays for Indonesian days and months
+        $days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        // Get the day of the week and month
+        $day = $days[date('w', $timestamp)];
+        $day_number = date('d', $timestamp);
+        $month = $months[date('n', $timestamp) - 1];
+        $year = date('Y', $timestamp);
+
+        // Return the formatted date
+        return "$day, $day_number $month $year";
+    }
+
+    $day = convertToIndonesianDate($dateNow);
+    $yesterday = convertToIndonesianDate($dayKemarin);
+    $days = convertToIndonesianDate($dayLusa);
+
+    $poproduk = $koneksi->query("SELECT * FROM poproduk WHERE idpoproduk = '$idpoproduk'");
+    $datapo = $poproduk->fetch_assoc();
+    $namapo = $datapo['namapo'];
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanoja | <?= $username ?></title>
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="template/images/logo.png">
+    <link rel="stylesheet" href="template/vendor/owl-carousel/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="template/vendor/owl-carousel/css/owl.theme.default.min.css">
+    <link href="template/vendor/jqvmap/css/jqvmap.min.css" rel="stylesheet">
+    <link href="template/css/style.css" rel="stylesheet">
+    <link href="template/vendor/datatables/css/jquery.dataTables.min.css" rel="stylesheet">
+
+    <style>
+        .dataTables_wrapper .dataTables_scroll {
+            padding: 0;
+        }
+
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .custom-file-input {
+            display: none;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #e2e6ea;
+        }
+
+        .custom-file-upload:active {
+            background-color: #dae0e5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-wrapper">
+        <!--**********************************
+            Nav header start
+        ***********************************-->
+        <?php include 'template/component/humberger.php'; ?>
+        <!--**********************************
+            Nav header end
+        ***********************************-->
+
+        <!--**********************************
+            Header start
+        ***********************************-->
+        <?php include 'template/component/header.php'; ?>
+        <!--**********************************
+            Header end ti-comment-alt
+        ***********************************-->
+
+        <!--**********************************
+            Sidebar start
+        ***********************************-->
+        <?php include 'template/component/sidebar.php'; ?>
+        <!--**********************************
+            Sidebar end
+        ***********************************-->
+
+        <!--**********************************
+            Content body start
+        ***********************************-->
+        <div class="content-body">
+            <!-- row -->
+            <div class="container-fluid">
+                <div class="row page-titles mx-0">
+                    <div class="col-sm-6 p-md-0">
+                        <div class="welcome-text">
+                            <h4 class="text-uppercase">input barang gb</h4>
+                            <p class="mb-0"><?= $namapo ?></p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="home.php">SJV</a></li>
+                            <li class="breadcrumb-item"><a href="detail_sjv.php?id=<?= $idpoproduk ?>">Detail</a></li>
+                            <li class="breadcrumb-item"><a href="totalanbarang.php?id=<?= $idpoproduk ?>">Totalan</a></li>
+                            <li class="breadcrumb-item active">Barang GB</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="row">
+                                        <?php
+                                            $sql_produk = $koneksi->query("SELECT 
+                                                                                    podetail.variant,
+                                                                                    sjk.*
+                                                                                FROM
+                                                                                    poproduk
+                                                                                        JOIN
+                                                                                    pokategori ON poproduk.idpoproduk = pokategori.idpoproduk
+                                                                                        JOIN
+                                                                                    podetail ON pokategori.idpo = podetail.idpo
+                                                                                        JOIN
+                                                                                    sjk ON sjk.idpodetail = podetail.idpodetail
+                                                                                WHERE
+                                                                                    poproduk.idpoproduk = '$idpoproduk'
+                                                                                ORDER BY podetail.idpodetail ASC
+                                                                        ");
+                                            while ($produk = $sql_produk->fetch_assoc()) {
+                                        ?>
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <label for="<?= $produk['variant'] ?>" class="mb-1"><?= $produk['variant'] ?></label>
+                                                    <input type="hidden" class="form-control form-control-sm" min="0" name="idsjk[]" value="<?= $produk['idsjk'] ?>" id="<?= $produk['variant'] ?>" required>
+                                                    <input type="number" class="form-control form-control-sm" min="0" name="qty[]" value="0" id="<?= $produk['variant'] ?>" required>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12">
+                                    <button class="btn btn-primary btn-sm" type="submit" name="kirim">Kirim</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--**********************************
+            Content body end
+        ***********************************-->
+
+        <!--**********************************
+            Footer start
+        ***********************************-->
+        <div class="footer">
+            <div class="copyright">
+                <p>Copyright © Designed &amp; Developed by <a href="#" target="_blank">Quixkit</a> 2019</p>
+            </div>
+        </div>
+        <!--**********************************
+            Footer end
+        ***********************************-->
+    </div>
+
+    <!--**********************************
+        Scripts
+    ***********************************-->
+    <!-- Required vendors -->
+    <script src="template/vendor/global/global.min.js"></script>
+    <script src="template/js/quixnav-init.js"></script>
+    <script src="template/js/custom.min.js"></script>
+
+
+    <!-- Vectormap -->
+    <script src="template/vendor/raphael/raphael.min.js"></script>
+    <script src="template/vendor/morris/morris.min.js"></script>
+    <script src="template/vendor/circle-progress/circle-progress.min.js"></script>
+    <script src="template/vendor/chart.js/Chart.bundle.min.js"></script>
+    <script src="template/vendor/gaugeJS/dist/gauge.min.js"></script>
+
+    <!--  flot-chart js -->
+    <script src="template/vendor/flot/jquery.flot.js"></script>
+    <script src="template/vendor/flot/jquery.flot.resize.js"></script>
+
+    <!-- Owl Carousel -->
+    <script src="template/vendor/owl-carousel/js/owl.carousel.min.js"></script>
+
+    <!-- Counter Up -->
+    <script src="template/vendor/jqvmap/js/jquery.vmap.min.js"></script>
+    <script src="template/vendor/jqvmap/js/jquery.vmap.usa.js"></script>
+    <script src="template/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+
+    <script src="template/js/dashboard/dashboard-1.js"></script>
+
+    <!-- Datatable -->
+    <script src="template/vendor/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="template/js/plugins-init/datatables.init.js"></script>
+    <script src="template/vendor/global/global.min.js"></script>
+    <script src="template/js/quixnav-init.js"></script>
+    <script src="template/js/custom.min.js"></script>
+
+    <?php
+        if (isset($_POST['kirim'])) {
+            try {
+                date_default_timezone_set('Asia/Jakarta');
+                $today = date('Y-m-d');
+                $waktu = date('H:i:s');
+
+                $idsjk = $_POST['idsjk'];
+                $jumlah = $_POST['qty'];
+                $jumlah_dipilih = count($jumlah);
+
+                for ($x = 0; $x < $jumlah_dipilih; $x++) {
+                    if ($jumlah[$x] > 0) {
+                        // $sql_sjk = $koneksi->query("SELECT * FROM sjk WHERE idsjk = '$idsjk[$x]'");
+                        // $total_sjk = $sql_sjk->fetch_assoc();
+                        // $ga = $total_sjk['jumlah'] - $jumlah[$x];
+                        // $gb = $jumlah[$x];
+                        
+                        $stmt_select = $koneksi->prepare("SELECT * FROM sjk WHERE idsjk = ?");
+                        $stmt_select->bind_param('i', $idsjk[$x]);
+                        $stmt_select->execute();
+                        $result = $stmt_select->get_result();
+
+                        $total_sjk = $result->fetch_assoc();
+                        $ga = $total_sjk['jumlah'] - $jumlah[$x];
+                        $gb = $jumlah[$x];
+
+                        $stmt_select->close();
+
+                        $sql = $koneksi->query("UPDATE sjk SET brgga = '$ga', brggb = '$gb', waktu_update = NOW() WHERE idsjk = '$idsjk[$x]'");
+                        if ($sql) {
+                            echo "
+                                <script>
+                                    alert('Data berhasil diupdate!')
+                                    location='totalanbarang.php?id=$idpoproduk'
+                                </script>
+                            ";
+                        } else {
+                            echo "
+                                <script>
+                                    alert('Data gagal diupdate!')
+                                    location='input_kategori_barang.php?id=$idpoproduk'
+                                </script>
+                            ";
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                die("Error: " . $e->getMessage());
+                // echo "
+                //     <script>
+                //         alert('SJV gagal ditambahkan!')
+                //         location='home.php'
+                //     </script>
+                // ";
+            }
+        }
+    ?>
+</body>
+</html>
