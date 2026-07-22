@@ -12,7 +12,7 @@
         exit();
     }
     $iduser             = $_SESSION['logistik']['id'];
-    $sql_user           = $portal->query("SELECT * FROM user WHERE id = '$iduser'");
+    $sql_user           = $koneksi->query("SELECT * FROM user_manajemen WHERE id = '$iduser'");
     $user               = $sql_user->fetch_assoc();
     $username           = $user['username'];
     $id                 = $_GET['id'];

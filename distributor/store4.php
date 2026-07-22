@@ -181,8 +181,8 @@
                                 <?php endif ?>
                             </p>
                             <p class="card-text d-flex align-items-center justify-content-between">
-                                <span class="badge badge-secondary stock-badge">Stok: <?= (int) $data['stock'] ?></span>
                                 <a href="add_chart2.php?id=<?= (int) $data['id'] ?>" class="btn btn-primary btn-sm">Beli</a>
+                                Stok: <?= (int) $data['stock'] ?>
                             </p>
                         <?php else: ?>
                             <p class="card-text text-muted">

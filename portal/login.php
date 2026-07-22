@@ -72,7 +72,7 @@
                     $username = $_POST['username'];
                     $password = $_POST['password'];
 
-                    $get_user   = $portal->query("SELECT * FROM user WHERE username = '$username'");
+                    $get_user   = $koneksi->query("SELECT * FROM user_manajemen WHERE username = '$username'");
                     
                     if ($get_user->num_rows > 0 ) {
                         $user = $get_user->fetch_assoc();
