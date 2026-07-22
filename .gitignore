@@ -1,10 +1,24 @@
-adminwnj/vendor/
 distributor/foto/
 image/
 manajemen/oldfile/
-portal/vendor/
 includes/db.config.php
 mysql-8.4/
 image/bukti_transfer/
 image/produk/
-vendor/
+
+# Composer-managed packages inside /vendor (regenerated via `composer install`).
+# The other /vendor subfolders (adminwnj, legacy-js, manajemen, manajemen-template,
+# mitra-theme) are static JS/CSS assets with no install step, so they stay tracked.
+/vendor/autoload.php
+/vendor/composer/
+/vendor/bacon/
+/vendor/dasprid/
+/vendor/endroid/
+/vendor/ezyang/
+/vendor/khanamiryan/
+/vendor/maennchen/
+/vendor/markbaker/
+/vendor/myclabs/
+/vendor/phpoffice/
+/vendor/psr/
+/vendor/symfony/

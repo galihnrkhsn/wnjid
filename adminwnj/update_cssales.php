@@ -5,7 +5,7 @@
 
     session_start();
     include 'koneksi.php';
-    include 'vendor/autoload.php';
+    include '../vendor/autoload.php';
 
     if(!isset($_SESSION["administrator"])){
         echo "<script>alert('anda harus login terlebih dahulu');</script>";
