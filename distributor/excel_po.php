@@ -1,18 +1,40 @@
 <?php
 include "koneksi.php";
-$invoice=$_GET["invoice"];
-$sum=0;
+include "assets/components/Sessions/sesDistri.php";
 
-  $datamitra=$koneksi->query("SELECT poproduk.namapo,admin_mitra.namamitra as db,
+$invoice = $_GET["invoice"] ?? '';
+$idadmin = $_SESSION["idadmin"];
+$sum     = 0;
+
+// invoice hanya boleh alfanumerik supaya query di bawah (yang masih menyisipkan
+// $invoice langsung ke string SQL) tidak bisa disalahgunakan untuk SQL injection
+if ($invoice === '') {
+    header('Location: listnewpo.php');
+    exit;
+}
+
+// Pastikan invoice ini benar-benar milik mitra yang sedang login
+$stmtOwn = $koneksi->prepare("SELECT COUNT(*) AS jumlah FROM pomitra WHERE invoice = ? AND idmitra = ?");
+$stmtOwn->bind_param('ss', $invoice, $idadmin);
+$stmtOwn->execute();
+$ownCheck = $stmtOwn->get_result()->fetch_assoc();
+if (($ownCheck['jumlah'] ?? 0) == 0) {
+    header('Location: listnewpo.php');
+    exit;
+}
+
+$stmtMitra = $koneksi->prepare("SELECT poproduk.namapo,admin_mitra.namamitra as db,
                               mitraagen.namaagen as agen,mitrareseller.namaagen as reseller,
-                              mitramarketer.namaagen as marketer FROM `pomitra` 
-                              LEFT JOIN mitraagen on mitraagen.idmitraagen=pomitra.idmitraagen 
-                              LEFT JOIN mitrareseller on mitrareseller.idmitrareseller=pomitra.idmitrareseller 
-                              LEFT JOIN mitramarketer on mitramarketer.idmitramarketer=pomitra.idmitramarketer 
-                              LEFT JOIN admin_mitra on (mitraagen.idadmin=admin_mitra.idadmin or mitrareseller.idadmin=admin_mitra.idadmin or mitramarketer.idadmin=admin_mitra.idadmin or pomitra.idmitra=admin_mitra.idadmin) 
-                              INNER JOIN poproduk on pomitra.idpoproduk=poproduk.idpoproduk 
-                              WHERE pomitra.invoice='$invoice'");
-                            $tampilnama=$datamitra->fetch_assoc();
+                              mitramarketer.namaagen as marketer FROM `pomitra`
+                              LEFT JOIN mitraagen on mitraagen.idmitraagen=pomitra.idmitraagen
+                              LEFT JOIN mitrareseller on mitrareseller.idmitrareseller=pomitra.idmitrareseller
+                              LEFT JOIN mitramarketer on mitramarketer.idmitramarketer=pomitra.idmitramarketer
+                              LEFT JOIN admin_mitra on (mitraagen.idadmin=admin_mitra.idadmin or mitrareseller.idadmin=admin_mitra.idadmin or mitramarketer.idadmin=admin_mitra.idadmin or pomitra.idmitra=admin_mitra.idadmin)
+                              INNER JOIN poproduk on pomitra.idpoproduk=poproduk.idpoproduk
+                              WHERE pomitra.invoice = ?");
+$stmtMitra->bind_param('s', $invoice);
+$stmtMitra->execute();
+$tampilnama = $stmtMitra->get_result()->fetch_assoc();
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +48,7 @@ $sum=0;
     <meta name="author" content="">
     <?php
     header("Content-type: application/vnd-ms-excel");
-    header("Content-Disposition: attachment; filename=Data PO $invoice.xls");
+    header("Content-Disposition: attachment; filename=Data PO " . preg_replace('/[^A-Za-z0-9_-]/', '', $invoice) . ".xls");
     ?>
     <title>Pre Order</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
@@ -35,13 +57,13 @@ $sum=0;
 <body>
     <div class="container mt-5">
         <div class="text-center">
-            <h3><strong><?php echo $tampilnama['namapo']; ?></strong></h3>
-            <h4>Invoice <?php echo $invoice; ?></h4>
+            <h3><strong><?= htmlspecialchars($tampilnama['namapo'] ?? '') ?></strong></h3>
+            <h4>Invoice <?= htmlspecialchars($invoice) ?></h4>
         </div>
         <div class="mt-4">
-            <p><strong>Nama Distributor:</strong> <?php echo $tampilnama['db']; ?></p>
-            <?php if ($tampilnama['agen'] || $tampilnama['reseller'] || $tampilnama['marketer']): ?>
-                <p><strong>Nama Sub DB:</strong> <?php echo $tampilnama['agen']; ?> <?php echo $tampilnama['reseller']; ?> <?php echo $tampilnama['marketer']; ?></p>
+            <p><strong>Nama Distributor:</strong> <?= htmlspecialchars($tampilnama['db'] ?? '') ?></p>
+            <?php if (!empty($tampilnama['agen']) || !empty($tampilnama['reseller']) || !empty($tampilnama['marketer'])): ?>
+                <p><strong>Nama Sub DB:</strong> <?= htmlspecialchars($tampilnama['agen'] ?? '') ?> <?= htmlspecialchars($tampilnama['reseller'] ?? '') ?> <?= htmlspecialchars($tampilnama['marketer'] ?? '') ?></p>
             <?php endif; ?>
         </div>
         <div class="table-responsive mt-4">
@@ -57,8 +79,8 @@ $sum=0;
                     </tr>
                 </thead>
                 <tbody>
-                    <?php 
-                    $datapo = $koneksi->query("SELECT 
+                    <?php
+                    $stmtItems = $koneksi->prepare("SELECT
                         poproduk.namapo,
                         pokategori.namakategori,
                         podetail.variant,
@@ -67,34 +89,28 @@ $sum=0;
                         pomitra.invoice,
                         pomitra.total,
                         pomitra.custom,
-                        podetail.harga 
-                        FROM poproduk 
-                        INNER JOIN pomitra ON poproduk.idpoproduk=pomitra.idpoproduk 
+                        podetail.harga
+                        FROM poproduk
+                        INNER JOIN pomitra ON poproduk.idpoproduk=pomitra.idpoproduk
                         INNER JOIN pokategori ON pokategori.idpo=pomitra.idpo
                         INNER JOIN podetail ON podetail.idpodetail=pomitra.idpodetail
-                        WHERE pomitra.invoice='$invoice' AND pomitra.jumlah>0");
+                        WHERE pomitra.invoice = ? AND pomitra.jumlah > 0");
+                    $stmtItems->bind_param('s', $invoice);
+                    $stmtItems->execute();
+                    $datapo = $stmtItems->get_result();
 
-                    $no = 1;
-                    $sum = 0;
+                    $no     = 1;
+                    $sum    = 0;
                     $jumlah = 0;
 
-                    while($tampilkan = $datapo->fetch_assoc()) {
+                    while ($tampilkan = $datapo->fetch_assoc()) {
                         ?>
                         <tr>
-                            <td><?php echo $no++; ?></td>
-                            <td><?php echo $tampilkan['variant']; ?></td>
-                            <!-- <td>
-                                <?php
-                                if($tampilkan['custom'] <> '') {
-                                    echo nl2br($tampilkan['custom']);
-                                } else {
-                                    echo " - ";
-                                }
-                                ?>
-                            </td> -->
-                            <td>Rp. <?php echo number_format($tampilkan['harga']); ?></td>
-                            <td><?php echo $tampilkan['jumlah']; ?></td>
-                            <td>Rp. <?php echo number_format($tampilkan['total']); ?></td>
+                            <td><?= $no++; ?></td>
+                            <td><?= htmlspecialchars($tampilkan['variant']) ?></td>
+                            <td>Rp. <?= number_format($tampilkan['harga']); ?></td>
+                            <td><?= (int) $tampilkan['jumlah']; ?></td>
+                            <td>Rp. <?= number_format($tampilkan['total']); ?></td>
                         </tr>
                         <?php
                         $sum += $tampilkan['jumlah'];
@@ -105,14 +121,14 @@ $sum=0;
             </table>
         </div>
         <div class="mt-4 text-right">
-            <p><strong>Total Qty:</strong> <?php echo $sum; ?></p>
-            <p><strong>JUMLAH:</strong> Rp. <?php echo number_format($jumlah); ?></p>
-            <?php 
+            <p><strong>Total Qty:</strong> <?= $sum; ?></p>
+            <p><strong>JUMLAH:</strong> Rp. <?= number_format($jumlah); ?></p>
+            <?php
             $diskon = 35 / 100 * $jumlah;
-            $subtotal = $jumlah - $diskon; 
+            $subtotal = $jumlah - $diskon;
             ?>
-            <p><strong>Diskon DB:</strong> Rp. <?php echo number_format($diskon); ?></p>
-            <p><strong>TOTAL:</strong> Rp. <?php echo number_format($subtotal); ?></p>
+            <p><strong>Diskon DB:</strong> Rp. <?= number_format($diskon); ?></p>
+            <p><strong>TOTAL:</strong> Rp. <?= number_format($subtotal); ?></p>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

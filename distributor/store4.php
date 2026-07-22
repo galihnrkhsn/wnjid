@@ -3,9 +3,69 @@
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
 
-    include 'koneksi.php'; 
+    include 'koneksi.php';
     include 'assets/components/Sessions/sesDistri.php';
-    require_once __DIR__ . '../adminwnj/helpers/slugify.php';
+
+    // ---- Input & pagination ----
+    $namaproduk = isset($_GET['namaproduk']) ? trim($_GET['namaproduk']) : '';
+    $isSearch   = isset($_GET['cari']) && $namaproduk !== '';
+
+    $limit       = 20;
+    $page        = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+    $limit_start = ($page - 1) * $limit;
+
+    // ---- Build WHERE clause shared by count & data queries ----
+    $whereSql = "v.status <> 1 AND v.stock > 0";
+    $params   = [];
+    $types    = '';
+
+    if ($isSearch) {
+        $whereSql .= " AND p.namaproduk LIKE ? AND p.idkategori > 0";
+        $params[]  = '%' . $namaproduk . '%';
+        $types    .= 's';
+    }
+
+    $countStmt = $koneksi->prepare("SELECT COUNT(*) AS jumlah
+                                     FROM variants v
+                                     INNER JOIN products p ON v.idproducts = p.id
+                                     WHERE $whereSql");
+    if ($types !== '') {
+        $countStmt->bind_param($types, ...$params);
+    }
+    $countStmt->execute();
+    $totalRows   = (int) ($countStmt->get_result()->fetch_assoc()['jumlah'] ?? 0);
+    $countStmt->close();
+
+    $jumlah_page = max(1, (int) ceil($totalRows / $limit));
+    if ($page > $jumlah_page) {
+        $page        = $jumlah_page;
+        $limit_start = ($page - 1) * $limit;
+    }
+
+    $dataStmt = $koneksi->prepare("SELECT p.namaproduk, p.idpkategori, p.idkategori, v.*, mf.name AS nama_folder
+                                    FROM variants v
+                                    INNER JOIN products p ON v.idproducts = p.id
+                                    LEFT JOIN master_folder mf ON v.folder = mf.id
+                                    WHERE $whereSql
+                                    ORDER BY v.updated_at DESC
+                                    LIMIT ?, ?");
+    $dataParams  = $params;
+    $dataParams[] = $limit_start;
+    $dataParams[] = $limit;
+    $dataStmt->bind_param($types . 'ii', ...$dataParams);
+    $dataStmt->execute();
+    $result = $dataStmt->get_result();
+
+    // Preserve search state across pagination links
+    function buildPageUrl(int $targetPage, bool $isSearch, string $namaproduk): string
+    {
+        $query = ['page' => $targetPage];
+        if ($isSearch) {
+            $query['cari']       = 1;
+            $query['namaproduk'] = $namaproduk;
+        }
+        return '?' . http_build_query($query);
+    }
 ?>
 
 <!DOCTYPE html>
@@ -23,173 +83,162 @@
             height: 350px;
             object-fit: cover;
         }
+        .product-card {
+            transition: box-shadow .15s ease-in-out, transform .15s ease-in-out;
+        }
+        .product-card:hover {
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+            transform: translateY(-2px);
+        }
+        .stock-badge {
+            font-size: .8rem;
+        }
+        .empty-state {
+            padding: 4rem 1rem;
+            text-align: center;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
     </style>
-</head> 
+</head>
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
     <div class="container mt-2">
     <?php
-		//info message
-		if(isset($_SESSION['message'])){
-			?>
-			<div class="row">
-				<div class="col-sm-6 col-sm-offset-6">
-					<div class="alert alert-info text-center">
-						<?= $_SESSION['message']; ?>
-					</div>
-				</div>
-			</div>
-			<?php
-			unset($_SESSION['message']);
-		}
+        //info message
+        if (isset($_SESSION['message'])) {
+            ?>
+            <div class="row">
+                <div class="col-sm-6 col-sm-offset-6">
+                    <div class="alert alert-info text-center">
+                        <?= htmlspecialchars($_SESSION['message']) ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+            unset($_SESSION['message']);
+        }
     ?>
-    <p align="right"><input type="radio" onclick="javascript:window.location.href='store5.php'; "> Mode Hemat  &nbsp&nbsp
-		<input type="radio" onclick="javascript:window.location.href='store4.php'; " checked="checked"> Mode Cantik</p>
+        <p class="text-right">
+            <label class="mb-0"><input type="radio" onclick="javascript:window.location.href='store5.php';"> Mode Hemat</label>
+            &nbsp;&nbsp;
+            <label class="mb-0"><input type="radio" onclick="javascript:window.location.href='store4.php';" checked="checked"> Mode Cantik</label>
+        </p>
         <form method="get" class="form-inline justify-content-between mb-3">
             <div class="form-group mr-2 mb-2" style="flex: 1;">
-                <input type="text" class="form-control" name="namaproduk" placeholder="Masukkan Nama Produk ..." style="width: 100%;" /> 
-            </div> 
+                <input type="text" class="form-control" name="namaproduk" placeholder="Masukkan Nama Produk ..." style="width: 100%;" value="<?= htmlspecialchars($namaproduk) ?>" />
+            </div>
             <button class="btn btn-primary mr-2" name="cari" type="submit" style="width:15%;">
                 <span><i class="fa-solid fa-magnifying-glass"></i></span>
-            </button> 
+            </button>
             <button class="btn btn-primary mr-2" name="tampil" type="submit">Tampil Semua</button>
         </form>
     </div>
     <div class="container">
+        <?php if ($totalRows === 0): ?>
+            <div class="empty-state">
+                <i class="fa-solid fa-box-open"></i>
+                <?php if ($isSearch): ?>
+                    Produk dengan nama "<strong><?= htmlspecialchars($namaproduk) ?></strong>" tidak ditemukan.
+                <?php else: ?>
+                    Belum ada produk yang tersedia saat ini.
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
+        <p class="text-muted">Menampilkan <?= $totalRows === 0 ? 0 : ($limit_start + 1) ?>&ndash;<?= min($limit_start + $limit, $totalRows) ?> dari <?= $totalRows ?> produk</p>
         <div class="row">
-            <?php
-                include "koneksi.php";
-                $idmitra            = $_SESSION ['idadmin'];
-                if(isset($_GET["cari"])){
-                    $namaproduk     = $_GET['namaproduk'];
-                    $page           = (isset($_GET['page']))? $_GET['page'] : 1;
-                    $limit          = 20;
-                    $limit_start    = ($page - 1) * $limit;
-                    $sql            = mysqli_query($koneksi, "SELECT products.namaproduk, products.idpkategori, products.idkategori, variants.*, master_folder.name AS nama_folder 
-                                                                FROM variants 
-                                                                INNER JOIN products ON variants.idproducts = products.id
-                                                                LEFT JOIN master_folder ON variants.folder = master_folder.id
-                                                                WHERE stock > 0 AND namaproduk 
-                                                                LIKE '%$namaproduk%' AND idkategori > 0 AND status <> 1");
-                    $no             = $limit_start + 1;
-                } else {
-                    $page           = (isset($_GET['page']))? $_GET['page'] : 1;
-                    $limit          = 20;
-                    $limit_start    = ($page - 1) * $limit;
-                    $sql            = mysqli_query($koneksi, "SELECT products.namaproduk, products.idpkategori, products.idkategori, variants.*, master_folder.name as nama_folder 
-                                                                FROM variants 
-                                                                INNER JOIN products ON variants.idproducts = products.id
-                                                                LEFT JOIN master_folder ON variants.folder = master_folder.id
-                                                                WHERE variants.status <> 1 AND variants.stock > 0
-                                                                ORDER BY variants.updated_at DESC 
-                                                                LIMIT ".$limit_start.",".$limit
-                                                    );
-                    $no             = $limit_start + 1;
-                }
-
-                while($data = mysqli_fetch_array($sql)){
-            ?>
+            <?php while ($data = $result->fetch_assoc()): ?>
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
-                <div class="card">
-                    <?php if ($data['foto'] <> ""): ?>
-                        <img class="card-img-top fixed-size-img" src="foto/produk/<?= $data['nama_folder'] ?>/<?= $data['foto']; ?>" alt="Card image">
+                <div class="card product-card">
+                    <?php if (!empty($data['foto'])): ?>
+                        <img class="card-img-top fixed-size-img" loading="lazy" src="foto/produk/<?= rawurlencode($data['nama_folder'] ?? '') ?>/<?= rawurlencode($data['foto']) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                     <?php else: ?>
-                        <img class="card-img-top fixed-size-img" src="foto/nophoto.png" alt="Card image">
+                        <img class="card-img-top fixed-size-img" loading="lazy" src="foto/nophoto.png" alt="Tidak ada foto produk">
                     <?php endif ?>
                     <div class="card-body">
-                        <h6 class="card-title"><?= $data['namaproduk']; ?> <?= $data['variant'] ?> <?= $data['size'] ?></h6>
+                        <h6 class="card-title"><?= htmlspecialchars($data['namaproduk']) ?> <?= htmlspecialchars($data['variant']) ?> <?= htmlspecialchars($data['size']) ?></h6>
                         <?php if ($data['status'] == 0): ?>
                             <p class="card-text">
                                 <?php if ($data['hargacoret'] > 0) : ?>
-                                    <span class="text-danger text-decoration-line-through">Rp. <?= number_format($data['hargacoret']); ?></span>
+                                    <span class="text-danger text-decoration-line-through">Rp. <?= number_format($data['hargacoret']) ?></span>
                                 <?php endif; ?>
                                 <br>
                                 <?php if ($data['idkategori'] >= 51): ?>
                                     -
                                 <?php elseif (strpos($data['namaproduk'], "Vanellus Dress") !== false) : ?>
-                                    <span>Rp. <?= number_format($data['harga']); ?></span>
-                                    <span class="text-decoration-line-through d-block">Rp. <?= number_format(480000); ?></span>
+                                    <span>Rp. <?= number_format($data['harga']) ?></span>
+                                    <span class="text-decoration-line-through d-block">Rp. <?= number_format(480000) ?></span>
                                 <?php else: ?>
-                                    Rp. <?= number_format($data['harga']); ?>
+                                    Rp. <?= number_format($data['harga']) ?>
                                 <?php endif ?>
                             </p>
-                            <p class="card-text">
-                                (<?= $data['stock']; ?>) Pcs&nbsp;&nbsp;&nbsp;
-                                <a href="add_chart2.php?id=<?= $data['id']; ?>&harga=<?= $data['harga']; ?>" class="btn btn-primary">Beli</a>
+                            <p class="card-text d-flex align-items-center justify-content-between">
+                                <span class="badge badge-secondary stock-badge">Stok: <?= (int) $data['stock'] ?></span>
+                                <a href="add_chart2.php?id=<?= (int) $data['id'] ?>" class="btn btn-primary btn-sm">Beli</a>
                             </p>
                         <?php else: ?>
-                            <p class="card-text">
+                            <p class="card-text text-muted">
                                 Produk sedang diupdate, akan aktif setelah proses update selesai.
                             </p>
                         <?php endif ?>
                     </div>
                 </div>
             </div>
-            <? } ?>
+            <?php endwhile; ?>
         </div>
+        <?php endif; ?>
     </div>
 
         <!-- PAGINATION -->
+        <?php if ($totalRows > 0): ?>
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-center">
-                <?php
-                    if($page == 1){
-                ?>
+                <?php if ($page == 1): ?>
                     <li class="page-item disabled"><a class="page-link" href="#">First</a></li>
                     <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
-                <?php
-                    } else {
-                        $link_prev = ($page > 1) ? $page - 1 : 1;
+                <?php else:
+                    $link_prev = ($page > 1) ? $page - 1 : 1;
                 ?>
-                    <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
-                    <li class="page-item"><a class="page-link" href="?page=<?= $link_prev; ?>">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl(1, $isSearch, $namaproduk) ?>">First</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($link_prev, $isSearch, $namaproduk) ?>">&laquo;</a></li>
+                <?php endif; ?>
                 <?php
-                    }
-                ?>
-                <?php
-                    // Buat query untuk menghitung semua jumlah data
-                    $sql2           = mysqli_query($koneksi, "SELECT COUNT(*) AS jumlah FROM katalog");
-                    $get_jumlah     = mysqli_fetch_array($sql2);
-                    
-                    $jumlah_page    = ceil($get_jumlah['jumlah'] / $limit); // Hitung jumlah halamannya
-                    $jumlah_number  = 3; // Tentukan jumlah link number sebelum dan sesudah page yang aktif
-                    $start_number   = ($page > $jumlah_number)? $page - $jumlah_number : 1; // Untuk awal link number
-                    $end_number     = ($page < ($jumlah_page - $jumlah_number))? $page + $jumlah_number : $jumlah_page; // Untuk akhir link number
+                    $jumlah_number = 3; // Tentukan jumlah link number sebelum dan sesudah page yang aktif
+                    $start_number  = ($page > $jumlah_number) ? $page - $jumlah_number : 1;
+                    $end_number    = ($page < ($jumlah_page - $jumlah_number)) ? $page + $jumlah_number : $jumlah_page;
 
-                    for($i = $start_number; $i <= $end_number; $i++){
+                    for ($i = $start_number; $i <= $end_number; $i++):
                         $link_active = ($page == $i) ? ' active' : '';
                 ?>
-                    <li class="page-item<?= $link_active; ?>"><a class="page-link" href="?page=<?= $i; ?>"><?= $i; ?></a></li>
-                <?php
-                    }
-                ?>
-                <?php
-                    if($page == $jumlah_page){
-                ?>
+                    <li class="page-item<?= $link_active ?>"><a class="page-link" href="<?= buildPageUrl($i, $isSearch, $namaproduk) ?>"><?= $i ?></a></li>
+                <?php endfor; ?>
+                <?php if ($page == $jumlah_page): ?>
                     <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
                     <li class="page-item disabled"><a class="page-link" href="#">Last</a></li>
-                <?php
-                } else {
-                        $link_next = ($page < $jumlah_page) ? $page + 1 : $jumlah_page;
+                <?php else:
+                    $link_next = ($page < $jumlah_page) ? $page + 1 : $jumlah_page;
                 ?>
-                    <li class="page-item"><a class="page-link" href="?page=<?= $link_next; ?>">&raquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?page=<?= $jumlah_page; ?>">Last</a></li>
-                <?php
-                    }
-                ?>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($link_next, $isSearch, $namaproduk) ?>">&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($jumlah_page, $isSearch, $namaproduk) ?>">Last</a></li>
+                <?php endif; ?>
             </ul>
         </nav>
+        <?php endif; ?>
         <!-- PAGINATION END -->
 
     <!-- MAIN CONTENT END -->
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawahstore.php'; ?>
+    <?php include 'menubawahstore.php'; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->
@@ -228,7 +277,7 @@
         <script src="./assets2/js/mail-script.js"></script>
         <script src="./assets2/js/jquery.ajaxchimp.min.js"></script>
 
-        <!-- Jquery Plugins, main Jquery -->  
+        <!-- Jquery Plugins, main Jquery -->
         <script src="./assets2/js/plugins.js"></script>
         <script src="./assets2/js/main.js"></script>
     <!-- SCRIPT END -->

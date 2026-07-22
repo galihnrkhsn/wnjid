@@ -1,22 +1,38 @@
-<?php 
+<?php
 session_start();
 
-include 'koneksi.php'; 
-include 'floatingbutton.php'; 
+include 'koneksi.php';
+include 'floatingbutton.php';
 
-if(!isset($_SESSION["admin_mitra"])){
-  echo "<script>alert('anda harus login terlebih dahulu');</script>";
-   echo "<script>location='login2.php';</script>";
-   header('location:login2.php');
-   exit();
+if (!isset($_SESSION["admin_mitra"])) {
+    header('Location: login2.php');
+    exit;
 }
 
-$invoice=$_GET["id"];
+$idadmin = $_SESSION["admin_mitra"]["idadmin"];
+$invoice = $_GET["id"] ?? '';
 
-  $sql = "SELECT * FROM orderpengiriman WHERE invoice='$invoice' order by orderpengiriman.idorderp desc limit 1 ";
-  $query = $koneksi->query($sql);
-  $pengiriman = $query->fetch_assoc();
+// invoice hanya boleh alfanumerik supaya query di bawah (yang masih menyisipkan
+// $invoice langsung ke string SQL) tidak bisa disalahgunakan untuk SQL injection
+if ($invoice === '' )) {
+    header('Location: view_cart.php');
+    exit;
+}
 
+// Pastikan invoice ini benar-benar milik mitra yang sedang login
+$stmtOwn = $koneksi->prepare("SELECT COUNT(*) AS jumlah FROM ordermitra WHERE invoice = ? AND idmitra = ?");
+$stmtOwn->bind_param('ss', $invoice, $idadmin);
+$stmtOwn->execute();
+$ownCheck = $stmtOwn->get_result()->fetch_assoc();
+if (($ownCheck['jumlah'] ?? 0) == 0) {
+    header('Location: view_cart.php');
+    exit;
+}
+
+$stmtPengiriman = $koneksi->prepare("SELECT * FROM orderpengiriman WHERE invoice = ? ORDER BY orderpengiriman.idorderp DESC LIMIT 1");
+$stmtPengiriman->bind_param('s', $invoice);
+$stmtPengiriman->execute();
+$pengiriman = $stmtPengiriman->get_result()->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="en">

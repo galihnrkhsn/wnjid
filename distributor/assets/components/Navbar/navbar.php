@@ -3,16 +3,21 @@
 
     $idadmin        = $_SESSION["idadmin"];
     $keranjang      = 0;
-    $sql2           = "SELECT * FROM keranjang  WHERE idmitra = '$idadmin' and jmlh > 0 AND status = 'Active'";
-    $query2         = $koneksi->query($sql2);
+    $stmtKeranjang  = $koneksi->prepare("SELECT * FROM keranjang WHERE idmitra = ? AND jmlh > 0 AND status = 'Active'");
+    $stmtKeranjang->bind_param('s', $idadmin);
+    $stmtKeranjang->execute();
+    $query2         = $stmtKeranjang->get_result();
     while($apaya    = $query2->fetch_assoc()){
         $keranjang += $apaya['jmlh'];
     }
 
-    $ambil          = $koneksi->query("SELECT (sum(debit) - sum(credit)) AS selisih FROM saldo WHERE idadmin = '$idadmin' AND deleted_at IS NULL");
+    $stmtSaldo      = $koneksi->prepare("SELECT (sum(debit) - sum(credit)) AS selisih FROM saldo WHERE idadmin = ? AND deleted_at IS NULL");
+    $stmtSaldo->bind_param('s', $idadmin);
+    $stmtSaldo->execute();
+    $ambil          = $stmtSaldo->get_result();
     if ($ambil) {
-        $result     = $ambil->fetch_assoc();
-        $saldo_sisa = $result["selisih"] ?? 0;
+        $result1     = $ambil->fetch_assoc();
+        $saldo_sisa = $result1["selisih"] ?? 0;
     } else {
         echo "Gagal mengambil data saldo.";
     }
@@ -228,9 +233,12 @@
                 <li style="font-size: 15px;">
                     <a href="pesan"><i class="fa-solid fa-message"></i>
                     <?php 
-                    $mitra= $_SESSION ['idadmin'];
-                    $ambiljmlh=$koneksi->query("SELECT COUNT(*) as jmlh FROM tinbox where idadmin='$mitra' and status='Belum Dibaca'"); 
-                    $datajmlh=$ambiljmlh->fetch_assoc();
+                    $mitra = $_SESSION['idadmin'];
+                    $stmtInbox = $koneksi->prepare("SELECT COUNT(*) as jmlh FROM tinbox WHERE idadmin = ? AND status = 'Belum Dibaca'");
+                    $stmtInbox->bind_param('s', $mitra);
+                    $stmtInbox->execute();
+                    $ambiljmlh = $stmtInbox->get_result();
+                    $datajmlh = $ambiljmlh->fetch_assoc();
                     ?>
                 <?php if ($datajmlh['jmlh']==0) {
                 
@@ -255,7 +263,7 @@
                 <li>
                     <i class="fa-solid fa-money-bill">
                         <a href="saldo">
-                            <? echo number_format($saldo_sisa) ?>
+                            <?php echo number_format($saldo_sisa) ?>
                         </a>
                     </i>
                 </li>

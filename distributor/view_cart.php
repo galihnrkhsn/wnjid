@@ -1,8 +1,8 @@
 <?php
-    session_start();
-
-    include 'koneksi.php'; 
+    include 'koneksi.php';
     include 'assets/components/Sessions/sesDistri.php';
+
+    $idmitra = $_SESSION["idadmin"];
 ?>
 
 <!DOCTYPE html>
@@ -14,10 +14,10 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <title>Distributor | Wanoja</title>
-</head> 
+</head>
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
@@ -45,87 +45,88 @@
                         </thead>
                         <tbody>
                             <?php
-                                $idmitra    = $_SESSION["idadmin"];
-                                $total      = 0;
-                                $berat      = 0;
-                                $qty        = 0;
+                                $total = 0;
+                                $berat = 0;
+                                $qty   = 0;
 
-                                $sql = "SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
+                                $stmtHome = $koneksi->prepare("SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
                                         INNER JOIN variants ON keranjang.idproduk = variants.id
                                         INNER JOIN products ON variants.idproducts = products.id
-                                        WHERE keranjang.idmitra = '$idmitra'
+                                        WHERE keranjang.idmitra = ?
                                         AND keranjang.jmlh > 0
                                         AND (products.idkategori < 50)
                                         AND keranjang.status = 'Active'
-                                            AND (variants.jenis IS NULL 
+                                            AND (variants.jenis IS NULL
                                             OR (
-                                                variants.jenis NOT LIKE 'Sale' 
+                                                variants.jenis NOT LIKE 'Sale'
                                                 AND variants.jenis NOT LIKE '%bundling%'
                                                 AND variants.jenis NOT LIKE '%Flash%'
                                                 AND variants.jenis NOT LIKE '%b1g1%'
                                                 AND variants.jenis NOT LIKE '%GB%'
                                             )
-                                       )";
-                                $query = $koneksi->query($sql);
+                                       )");
+                                $stmtHome->bind_param('s', $idmitra);
+                                $stmtHome->execute();
+                                $query = $stmtHome->get_result();
+
+                                if ($query->num_rows === 0):
+                            ?>
+                            <tr><td colspan="6" class="text-center text-muted">Belum ada produk Ready Stok Reguler di keranjang.</td></tr>
+                            <?php
+                                endif;
                                 while($row = $query->fetch_assoc()) {
                                     $idproduk = $row['id'];
                             ?>
                             <tr>
-                                <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
-                                <input type="hidden" name="harga[]" value="<?= $row['harga']; ?>">
-                                <input type="hidden" name="idkeranjangubah[]" value="<?= $row['idkeranjang']; ?>">
-                                <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
-                                <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
-                                <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
+                                <input type="hidden" name="harga[]" value="<?= htmlspecialchars($row['harga']); ?>">
+                                <input type="hidden" name="idkeranjangubah[]" value="<?= (int) $row['idkeranjang']; ?>">
+                                <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
+                                <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
+                                <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
-                                        <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= (int) $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
+                                        <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $row['namaproduk'];?></td>
-                                <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
+                                <td><?= htmlspecialchars($row['namaproduk']); ?></td>
+                                <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
+                                    <?php $coret = number_format($row['hargacoret'],2);
                                         if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
+                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
                                         }
                                     ?>
                                     <br>
                                     Rp. <?= number_format($row['harga'], 2); ?>
                                 </td>
-                                <?php
-                                    $max    = $row['stock'];
-                                    $max1   = $max + 1;
-                                ?>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
-                                        <?= $row['jmlh']; ?>
+                                        <?= (int) $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                    
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <?php $subtotal = number_format($row['subtotal'], 2); ?>
                                 <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <?php
+                                    $total += $row['subtotal'];
+                                    $berat += $row['berat'];
+                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
-                            <?php
-                                $qty+=$row['jmlh'];
-                                }
-                            ?>
+                            <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
                                 <td><b><?= $qty; ?></b></td>
@@ -136,7 +137,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <input type="hidden" name="berat" value="<?= $berat; ?>">
+                    <input type="hidden" name="berat" value="<?= htmlspecialchars($berat); ?>">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="p-2"><a href="store4.php" class="btn btn-warning btn-s"><i class="fa-solid fa-chevron-left"></i></a></div>
                         <div class="p-2"></div>
@@ -171,80 +172,80 @@
                         </thead>
                         <tbody>
                             <?php
-                                $idmitra    = $_SESSION["idadmin"];
-                                $total      = 0;
-                                $berat      = 0;
-                                $qty        = 0;
+                                $total = 0;
+                                $berat = 0;
+                                $qty   = 0;
 
-                                $sql = "SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
+                                $stmtGet = $koneksi->prepare("SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
                                         INNER JOIN variants ON keranjang.idproduk = variants.id
                                         INNER JOIN products ON variants.idproducts = products.id
-                                        WHERE keranjang.idmitra = '$idmitra'
+                                        WHERE keranjang.idmitra = ?
                                         AND keranjang.jmlh > 0
                                         AND (products.idkategori < 50)
                                         AND keranjang.status = 'Active'
-                                        AND variants.jenis LIKE '%b1g1%'";
-                                $query = $koneksi->query($sql);
+                                        AND variants.jenis LIKE '%b1g1%'");
+                                $stmtGet->bind_param('s', $idmitra);
+                                $stmtGet->execute();
+                                $query = $stmtGet->get_result();
+
+                                if ($query->num_rows === 0):
+                            ?>
+                            <tr><td colspan="6" class="text-center text-muted">Belum ada produk Buy 1 Get 1 di keranjang.</td></tr>
+                            <?php
+                                endif;
                                 while($row = $query->fetch_assoc()) {
                             ?>
                             <tr>
-                                <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
-                                <input type="hidden" name="harga[]" value="<?= $row['harga']; ?>">
-                                <input type="hidden" name="idkeranjangubah[]" value="<?= $row['idkeranjang']; ?>">
-                                <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
-                                <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
-                                <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
-                                <input type="hidden" name="jenis" value="<?= $row['jenis']; ?>">
+                                <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
+                                <input type="hidden" name="harga[]" value="<?= htmlspecialchars($row['harga']); ?>">
+                                <input type="hidden" name="idkeranjangubah[]" value="<?= (int) $row['idkeranjang']; ?>">
+                                <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
+                                <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
+                                <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="jenis" value="<?= htmlspecialchars($row['jenis']); ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
-                                        <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= (int) $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
+                                        <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $row['namaproduk'];?></td>
-                                <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
+                                <td><?= htmlspecialchars($row['namaproduk']); ?></td>
+                                <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
+                                    <?php $coret = number_format($row['hargacoret'],2);
                                         if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
+                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
                                         }
                                     ?>
                                     <br>
                                     Rp. <?= number_format($row['harga'], 2); ?>
                                 </td>
-                                <?php
-                                    $max    = $row['stock'];
-                                    $max1   = $max + 1;
-                                ?>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
-                                        <?= $row['jmlh']; ?>
+                                        <?= (int) $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                     <?= $row['jmlh']; ?>
-                                    <!-- <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                     -->
+                                     <?= (int) $row['jmlh']; ?>
                                 </td>
                                 <?php $subtotal = number_format($row['subtotal'], 2); ?>
                                 <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <?php
+                                    $total += $row['subtotal'];
+                                    $berat += $row['berat'];
+                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
-                            <?php
-                                $qty+=$row['jmlh'];
-                                }
-                            ?>
+                            <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
                                 <td><b><?= $qty; ?></b></td>
@@ -255,7 +256,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <input type="hidden" name="berat" value="<?= $berat; ?>">
+                    <input type="hidden" name="berat" value="<?= htmlspecialchars($berat); ?>">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="p-2"><a href="store4.php" class="btn btn-warning btn-s"><i class="fa-solid fa-chevron-left"></i></a></div>
                         <div class="p-2"></div>
@@ -290,22 +291,28 @@
                         </thead>
                         <tbody>
                         <?php
-                            $idmitra    = $_SESSION["idadmin"];
-                            $total      = 0;
-                            $berat      = 0;
-                            $qty        = 0;
+                            $total = 0;
+                            $berat = 0;
+                            $qty   = 0;
 
-                            $sql = "SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
+                            $stmtB3 = $koneksi->prepare("SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
                                     INNER JOIN variants ON keranjang.idproduk = variants.id
                                     INNER JOIN products ON variants.idproducts = products.id
-                                    WHERE keranjang.idmitra = '$idmitra'
+                                    WHERE keranjang.idmitra = ?
                                     AND keranjang.jmlh > 0
                                     AND (products.idkategori < 50)
                                     AND keranjang.status = 'Active'
-                                    AND variants.jenis LIKE '%Bundling 3%'";
-                            $query = $koneksi->query($sql);
+                                    AND variants.jenis LIKE '%Bundling 3%'");
+                            $stmtB3->bind_param('s', $idmitra);
+                            $stmtB3->execute();
+                            $query = $stmtB3->get_result();
+
+                            if ($query->num_rows === 0):
+                        ?>
+                            <tr><td colspan="6" class="text-center text-muted">Belum ada produk Bundling 3 di keranjang.</td></tr>
+                        <?php
+                            endif;
                             while($row = $query->fetch_assoc()) {
-                                $subtotal_asli = $row['subtotal'];
                                 $kelipatan = intval($row['jmlh'] / 3);
                                 $pengurangan = $kelipatan * 15000;
 
@@ -316,17 +323,18 @@
 
                                 $total += $row['subtotal'];
                                 $berat += $row['berat'];
+                                $qty   += $row['jmlh'];
                             ?>
                             <tr>
-                                <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
-                                <input type="hidden" name="harga[]" value="<?= $row['harga']; ?>">
-                                <input type="hidden" name="idkeranjangubah[]" value="<?= $row['idkeranjang']; ?>">
-                                <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
-                                <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
-                                <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
+                                <input type="hidden" name="harga[]" value="<?= htmlspecialchars($row['harga']); ?>">
+                                <input type="hidden" name="idkeranjangubah[]" value="<?= (int) $row['idkeranjang']; ?>">
+                                <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
+                                <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
+                                <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                     $disable = "block";
                                     if ($row['statusnya'] == "Expired") {
                                         $disable = "none";
@@ -334,20 +342,20 @@
                                     ?>
                                     <?php if ($row['statusnya'] == "Expired"): ?>
                                         <div class="badge bg-warning text-white rounded-pill">
-                                            <a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" 
-                                            class="link text-white" 
+                                            <a href="hapus_expired.php?idkeranjang=<?= (int) $row['idkeranjang']; ?>"
+                                            class="link text-white"
                                             onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">
                                             Hapus
                                             </a>
-                                        </div> | 
-                                        <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
+                                        </div> |
+                                        <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ($row['statusnya'] == "Active"): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $row['namaproduk']; ?></td>
-                                <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
+                                <td><?= htmlspecialchars($row['namaproduk']); ?></td>
+                                <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
                                     <?php if ($row['jmlh'] % 3 == 0) : ?>
                                         <span style='text-decoration: line-through'>
@@ -358,24 +366,19 @@
                                     <?php endif; ?>
                                     <br>
                                 </td>
-                                <?php
-                                $max = $row['stock'];
-                                $max1 = $max + 1;
-                                ?>
                                 <td>
                                     <?php if ($row['statusnya'] == "Expired"): ?>
-                                        <?= $row['jmlh']; ?>
+                                        <?= (int) $row['jmlh']; ?>
                                         <br>
                                     <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">
-                                    Ready Stock : <?= $row['stock']; ?>
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">
+                                    Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <td>
                                     Rp. <?= number_format($row['subtotal'], 2); ?> <br>
                                 </td>
                             </tr>
                             <?php
-                                $qty += $row['jmlh'];
                             }
                             ?>
                             <tr>
@@ -384,15 +387,11 @@
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <?php if ($qty % 3 == 0 ) : ?>
-                                    <td><b><?= number_format($total,2); ?></b></td>
-                                <?php else : ?>
-                                    <td><b><?= number_format($total,2); ?></b></td>
-                                <?php endif; ?>
+                                <td><b><?= number_format($total,2); ?></b></td>
                             </tr>
                         </tbody>
                     </table>
-                    <input type="hidden" name="berat" value="<?= $berat; ?>">
+                    <input type="hidden" name="berat" value="<?= htmlspecialchars($berat); ?>">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="p-2"><a href="store4.php" class="btn btn-warning btn-s"><i class="fa-solid fa-chevron-left"></i></a></div>
                         <div class="p-2"></div>
@@ -427,22 +426,28 @@
                         </thead>
                         <tbody>
                             <?php
-                                $idmitra    = $_SESSION["idadmin"];
-                                $total      = 0;
-                                $berat      = 0;
-                                $qty        = 0;
+                                $total = 0;
+                                $berat = 0;
+                                $qty   = 0;
 
-                                $sql = "SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
+                                $stmtB5 = $koneksi->prepare("SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
                                         INNER JOIN variants ON keranjang.idproduk = variants.id
                                         INNER JOIN products ON variants.idproducts = products.id
-                                        WHERE keranjang.idmitra = '$idmitra'
+                                        WHERE keranjang.idmitra = ?
                                         AND keranjang.jmlh > 0
                                         AND (products.idkategori < 50)
                                         AND keranjang.status = 'Active'
-                                        AND variants.jenis = 'Bundling 5'";
-                                $query = $koneksi->query($sql);
+                                        AND variants.jenis = 'Bundling 5'");
+                                $stmtB5->bind_param('s', $idmitra);
+                                $stmtB5->execute();
+                                $query = $stmtB5->get_result();
+
+                                if ($query->num_rows === 0):
+                            ?>
+                            <tr><td colspan="6" class="text-center text-muted">Belum ada produk Bundling 5 di keranjang.</td></tr>
+                            <?php
+                                endif;
                                 while($row = $query->fetch_assoc()) {
-                                    $subtotal_asli = $row['subtotal'];
                                     $kelipatan = intval($row['jmlh'] / 5);
                                     $pengurangan = $kelipatan * 25000;
 
@@ -453,17 +458,18 @@
 
                                     $total += $row['subtotal'];
                                     $berat += $row['berat'];
+                                    $qty   += $row['jmlh'];
                             ?>
                             <tr>
-                                <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
-                                <input type="hidden" name="harga[]" value="<?= $row['harga']; ?>">
-                                <input type="hidden" name="idkeranjangubah[]" value="<?= $row['idkeranjang']; ?>">
-                                <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
-                                <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
-                                <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
+                                <input type="hidden" name="harga[]" value="<?= htmlspecialchars($row['harga']); ?>">
+                                <input type="hidden" name="idkeranjangubah[]" value="<?= (int) $row['idkeranjang']; ?>">
+                                <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
+                                <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
+                                <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                     $disable = "block";
                                     if ($row['statusnya'] == "Expired") {
                                         $disable = "none";
@@ -471,20 +477,20 @@
                                     ?>
                                     <?php if ($row['statusnya'] == "Expired"): ?>
                                         <div class="badge bg-warning text-white rounded-pill">
-                                            <a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" 
-                                            class="link text-white" 
+                                            <a href="hapus_expired.php?idkeranjang=<?= (int) $row['idkeranjang']; ?>"
+                                            class="link text-white"
                                             onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">
                                             Hapus
                                             </a>
-                                        </div> | 
-                                        <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
+                                        </div> |
+                                        <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ($row['statusnya'] == "Active"): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $row['namaproduk']; ?></td>
-                                <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
+                                <td><?= htmlspecialchars($row['namaproduk']); ?></td>
+                                <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
                                     <?php if ($row['jmlh'] % 5 == 0) : ?>
                                         <span style='text-decoration: line-through'>
@@ -495,25 +501,20 @@
                                     <?php endif; ?>
                                     <br>
                                 </td>
-                                <?php
-                                $max = $row['stock'];
-                                $max1 = $max + 1;
-                                ?>
                                 <td>
                                     <?php if ($row['statusnya'] == "Expired"): ?>
-                                        <?= $row['jmlh']; ?>
+                                        <?= (int) $row['jmlh']; ?>
                                         <br>
                                     <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">
-                                    Ready Stock : <?= $row['stock']; ?>
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">
+                                    Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <td>
                                     Rp. <?= number_format($row['subtotal'], 2); ?> <br>
                                 </td>
                             </tr>
                             <?php
-                                $qty += $row['jmlh'];
-                            }
+                                }
                             ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
@@ -521,15 +522,11 @@
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <?php if ($qty % 5 == 0 ) : ?>
-                                    <td><b><?= number_format($total,2); ?></b></td>
-                                <?php else : ?>
-                                    <td><b><?= number_format($total,2); ?></b></td>
-                                <?php endif; ?>
+                                <td><b><?= number_format($total,2); ?></b></td>
                             </tr>
                         </tbody>
                     </table>
-                    <input type="hidden" name="berat" value="<?= $berat; ?>">
+                    <input type="hidden" name="berat" value="<?= htmlspecialchars($berat); ?>">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="p-2"><a href="store4.php" class="btn btn-warning btn-s"><i class="fa-solid fa-chevron-left"></i></a></div>
                         <div class="p-2"></div>
@@ -564,79 +561,80 @@
                         </thead>
                         <tbody>
                             <?php
-                                $idmitra    = $_SESSION["idadmin"];
-                                $total      = 0;
-                                $berat      = 0;
-                                $qty        = 0;
+                                $total = 0;
+                                $berat = 0;
+                                $qty   = 0;
 
-                                $sql = "SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
+                                $stmtFlash = $koneksi->prepare("SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
                                         INNER JOIN variants ON keranjang.idproduk = variants.id
                                         INNER JOIN products ON variants.idproducts = products.id
-                                        WHERE keranjang.idmitra = '$idmitra'
+                                        WHERE keranjang.idmitra = ?
                                         AND keranjang.jmlh > 0
                                         AND (products.idkategori < 50)
                                         AND keranjang.status = 'Active'
-                                        AND variants.jenis LIKE '%Flash%'";
-                                $query = $koneksi->query($sql);
+                                        AND variants.jenis LIKE '%Flash%'");
+                                $stmtFlash->bind_param('s', $idmitra);
+                                $stmtFlash->execute();
+                                $query = $stmtFlash->get_result();
+
+                                if ($query->num_rows === 0):
+                            ?>
+                            <tr><td colspan="6" class="text-center text-muted">Belum ada produk Cuci Gudang di keranjang.</td></tr>
+                            <?php
+                                endif;
                                 while($row = $query->fetch_assoc()) {
                             ?>
                             <tr>
-                                <input type="hidden" name="jenis" value="<?= $row['jenis'] ?>">
-                                <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
-                                <input type="hidden" name="harga[]" value="<?= $row['harga']; ?>">
-                                <input type="hidden" name="idkeranjangubah[]" value="<?= $row['idkeranjang']; ?>">
-                                <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
-                                <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
-                                <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="jenis" value="<?= htmlspecialchars($row['jenis']); ?>">
+                                <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
+                                <input type="hidden" name="harga[]" value="<?= htmlspecialchars($row['harga']); ?>">
+                                <input type="hidden" name="idkeranjangubah[]" value="<?= (int) $row['idkeranjang']; ?>">
+                                <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
+                                <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
+                                <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
-                                        <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= (int) $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
+                                        <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $row['namaproduk'];?></td>
-                                <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
+                                <td><?= htmlspecialchars($row['namaproduk']); ?></td>
+                                <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
+                                    <?php $coret = number_format($row['hargacoret'],2);
                                         if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
+                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
                                         }
                                     ?>
                                     <br>
                                     Rp. <?= number_format($row['harga'], 2); ?>
                                 </td>
-                                <?php
-                                    $max    = $row['stock'];
-                                    $max1   = $max + 1;
-                                ?>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
-                                        <?= $row['jmlh']; ?>
+                                        <?= (int) $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                    
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <?php $subtotal = number_format($row['subtotal'], 2); ?>
                                 <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <?php
+                                    $total += $row['subtotal'];
+                                    $berat += $row['berat'];
+                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
-                            <?php
-                                $qty+=$row['jmlh'];
-                                }
-                            ?>
+                            <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
                                 <td><b><?= $qty; ?></b></td>
@@ -647,7 +645,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <input type="hidden" name="berat" value="<?= $berat; ?>">
+                    <input type="hidden" name="berat" value="<?= htmlspecialchars($berat); ?>">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="p-2"><a href="store4.php" class="btn btn-warning btn-s"><i class="fa-solid fa-chevron-left"></i></a></div>
                         <div class="p-2"></div>
@@ -682,79 +680,80 @@
                         </thead>
                         <tbody>
                             <?php
-                                $idmitra    = $_SESSION["idadmin"];
-                                $total      = 0;
-                                $berat      = 0;
-                                $qty        = 0;
+                                $total = 0;
+                                $berat = 0;
+                                $qty   = 0;
 
-                                $sql = "SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
+                                $stmtGb = $koneksi->prepare("SELECT keranjang.*, keranjang.status AS statusnya, variants.*, products.namaproduk FROM keranjang
                                         INNER JOIN variants ON keranjang.idproduk = variants.id
                                         INNER JOIN products ON variants.idproducts = products.id
-                                        WHERE keranjang.idmitra = '$idmitra'
+                                        WHERE keranjang.idmitra = ?
                                         AND keranjang.jmlh > 0
                                         AND (products.idkategori < 50)
                                         AND keranjang.status = 'Active'
-                                        AND variants.jenis LIKE '%GB%'";
-                                $query = $koneksi->query($sql);
+                                        AND variants.jenis LIKE '%GB%'");
+                                $stmtGb->bind_param('s', $idmitra);
+                                $stmtGb->execute();
+                                $query = $stmtGb->get_result();
+
+                                if ($query->num_rows === 0):
+                            ?>
+                            <tr><td colspan="6" class="text-center text-muted">Belum ada produk Grade B di keranjang.</td></tr>
+                            <?php
+                                endif;
                                 while($row = $query->fetch_assoc()) {
                             ?>
                             <tr>
-                                <input type="hidden" name="jenis" value="<?= $row['jenis'] ?>">
-                                <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
-                                <input type="hidden" name="harga[]" value="<?= $row['harga']; ?>">
-                                <input type="hidden" name="idkeranjangubah[]" value="<?= $row['idkeranjang']; ?>">
-                                <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
-                                <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
-                                <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="jenis" value="<?= htmlspecialchars($row['jenis']); ?>">
+                                <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
+                                <input type="hidden" name="harga[]" value="<?= htmlspecialchars($row['harga']); ?>">
+                                <input type="hidden" name="idkeranjangubah[]" value="<?= (int) $row['idkeranjang']; ?>">
+                                <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
+                                <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
+                                <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
-                                        <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= (int) $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
+                                        <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $row['namaproduk'];?></td>
-                                <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
+                                <td><?= htmlspecialchars($row['namaproduk']); ?></td>
+                                <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
+                                    <?php $coret = number_format($row['hargacoret'],2);
                                         if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
+                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
                                         }
                                     ?>
                                     <br>
                                     Rp. <?= number_format($row['harga'], 2); ?>
                                 </td>
-                                <?php
-                                    $max    = $row['stock'];
-                                    $max1   = $max + 1;
-                                ?>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
-                                        <?= $row['jmlh']; ?>
+                                        <?= (int) $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                    
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <?php $subtotal = number_format($row['subtotal'], 2); ?>
                                 <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <?php
+                                    $total += $row['subtotal'];
+                                    $berat += $row['berat'];
+                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
-                            <?php
-                                $qty+=$row['jmlh'];
-                                }
-                            ?>
+                            <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
                                 <td><b><?= $qty; ?></b></td>
@@ -765,7 +764,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <input type="hidden" name="berat" value="<?= $berat; ?>">
+                    <input type="hidden" name="berat" value="<?= htmlspecialchars($berat); ?>">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="p-2"><a href="store4.php" class="btn btn-warning btn-s"><i class="fa-solid fa-chevron-left"></i></a></div>
                         <div class="p-2"></div>
@@ -793,12 +792,12 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->
     <script type="text/javascript">
-        function checkAll(box) 
+        function checkAll(box)
         {
             let checkboxes = document.getElementsByTagName('input');
 

@@ -69,13 +69,11 @@
     </style>
 </head> 
 <body>
-    <div class="modal fade" id="popupModal" tabindex="-1" aria-labelledby="popupModalLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="popupModal" tabindex="-1" aria-labelledby="popupModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <!-- Close Button -->
                 <button type="button" class="btn-close position-absolute" data-bs-dismiss="modal" aria-label="Close" style="top: -10px; right: -10px; background-color: white; border-radius: 50%; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);"></button>
                 <div class="modal-body text-center">
-                    <!-- Image -->
                     <?php
                         $banner = $koneksi->query("SELECT * FROM slider WHERE tipe = 'banner'")->fetch_assoc();
                     ?>
@@ -83,7 +81,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>

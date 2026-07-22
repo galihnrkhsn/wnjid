@@ -1,18 +1,41 @@
-<? 
-    session_start();
-    include 'koneksi.php'; 
-    include 'floatingbutton.php'; 
+<?php
+    include 'koneksi.php';
+    include 'floatingbutton.php';
     include 'assets/components/Sessions/sesDistri.php';
-    $idadmin    = $_SESSION['idadmin'];
-    $queryUser  = $koneksi->query("SELECT * FROM admin_mitra WHERE idadmin = '$idadmin'");
-    $getUser    = $queryUser->fetch_assoc();
-    $invoice    = $_GET["id"];
-    $sql        = "SELECT * FROM orderpengiriman WHERE invoice = '$invoice' order by orderpengiriman.idorderp desc limit 1 ";
-    $query      = $koneksi->query($sql);
-    $pengiriman = $query->fetch_assoc();
-    if (substr($invoice,0,1)=="F") {
-    echo "<script>location='detailorder_get.php?id=$invoice'</script>";
-}
+    $idadmin = $_SESSION['idadmin'];
+    $invoice = $_GET["id"] ?? '';
+
+    // invoice hanya boleh alfanumerik supaya query di bawah (yang masih menyisipkan
+    // $invoice langsung ke string SQL) tidak bisa disalahgunakan untuk SQL injection
+    if ($invoice === '' )) {
+        header('Location: view_cart.php');
+        exit;
+    }
+
+    // Pastikan invoice ini benar-benar milik mitra yang sedang login
+    $stmtOwn = $koneksi->prepare("SELECT COUNT(*) AS jumlah FROM ordermitra WHERE invoice = ? AND idmitra = ?");
+    $stmtOwn->bind_param('ss', $invoice, $idadmin);
+    $stmtOwn->execute();
+    $ownCheck = $stmtOwn->get_result()->fetch_assoc();
+    if (($ownCheck['jumlah'] ?? 0) == 0) {
+        header('Location: view_cart.php');
+        exit;
+    }
+
+    $stmtUser = $koneksi->prepare("SELECT * FROM admin_mitra WHERE idadmin = ?");
+    $stmtUser->bind_param('s', $idadmin);
+    $stmtUser->execute();
+    $getUser  = $stmtUser->get_result()->fetch_assoc();
+
+    $stmtPengiriman = $koneksi->prepare("SELECT * FROM orderpengiriman WHERE invoice = ? ORDER BY orderpengiriman.idorderp DESC LIMIT 1");
+    $stmtPengiriman->bind_param('s', $invoice);
+    $stmtPengiriman->execute();
+    $pengiriman = $stmtPengiriman->get_result()->fetch_assoc();
+
+    if (substr($invoice, 0, 1) == "F") {
+        header('Location: detailorder_get.php?id=' . rawurlencode($invoice));
+        exit;
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +46,7 @@
         <title>WNJ</title>
     </head>
   <body>
-  <? include "assets/components/Navbar/navbar.php"; ?>
+  <?php include "assets/components/Navbar/navbar.php"; ?>
 
 <div class="container mt-2">
     <h3 class="text-center">Detail Order</h3>
@@ -32,7 +55,7 @@
     <h4 class="text-center"><?= $getUser['namamitra'] ?> (Cust ID : <?= $getUser['idadmin']; ?> )</h4><br>
     <b>Status Pesanan</b><br>
     <?= $pengiriman['tgl']; ?><br>
-    <?
+    <?php
         $sql    = "SELECT status, payment FROM ordermitra WHERE invoice = '$invoice' ";
         $query  = $koneksi->query($sql);
         $status = $query->fetch_assoc();
@@ -49,7 +72,7 @@
     Kecamatan   : <?= $pengiriman['kecamatan']; ?><br>
     Ekspedisi   : <?= strtoupper($pengiriman['ekspedisi']); ?><br>
 
-    <? 
+    <?php 
         $sqlcek         = "SELECT * FROM orderpengiriman WHERE invoice = '$invoice' ORDER BY orderpengiriman.idorderp DESC LIMIT 1 ";
         $query          = $koneksi->query($sqlcek);
         $pengirimancek  = $query->fetch_assoc();
@@ -67,10 +90,10 @@
     ?>
     <hr>
     <div class="table-responsive"> 
-        <? if (substr($invoice,0,1)=="V"): ?> 
+        <?php if (substr($invoice,0,1)=="V"): ?> 
             <a href="isivoal?id=<?= $invoice; ?>" class="btn btn-danger btn-sm" style="width: 100%">Isi Box Voal & Request Kartu Ucapan</a>
             <br>
-        <? endif ?>
+        <?php endif ?>
         <br>
         <b>Item Pesanan</b><br>
         <table class="table table-bordered">
@@ -120,11 +143,11 @@
             </tr>
         </table>     
     </div>   
-    <? $totala =  $harga;  ?>
+    <?php $totala =  $harga;  ?>
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totalb = 0;
         $sql    = "SELECT * FROM ordermitra 
                     INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -133,11 +156,11 @@
         $query  = $koneksi->query($sql);
         while ($gb = $query->fetch_assoc()){
     ?>
-    <? $totalb += $gb['subtotal']; } ?>
+    <?php $totalb += $gb['subtotal']; } ?>
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald5    = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -146,11 +169,11 @@
         $query      = $koneksi->query($sql);
         while ($d5 = $query->fetch_assoc()){
     ?>
-    <? $totald5 += $d5['subtotal']; } ?>
+    <?php $totald5 += $d5['subtotal']; } ?>
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald10   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -159,11 +182,11 @@
         $query      = $koneksi->query($sql);
         while ($d10 = $query->fetch_assoc()){
     ?>
-    <?  $totald10 += $d10['subtotal']; } ?>
+    <?php  $totald10 += $d10['subtotal']; } ?>
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald15   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -172,11 +195,11 @@
         $query      = $koneksi->query($sql);
         while ($d15 = $query->fetch_assoc()){
     ?>
-    <?  $totald15 +=  $d15['subtotal']; } ?> 
+    <?php  $totald15 +=  $d15['subtotal']; } ?> 
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald17   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -186,11 +209,11 @@
         while ($d17 = $query->fetch_assoc()){
     ?>
     
-    <?  $totald17 +=  $d17['subtotal']; } ?>
+    <?php  $totald17 +=  $d17['subtotal']; } ?>
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald20   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -200,11 +223,11 @@
         while ($d20 = $query->fetch_assoc()){
     ?>
     
-    <?  $totald20 +=  $d20['subtotal']; } ?>
+    <?php  $totald20 +=  $d20['subtotal']; } ?>
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald25   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -214,11 +237,11 @@
         while ($d25 = $query->fetch_assoc()){
     ?>
     
-    <?  $totald25 +=  $d25['subtotal']; } ?>   
+    <?php  $totald25 +=  $d25['subtotal']; } ?>   
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $ttl52  = 0;
         $sql    = "SELECT MAX(variants.harga) AS subtotal 
                     FROM ordermitra 
@@ -231,7 +254,7 @@
         // $sql = "SELECT * FROM ordermitra INNER JOIN produk ON produk.idproduk = ordermitra.idproduk WHERE ordermitra.invoice AND ordermitra.jumlah > 0 AND products.idkategori = 52";
     ?>
 
-    <?
+    <?php
         $totald51   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -244,7 +267,7 @@
     ?>      
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totaldfree=0;
         $sql = "SELECT * FROM ordermitra 
                     INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -254,11 +277,11 @@
         while ($dfree = $query->fetch_assoc()){
     ?>
     
-    <?  $totaldfree +=  $dfree['subtotal']; } ?>   
+    <?php  $totaldfree +=  $dfree['subtotal']; } ?>   
     <!----------------------------------------------------------------------------------------------------------------------------->
 
     <hr>
-    <?
+    <?php
         $apaja      = $pengiriman['dropship'];
         $dropship   = $pengiriman['berat'];
     
@@ -542,7 +565,7 @@
         }
     ?>
     
-    <? 
+    <?php 
     // $sql = "SELECT *,COUNT(*) as jumlah FROM orderpembayaran WHERE invoice='$invoice' ";
     // $query = $koneksi->query($sql);
     // $pengirim = $query->fetch_assoc();
@@ -556,12 +579,12 @@
     // }
     ?>
 
-    <?
+    <?php
         if($ongkir==0){
             if($status['status'] == 'Pending' && ($kurir == 'Ahsan' or $kurir == 'Gosend' or $kurir == 'Ambil ke Pusat' or $kurir == 'Disatukan' or $kurir == 'idetruck')){
     ?>
   
-    <?
+    <?php
         $jumlahhari = '+1 days'; 
         $no         = 1;
         $dataproduk = $koneksi->query("SELECT * FROM ordermitra WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 GROUP BY invoice");
@@ -575,7 +598,7 @@
         <p id="demomiki<?= $tampilkan['idorder']; ?>" style="color: red;"></p>
         <br>
     </center>
-    <? 
+    <?php 
         date_default_timezone_set('Asia/Jakarta');
         $tgl1 = $tampilkan['tgl'];// pendefinisian tanggal awal
         $tgl2 = date('Y-m-d', strtotime($jumlahhari, strtotime($tgl1))); //operasi penjumlahan tanggal sebanyak 6 hari
@@ -617,9 +640,9 @@ var x = setInterval(function() {
 }, 1000);
 </script>
 
-<? } ?> 
+<?php } ?> 
 
-<?            }
+<?php            }
             else if($kurir=='Ahsan' or $kurir=='Gosend' or $kurir=='Ambil ke Pusat' or $kurir=='Disatukan' or $kurir=='idetruck'
               and ($status['status']=='Proses' or $status['status']=='Selesai')){
             echo "<center>Sudah Konfirmasi Pembayaran</center>";
@@ -630,14 +653,14 @@ var x = setInterval(function() {
     }
     else if($status['status']=='Pending'){ ?>
 
-   <? 
+   <?php 
   $jumlahhari='+1 days'; 
   $dataproduk=$koneksi->query("SELECT * FROM ordermitra  WHERE ordermitra.invoice='$invoice' and ordermitra.jumlah>0 GROUP BY invoice");
   while($tampilkan=$dataproduk->fetch_assoc()){
 
 ?>
       <center><button type="submit" class="btn btn-sm" name="cari" id="linkmiki<?= $tampilkan['idorder']; ?>">        
-        <?
+        <?php
             $total_barang = str_replace(',', '', $tgrandtotal);
             $totalForLink = $total_barang;
         ?>
@@ -650,7 +673,7 @@ var x = setInterval(function() {
       <p id="demomiki<?= $tampilkan['idorder']; ?>" style="color: red;"></p>
       <br>
       </center>
-<? 
+<?php 
 date_default_timezone_set('Asia/Jakarta');
 $tgl1 = $tampilkan['tgl'];// pendefinisian tanggal awal
 $tgl2 = date('Y-m-d', strtotime($jumlahhari, strtotime($tgl1))); //operasi penjumlahan tanggal sebanyak 6 hari
@@ -695,9 +718,9 @@ var x = setInterval(function() {
 }, 1000);
 </script>
 
-<? } ?>     
+<?php } ?>     
 
-<? 
+<?php 
     echo "";
     } 
      else if($status['status']=='Proses' or $status['status']=='Selesai'){

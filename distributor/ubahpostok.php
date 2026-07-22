@@ -1,33 +1,45 @@
 <?php
-    session_start();
-    error_reporting (0);
+    error_reporting(0);
 
     include 'floatingbutton.php';
     include 'koneksi.php';
     include 'assets/components/Sessions/sesDistri.php';
     include 'settingdatatables.php';
 
-    $idpoproduk = $_GET['id'];
-    $invoice    = $_GET['invoice']; 
+    $idpoproduk = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+    $invoice    = $_GET['invoice'] ?? '';
     $idadmin    = $_SESSION["idadmin"];
-    $query      = "SELECT COUNT(*) as jumlah,
+
+    if ($idpoproduk <= 0 || $invoice === '' ) {
+        header('Location: listnewpo.php');
+        exit;
+    }
+
+    $stmtOwn = $koneksi->prepare("SELECT COUNT(*) as jumlah,
                         poproduk.idpoproduk,
                         poproduk.namapo,
-                        poproduk.status 
-                    FROM poproduk 
-                    inner join pomitra on poproduk.idpoproduk=pomitra.idpoproduk 
-                    WHERE poproduk.idpoproduk='$idpoproduk' 
-                    AND pomitra.idmitra='$idadmin'
-                    AND pomitra.invoice = '$invoice'
-                ";
-    $sql    = mysqli_query($koneksi, $query);  
-    $data   = mysqli_fetch_array($sql);
+                        poproduk.status
+                    FROM poproduk
+                    inner join pomitra on poproduk.idpoproduk=pomitra.idpoproduk
+                    WHERE poproduk.idpoproduk = ?
+                    AND pomitra.idmitra = ?
+                    AND pomitra.invoice = ?
+                ");
+    $stmtOwn->bind_param('iss', $idpoproduk, $idadmin, $invoice);
+    $stmtOwn->execute();
+    $data = $stmtOwn->get_result()->fetch_assoc();
 
-    $findUser   = $koneksi->query("SELECT * FROM admin_mitra WHERE idadmin='$idadmin'");
-    $queryUser  = $findUser->fetch_assoc(); 
+    if (!$data || $data['jumlah'] == 0) {
+        header('Location: listnewpo.php');
+        exit;
+    }
 
-    $resultProduk           = $koneksi->query("SELECT * FROM poproduk INNER JOIN pokategori ON pokategori.idpoproduk = poproduk.idpoproduk WHERE poproduk.idpoproduk = '$idpoproduk'");
-    $excluded_sarung    = [6356, 6357, 6358, 6359, 6360, 6366, 6367, 6368, 6369, 6370, 6371, 6372, 6373, 6540, 6541, 6542, 6543, 6544, 6550, 6551, 6552, 6553, 6554, 6555, 6556, 6557,];
+    $stmtUser  = $koneksi->prepare("SELECT * FROM admin_mitra WHERE idadmin = ?");
+    $stmtUser->bind_param('s', $idadmin);
+    $stmtUser->execute();
+    $queryUser = $stmtUser->get_result()->fetch_assoc();
+
+    $excluded_sarung = [6356, 6357, 6358, 6359, 6360, 6366, 6367, 6368, 6369, 6370, 6371, 6372, 6373, 6540, 6541, 6542, 6543, 6544, 6550, 6551, 6552, 6553, 6554, 6555, 6556, 6557];
 ?>
 
 <!DOCTYPE html>
@@ -39,44 +51,46 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    
+
     <title>Distributor | Wanoja</title>
-</head> 
+</head>
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
     <div class="container mt-5 justify-content-center">
         <p align="center"><strong>SALES INVOICE</strong></p>
-        <p align="center"><strong><?php echo $data['namapo']; ?></strong></p><br>
-        <p align="left">Nama Mitra  : <?php echo $queryUser["namamitra"]; ?></p>
-        <p align="left">Alamat  : <?php echo $queryUser["alamat"]; ?> </p>
-        <p align="left">No Invoice  : <?php echo $invoice; ?></p>
-        
+        <p align="center"><strong><?= htmlspecialchars($data['namapo'] ?? '') ?></strong></p><br>
+        <p align="left">Nama Mitra  : <?= htmlspecialchars($queryUser["namamitra"] ?? '') ?></p>
+        <p align="left">Alamat  : <?= htmlspecialchars($queryUser["alamat"] ?? '') ?> </p>
+        <p align="left">No Invoice  : <?= htmlspecialchars($invoice) ?></p>
+
         <?php if ($idpoproduk != 181 && $idpoproduk != 182 && $idpoproduk != 183): ?>
             <div class="border border-dark">
                 <b>Sisa Stock:</b>
                 <div class="row col-12">
                     <?php
-                    $sql = "SELECT * FROM pokategori WHERE idpoproduk='$idpoproduk' ORDER BY namakategori";
-                    $query = $koneksi->query($sql);
+                    $stmtStokList = $koneksi->prepare("SELECT * FROM pokategori WHERE idpoproduk = ? ORDER BY namakategori");
+                    $stmtStokList->bind_param('i', $idpoproduk);
+                    $stmtStokList->execute();
+                    $query = $stmtStokList->get_result();
                     while ($stok = $query->fetch_assoc()) {
                     ?>
-                        <?php if (!in_array($stok['idpo'], $excluded_sarung)) :?>
+                        <?php if (!in_array($stok['idpo'], $excluded_sarung)) : ?>
                             <div class="col-2">
-                                <?php echo $stok['namakategori']; ?>
+                                <?= htmlspecialchars($stok['namakategori']) ?>
                             </div>
                             <div class="col-2">
-                                (<?php echo $stok['stok']; ?>)
+                                (<?= (int) $stok['stok'] ?>)
                             </div>
                             <br>
                         <?php endif; ?>
                     <?php } ?>
                 </div>
             </div>
-        <?php endif; ?>         
+        <?php endif; ?>
 
         <div class="table-responsive mt-3">
             <table class="table table-bordered">
@@ -90,7 +104,7 @@
                 </tr>
                 <?php
                 $no = 1;
-                $sql = mysqli_query($koneksi, "SELECT
+                $stmtRows = $koneksi->prepare("SELECT
                                                 pokategori.namakategori,
                                                 podetail.variant,
                                                 pomitra.idpomitra,
@@ -98,24 +112,26 @@
                                                 pomitra.jumlah,
                                                 pomitra.invoice,
                                                 pomitra.total,
-                                                podetail.harga 
-                                                FROM pomitra 
-                                                INNER JOIN pokategori ON pokategori.idpo=pomitra.idpo 
-                                                INNER JOIN podetail ON podetail.idpodetail=pomitra.idpodetail 
-                                                WHERE pomitra.idmitra='$idadmin' 
-                                                AND pomitra.idpoproduk='$idpoproduk'
-                                                AND pomitra.invoice = '$invoice'
+                                                podetail.harga
+                                                FROM pomitra
+                                                INNER JOIN pokategori ON pokategori.idpo=pomitra.idpo
+                                                INNER JOIN podetail ON podetail.idpodetail=pomitra.idpodetail
+                                                WHERE pomitra.idmitra = ?
+                                                AND pomitra.idpoproduk = ?
+                                                AND pomitra.invoice = ?
                                                 ORDER BY podetail.idpodetail");
+                $stmtRows->bind_param('sis', $idadmin, $idpoproduk, $invoice);
+                $stmtRows->execute();
+                $rowsResult = $stmtRows->get_result();
 
-                while ($data = mysqli_fetch_array($sql)) { 
+                while ($row = $rowsResult->fetch_assoc()) {
                 ?>
                     <tr>
-                        <td class="align-middle"><?php echo $no++; ?></td>
+                        <td class="align-middle"><?= $no++; ?></td>
                         <form method="POST">
-                            <input type="hidden" name="harga" value="<?php echo $data['harga']; ?>">
-                            <input type="hidden" name="idpo" value="<?php echo $data['idpo']; ?>">
-                            <input type="hidden" name="idpomitra" value="<?php echo $data['idpomitra']; ?>">
-                            <input type="hidden" name="jumlahsebelum" value="<?php echo $data['jumlah']; ?>">
+                            <input type="hidden" name="idpo" value="<?= (int) $row['idpo'] ?>">
+                            <input type="hidden" name="idpomitra" value="<?= (int) $row['idpomitra'] ?>">
+                            <input type="hidden" name="jumlahsebelum" value="<?= (int) $row['jumlah'] ?>">
                             <td class="align-middle">
                                 <input type="number" min="0" name="jmlh" style="width: auto;">
                                 <br>
@@ -123,22 +139,18 @@
                                 <button type="submit" class="btn btn-danger" name="kurang">-</button>
                             </td>
                         </form>
-                        <td class="align-middle"><?php echo $data['jumlah']; ?></td>
-                        <td class="align-middle"><?php echo $data['variant']; ?></td>
+                        <td class="align-middle"><?= (int) $row['jumlah'] ?></td>
+                        <td class="align-middle"><?= htmlspecialchars($row['variant']) ?></td>
                         <td class="align-middle">
-                            <?php if ($data['jumlah'] == 0): ?>
-                                0
-                            <?php else: ?>
-                                <?php echo $data['harga']; ?>
-                            <?php endif; ?>
+                            <?= $row['jumlah'] == 0 ? '0' : htmlspecialchars($row['harga']) ?>
                         </td>
-                        <td class="align-middle"><?php echo $data['total']; ?></td>
+                        <td class="align-middle"><?= htmlspecialchars($row['total']) ?></td>
                         <?php
-                        $jumlah = $jumlah + $data['total'];
+                        $jumlah = ($jumlah ?? 0) + $row['total'];
                     }
                 ?>
             </table><br>
-            <a class="btn btn-primary" href="datapo.php?id=<?php echo $idpoproduk ?>&invoice=<?= $invoice; ?>">Simpan</a>
+            <a class="btn btn-primary" href="datapo.php?id=<?= $idpoproduk ?>&invoice=<?= htmlspecialchars($invoice) ?>">Simpan</a>
             <br><br>
         </div>
     </div>
@@ -147,96 +159,129 @@
 
     <!-- PHP SYNTAK -->
     <?php
-        include "koneksi.php";
-        
+        if (isset($_POST["tambah"]) || isset($_POST["kurang"])) {
+            $idpomitra = isset($_POST['idpomitra']) ? (int) $_POST['idpomitra'] : 0;
+            $jmlh      = isset($_POST['jmlh']) ? max(0, (int) $_POST['jmlh']) : 0;
+
+            // Ambil harga, idpo & kepemilikan langsung dari database, JANGAN percaya nilai dari form
+            $stmtRow = $koneksi->prepare("SELECT pomitra.jumlah, pomitra.invoice, pomitra.idmitra, pomitra.idpoproduk,
+                                                  podetail.harga, podetail.idpo
+                                           FROM pomitra
+                                           INNER JOIN podetail ON podetail.idpodetail = pomitra.idpodetail
+                                           WHERE pomitra.idpomitra = ?");
+            $stmtRow->bind_param('i', $idpomitra);
+            $stmtRow->execute();
+            $rowData = $stmtRow->get_result()->fetch_assoc();
+
+            if (!$rowData || $rowData['idmitra'] !== $idadmin || $rowData['invoice'] !== $invoice || (int) $rowData['idpoproduk'] !== $idpoproduk) {
+                echo "<script>alert('Data tidak valid atau bukan milik anda.');</script>";
+                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
+                exit;
+            }
+
+            $harga = $rowData['harga'];
+            $idpo  = $rowData['idpo'];
+        }
+
         if (isset($_POST["tambah"])) {
-            $idpomitra  = $_POST['idpomitra'];
-            $idpo       = $_POST["idpo"];
-            $jmlh       = $_POST["jmlh"];
-            $harga      = $_POST["harga"];
-            $total      = $jmlh * $harga;
-            
-            $sql        = "SELECT stok FROM pokategori WHERE idpo = '$idpo'";
-            $query      = $koneksi->query($sql);
-            $sisa       = $query->fetch_assoc();
-            
-            $sql_pomitra_qty    = "SELECT jumlah FROM pomitra WHERE invoice = '$invoice'";
-            $query_qty          = $koneksi->query($sql_pomitra_qty);
-            $current_qty_row    = $query_qty->fetch_assoc();
-            $current_qty        = $current_qty_row['jumlah'];
+            $stmtQty = $koneksi->prepare("SELECT jumlah FROM pomitra WHERE invoice = ?");
+            $stmtQty->bind_param('s', $invoice);
+            $stmtQty->execute();
+            $current_qty_row = $stmtQty->get_result()->fetch_assoc();
+            $current_qty     = $current_qty_row['jumlah'] ?? 0;
 
             $totalQty_setelah_update = $current_qty + $jmlh;
-            if ($idpoproduk == '486' && $totalQty_setelah_update > 2) {
+            if ($idpoproduk == 486 && $totalQty_setelah_update > 2) {
                 echo "<script>alert('Total Kuantitas untuk produk ini tidak boleh lebih dari 2 setelah penambahan!');</script>";
-                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=$invoice';</script>"; 
-                exit();
+                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
+                exit;
             }
 
-            if ($sisa['stok'] >= $jmlh) {
-                $koneksi->query("UPDATE pomitra SET jumlah=jumlah+'$jmlh', total=jumlah*'$harga' WHERE idpomitra='$idpomitra'");
-                $koneksi->query("UPDATE pokategori SET stok=stok-'$jmlh' WHERE idpo='$idpo'");
+            $stmtStok = $koneksi->prepare("SELECT stok FROM pokategori WHERE idpo = ?");
+            $stmtStok->bind_param('i', $idpo);
+            $stmtStok->execute();
+            $sisa = $stmtStok->get_result()->fetch_assoc();
+
+            if (($sisa['stok'] ?? 0) >= $jmlh) {
+                $stmtUpdPomitra = $koneksi->prepare("UPDATE pomitra SET jumlah = jumlah + ?, total = jumlah * ? WHERE idpomitra = ? AND idmitra = ?");
+                $stmtUpdPomitra->bind_param('idis', $jmlh, $harga, $idpomitra, $idadmin);
+                $stmtUpdPomitra->execute();
+
+                $stmtUpdStok = $koneksi->prepare("UPDATE pokategori SET stok = stok - ? WHERE idpo = ?");
+                $stmtUpdStok->bind_param('ii', $jmlh, $idpo);
+                $stmtUpdStok->execute();
+
                 echo "<script>alert('data berhasil diubah');</script>";
-                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=$invoice';</script>";
+                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
             } else {
                 echo "<script>alert('Stok kami tidak mencukupi, silahkan revisi pesanan anda sesuaikan dengan stok');</script>";
-                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=$invoice';</script>";
+                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
             }
-        } else if (isset($_POST["kurang"])) {
-            $idpomitra = $_POST['idpomitra'];
-            $idpo = $_POST["idpo"];
-            $jmlh = $_POST["jmlh"];
-            $harga = $_POST["harga"];
-            $total = $jmlh * $harga;
-            $jumlahsebelum = $_POST["jumlahsebelum"];
-            $subjumlah = $jumlahsebelum - $jmlh;
-            
+        } elseif (isset($_POST["kurang"])) {
+            $jumlahsebelum = isset($_POST["jumlahsebelum"]) ? (int) $_POST["jumlahsebelum"] : 0;
+            $subjumlah     = $jumlahsebelum - $jmlh;
+
             if ($subjumlah < 0) {
                 echo "<script>alert('Stok kami tidak mencukupi, silahkan revisi pesanan anda sesuaikan dengan stok');</script>";
-                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=$invoice';</script>";
+                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
             } else {
-                $koneksi->query("UPDATE pomitra SET jumlah=jumlah-'$jmlh' WHERE idpomitra='$idpomitra'");
-                $koneksi->query("UPDATE pomitra SET total=jumlah*'$harga' WHERE idpomitra='$idpomitra'");
-                $koneksi->query("UPDATE pokategori SET stok=stok+'$jmlh' WHERE idpo='$idpo'");
+                $stmtUpdPomitra = $koneksi->prepare("UPDATE pomitra SET jumlah = jumlah - ? WHERE idpomitra = ? AND idmitra = ?");
+                $stmtUpdPomitra->bind_param('iis', $jmlh, $idpomitra, $idadmin);
+                $stmtUpdPomitra->execute();
+
+                $stmtUpdTotal = $koneksi->prepare("UPDATE pomitra SET total = jumlah * ? WHERE idpomitra = ? AND idmitra = ?");
+                $stmtUpdTotal->bind_param('dis', $harga, $idpomitra, $idadmin);
+                $stmtUpdTotal->execute();
+
+                $stmtUpdStok = $koneksi->prepare("UPDATE pokategori SET stok = stok + ? WHERE idpo = ?");
+                $stmtUpdStok->bind_param('ii', $jmlh, $idpo);
+                $stmtUpdStok->execute();
+
                 echo "<script>alert('data berhasil diubah');</script>";
-                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=$invoice';</script>";
+                echo "<script>location='ubahpostok?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
             }
         }
     ?>
         <?php
         if (isset($_POST["insert-variant"])) {
             $processed = false;
-            $koneksi->begin_transaction(); // Mulai transaksi
+            $koneksi->begin_transaction();
             try {
-                foreach ($_POST['hiddenProductInput'] as $key => $index) {
-                    $variant = mysqli_real_escape_string($koneksi, $_POST['variant'][$key]);
-                    $jumlah = mysqli_real_escape_string($koneksi, $_POST['jumlah'][$key]);
+                $hiddenProductInput = $_POST['hiddenProductInput'] ?? [];
+                $variants           = $_POST['variant']            ?? [];
+                $jumlahs            = $_POST['jumlah']              ?? [];
+
+                foreach ($hiddenProductInput as $key => $index) {
+                    $variant = isset($variants[$key]) ? (int) $variants[$key] : 0;
+                    $jumlah  = isset($jumlahs[$key]) ? (int) $jumlahs[$key] : 0;
                     date_default_timezone_set('Asia/Jakarta');
                     $waktu = date("H:i:s");
 
                     if ($jumlah > 0) {
-                        $sql = "SELECT * FROM podetail WHERE idpodetail = '$variant'";
-                        $query = $koneksi->query($sql);
-                        $podetail = $query->fetch_assoc();
+                        $stmtPodetail = $koneksi->prepare("SELECT * FROM podetail WHERE idpodetail = ?");
+                        $stmtPodetail->bind_param('i', $variant);
+                        $stmtPodetail->execute();
+                        $podetail = $stmtPodetail->get_result()->fetch_assoc();
 
-                        $kategori = "SELECT * FROM pokategori WHERE idpoproduk = '$idpoproduk'";
-                        $queryKategori = $koneksi->query($kategori);
-                        $pokategori = $queryKategori->fetch_assoc();
-                        
-                        if ($pokategori['stok'] >= $jumlah) {
-                            // Kurangi stok di tabel kategori
-                            $updateStok = $koneksi->query("UPDATE pokategori SET stok = stok - '$jumlah' WHERE idpo = '{$podetail['idpo']}'");
-                            if (!$updateStok) {
+                        $stmtKategori = $koneksi->prepare("SELECT * FROM pokategori WHERE idpoproduk = ?");
+                        $stmtKategori->bind_param('i', $idpoproduk);
+                        $stmtKategori->execute();
+                        $pokategori = $stmtKategori->get_result()->fetch_assoc();
+
+                        if (($pokategori['stok'] ?? 0) >= $jumlah) {
+                            $stmtUpdStok2 = $koneksi->prepare("UPDATE pokategori SET stok = stok - ? WHERE idpo = ?");
+                            $stmtUpdStok2->bind_param('ii', $jumlah, $podetail['idpo']);
+                            if (!$stmtUpdStok2->execute()) {
                                 throw new Exception("Error updating stock in pokategori: " . $koneksi->error);
                             }
-        
-                            // Hitung total harga berdasarkan jumlah baru
-                            $harga = $podetail['harga'];
-                            $total = $jumlah * $harga;
-        
-                            // Insert data ke tabel pomitra
-                            $insertPomitra = $koneksi->query("INSERT INTO pomitra (idpomitra, idmitra, idpoproduk, idpo, idpodetail, jumlah, total, invoice, status, tgl, waktu) VALUES
-                            (null, '$idadmin', '$idpoproduk', '{$podetail['idpo']}', '$variant', '$jumlah', '$total', '$invoice', 'Belum DP', NOW(), '$waktu')");
-                            if (!$insertPomitra) {
+
+                            $harga2 = $podetail['harga'];
+                            $total2 = $jumlah * $harga2;
+
+                            $stmtInsertPomitra = $koneksi->prepare("INSERT INTO pomitra (idpomitra, idmitra, idpoproduk, idpo, idpodetail, jumlah, total, invoice, status, tgl, waktu)
+                                                                     VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, 'Belum DP', NOW(), ?)");
+                            $stmtInsertPomitra->bind_param('siiiidss', $idadmin, $idpoproduk, $podetail['idpo'], $variant, $jumlah, $total2, $invoice, $waktu);
+                            if (!$stmtInsertPomitra->execute()) {
                                 throw new Exception("Error executing insert into Pomitra: " . $koneksi->error);
                             }
                         } else {
@@ -247,16 +292,16 @@
                     }
                 }
 
-                $koneksi->commit(); // Commit transaksi
+                $koneksi->commit();
                 $processed = true;
             } catch (Exception $e) {
-                $koneksi->rollback(); // Rollback transaksi jika ada error
-                echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
+                $koneksi->rollback();
+                echo "<script>alert('Error: " . htmlspecialchars(addslashes($e->getMessage())) . "');</script>";
             }
 
             if ($processed) {
                 echo "<script>alert('Data berhasil dikirim');</script>";
-                echo "<script>location='datapo.php?id=$idpoproduk&invoice=$invoice';</script>";
+                echo "<script>location='datapo.php?id=$idpoproduk&invoice=" . rawurlencode($invoice) . "';</script>";
             } else {
                 echo "<script>alert('Tidak ada item yang diproses.')</script>";
                 echo "<script>location='formpoku.php?id=$idpoproduk';</script>";
@@ -266,9 +311,9 @@
     <!-- PHP SYNTAK END -->
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
-    
+
     <!-- SCRIPT -->
     <script type="text/javascript">
         const buttonAddVariant = document.getElementById("buttonAddVariant");
@@ -291,27 +336,26 @@
                     <select name="variant[]" class="form-control form-control-sm" id="variantSelect_${variantFormCount}" onchange="updateHiddenProductInput(this, ${variantFormCount})">
                         <option value="" disabled selected>Silahkan pilih variant</option>
                         <?php
-                            $ambil = $koneksi->query(" SELECT DISTINCT podetail.variant, podetail.idpodetail, pomitra.custom
-                                                        FROM poproduk  
+                            $stmtVariants = $koneksi->prepare(" SELECT DISTINCT podetail.variant, podetail.idpodetail, pomitra.custom
+                                                        FROM poproduk
                                                         INNER JOIN pokategori ON poproduk.idpoproduk = pokategori.idpoproduk
-                                                        INNER JOIN podetail ON pokategori.idpo = podetail.idpo 
-                                                        LEFT JOIN pomitra ON pomitra.idpodetail = podetail.idpodetail AND pomitra.invoice = '$invoice'
-                                                        WHERE poproduk.idpoproduk = '$idpoproduk'
+                                                        INNER JOIN podetail ON pokategori.idpo = podetail.idpo
+                                                        LEFT JOIN pomitra ON pomitra.idpodetail = podetail.idpodetail AND pomitra.invoice = ?
+                                                        WHERE poproduk.idpoproduk = ?
                                                         AND podetail.variant NOT LIKE '%Custom%'
                                                         AND pomitra.idpodetail IS NULL
-                                                        ORDER BY podetail.idpodetail ASC;
+                                                        ORDER BY podetail.idpodetail ASC
                                                         ");
-                            if ($ambil) {
-                                while ($data = $ambil->fetch_assoc()) {
-                                    $custom = $data['custom'];
-                                    ?>
-                                    <option value="<?= $data['idpodetail']; ?>">
-                                        <?= $data['variant']; ?><?= !empty($custom) ? " | $custom" : ""; ?>
-                                    </option>
-                                    <?php
-                                }
-                            } else {
-                                echo "Error executing query: " . $koneksi->error;
+                            $stmtVariants->bind_param('si', $invoice, $idpoproduk);
+                            $stmtVariants->execute();
+                            $ambil = $stmtVariants->get_result();
+                            while ($optionRow = $ambil->fetch_assoc()) {
+                                $custom = $optionRow['custom'];
+                                ?>
+                                <option value="<?= (int) $optionRow['idpodetail']; ?>">
+                                    <?= htmlspecialchars($optionRow['variant']); ?><?= !empty($custom) ? " | " . htmlspecialchars($custom) : ""; ?>
+                                </option>
+                                <?php
                             }
                         ?>
                     </select>
