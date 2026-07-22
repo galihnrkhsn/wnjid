@@ -8,7 +8,7 @@
 
     // invoice hanya boleh alfanumerik supaya query di bawah (yang masih menyisipkan
     // $invoice langsung ke string SQL) tidak bisa disalahgunakan untuk SQL injection
-    if ($invoice === '' )) {
+    if ($invoice === '' ) {
         header('Location: view_cart.php');
         exit;
     }
