@@ -12,21 +12,21 @@ include 'koneksi.php';
 <!--===============================================================================================-->	
 	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="style/vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../vendor/mitra-theme/bootstrap/css/bootstrap.min.css">
 <!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="style/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
 <!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="style/fonts/iconic/css/material-design-iconic-font.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="style/vendor/animate/animate.css">
+	<link rel="stylesheet" type="text/css" href="../vendor/mitra-theme/animate/animate.css">
 <!--===============================================================================================-->	
-	<link rel="stylesheet" type="text/css" href="style/vendor/css-hamburgers/hamburgers.min.css">
+	<link rel="stylesheet" type="text/css" href="../vendor/mitra-theme/css-hamburgers/hamburgers.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="style/vendor/animsition/css/animsition.min.css">
+	<link rel="stylesheet" type="text/css" href="../vendor/mitra-theme/animsition/css/animsition.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="style/vendor/select2/select2.min.css">
+	<link rel="stylesheet" type="text/css" href="../vendor/mitra-theme/select2/select2.min.css">
 <!--===============================================================================================-->	
-	<link rel="stylesheet" type="text/css" href="style/vendor/daterangepicker/daterangepicker.css">
+	<link rel="stylesheet" type="text/css" href="../vendor/mitra-theme/daterangepicker/daterangepicker.css">
 <!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="style/css/util.css">
 	<link rel="stylesheet" type="text/css" href="style/css/main.css">
@@ -131,19 +131,19 @@ div {
 	<div id="dropDownSelect1"></div>
 	
 <!--===============================================================================================-->
-	<script src="style/vendor/jquery/jquery-3.2.1.min.js"></script>
+	<script src="../vendor/mitra-theme/jquery/jquery-3.2.1.min.js"></script>
 <!--===============================================================================================-->
-	<script src="style/vendor/animsition/js/animsition.min.js"></script>
+	<script src="../vendor/mitra-theme/animsition/js/animsition.min.js"></script>
 <!--===============================================================================================-->
-	<script src="style/vendor/bootstrap/js/popper.js"></script>
-	<script src="style/vendor/bootstrap/js/bootstrap.min.js"></script>
+	<script src="../vendor/mitra-theme/bootstrap/js/popper.js"></script>
+	<script src="../vendor/mitra-theme/bootstrap/js/bootstrap.min.js"></script>
 <!--===============================================================================================-->
-	<script src="style/vendor/select2/select2.min.js"></script>
+	<script src="../vendor/mitra-theme/select2/select2.min.js"></script>
 <!--===============================================================================================-->
-	<script src="style/vendor/daterangepicker/moment.min.js"></script>
-	<script src="style/vendor/daterangepicker/daterangepicker.js"></script>
+	<script src="../vendor/mitra-theme/daterangepicker/moment.min.js"></script>
+	<script src="../vendor/mitra-theme/daterangepicker/daterangepicker.js"></script>
 <!--===============================================================================================-->
-	<script src="style/vendor/countdowntime/countdowntime.js"></script>
+	<script src="../vendor/mitra-theme/countdowntime/countdowntime.js"></script>
 <!--===============================================================================================-->
 	<script src="style/js/main.js"></script>
 

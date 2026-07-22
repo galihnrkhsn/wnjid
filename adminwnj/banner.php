@@ -17,7 +17,7 @@
     <title>Admin Pusat | Wanoja</title>
 
     <!-- Custom fonts & styles -->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 </head>
@@ -137,11 +137,11 @@
     </a>
 
     <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../vendor/adminwnj/jquery/jquery.min.js"></script>
+    <script src="../vendor/adminwnj/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="../vendor/adminwnj/jquery-easing/jquery.easing.min.js"></script>
 
     <!-- Custom scripts -->
     <script src="js/sb-admin-2.min.js"></script>

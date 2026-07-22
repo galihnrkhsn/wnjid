@@ -16,10 +16,10 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.1/css/dataTables.bootstrap4.min.css">
 
     <!-- Bootstrap core JavaScript-->
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../vendor/manajemen/bootstrap/js/bootstrap.bundle.min.js"></script>
     
     <!-- Bootstrap core JavaScript-->
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../vendor/manajemen/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 
     <!-- Custom scripts for all pages-->

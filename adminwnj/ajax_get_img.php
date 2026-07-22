@@ -21,7 +21,7 @@
     }
 
     $folder = $d['name'];
-    $path   = "../distributor/foto/produk/".$folder."/";
+    $path   = "../image/produk/".$folder."/";
     
     if(!is_dir($path)){
         echo "Tidak ada foto";
@@ -38,7 +38,7 @@
         $nama = basename($file);
 
         echo "<img 
-            src='../distributor/foto/produk/$folder/$nama'
+            src='../image/produk/$folder/$nama'
             class='foto-item'
             data-nama='$nama'
         >";

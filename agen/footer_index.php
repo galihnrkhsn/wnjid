@@ -7,8 +7,8 @@
 
     <!-- JS here -->
 <!-- Jquery, Popper, Bootstrap -->
-<script src="./assets2/js/vendor/modernizr-3.5.0.min.js"></script>
-<script src="./assets2/js/vendor/jquery-1.12.4.min.js"></script>
+<script src="../vendor/legacy-js/modernizr-3.5.0.min.js"></script>
+<script src="../vendor/legacy-js/jquery-1.12.4.min.js"></script>
 <script src="./assets2/js/popper.min.js"></script>
 <script src="./assets2/js/bootstrap.min.js"></script>
 

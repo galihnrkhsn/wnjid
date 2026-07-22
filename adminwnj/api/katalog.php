@@ -47,7 +47,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     $kategori   = $row['namakategori'];
 
     $foto = $protocol . $host .
-        "/distributor/foto/produk/" .
+        "/image/produk/" .
         $folder . "/" .
         $row['foto'];
 

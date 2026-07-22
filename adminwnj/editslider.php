@@ -25,7 +25,7 @@ if(!isset($_SESSION["administrator"])){
   <title>Admin Pusat | Wanoja</title>
 
   <!-- Custom fonts for this template-->
-  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
   <!-- Custom styles for this template-->
@@ -106,12 +106,12 @@ if(isset($_POST["save"])){
     $namaFileBaru.= $ekstensiGambar;
 
   
-  if(move_uploaded_file($tmp, 'slider/'. $namaFileBaru)){ // Cek apakah gambar berhasil diupload atau tidak 
+  if(move_uploaded_file($tmp, '../image/carousel/'. $namaFileBaru)){ // Cek apakah gambar berhasil diupload atau tidak
 
 		$sqlslider = $koneksi->query("UPDATE slider set foto='$namaFileBaru' where id='$id'");
 
     if ($sqlslider) {
-      unlink("slider/$fotolama");
+      unlink("../image/carousel/$fotolama");
     }
 
 			echo "<script>alert('data berhasil diubah');</script>";
@@ -163,17 +163,17 @@ if(isset($_POST["save"])){
   </div>
 
   <!-- Bootstrap core JavaScript-->
-  <script src="vendor/jquery/jquery.min.js"></script>
-  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../vendor/adminwnj/jquery/jquery.min.js"></script>
+  <script src="../vendor/adminwnj/bootstrap/js/bootstrap.bundle.min.js"></script>
 
   <!-- Core plugin JavaScript-->
-  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+  <script src="../vendor/adminwnj/jquery-easing/jquery.easing.min.js"></script>
 
   <!-- Custom scripts for all pages-->
   <script src="js/sb-admin-2.min.js"></script>
 
   <!-- Page level plugins -->
-  <script src="vendor/chart.js/Chart.min.js"></script>
+  <script src="../vendor/adminwnj/chart.js/Chart.min.js"></script>
 
   <!-- Page level custom scripts -->
   <script src="js/demo/chart-area-demo.js"></script>

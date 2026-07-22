@@ -532,21 +532,21 @@ font-size: 18px;
      $foto1=$ambil2->fetch_assoc();
       ?>
       <div class="item active">
-        <img src="../adminwnj/slider/<?php echo $foto1['foto'] ?>" alt="slider1" style="width:100%;">
+        <img src="../image/carousel/<?php echo $foto1['foto'] ?>" alt="slider1" style="width:100%;">
       </div>
         <?php 
      $ambil3=$koneksi->query("SELECT foto FROM slider where id=2"); 
      $foto2=$ambil3->fetch_assoc();
       ?>
       <div class="item">
-        <img src="../adminwnj/slider//<?php echo $foto2['foto'] ?>" alt="slider2" style="width:100%;">
+        <img src="../image/carousel/<?php echo $foto2['foto'] ?>" alt="slider2" style="width:100%;">
       </div>
      <?php 
      $ambil4=$koneksi->query("SELECT foto FROM slider where id=3"); 
      $foto3=$ambil4->fetch_assoc();
       ?>
       <div class="item">
-        <img src="../adminwnj/slider/<?php echo $foto3['foto'] ?>" alt="slider3" style="width:100%;">
+        <img src="../image/carousel/<?php echo $foto3['foto'] ?>" alt="slider3" style="width:100%;">
       </div>
     </div>
 

@@ -68,11 +68,11 @@
     <title>Wanoja | <?= $username ?></title>
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="template/images/logo.png">
-    <link rel="stylesheet" href="template/vendor/owl-carousel/css/owl.carousel.min.css">
-    <link rel="stylesheet" href="template/vendor/owl-carousel/css/owl.theme.default.min.css">
-    <link href="template/vendor/jqvmap/css/jqvmap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../vendor/manajemen-template/owl-carousel/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="../vendor/manajemen-template/owl-carousel/css/owl.theme.default.min.css">
+    <link href="../vendor/manajemen-template/jqvmap/css/jqvmap.min.css" rel="stylesheet">
     <link href="template/css/style.css" rel="stylesheet">
-    <link href="template/vendor/datatables/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="../vendor/manajemen-template/datatables/css/jquery.dataTables.min.css" rel="stylesheet">
 
     <style>
         .dataTables_wrapper .dataTables_scroll {
@@ -221,36 +221,36 @@
         Scripts
     ***********************************-->
     <!-- Required vendors -->
-    <script src="template/vendor/global/global.min.js"></script>
+    <script src="../vendor/manajemen-template/global/global.min.js"></script>
     <script src="template/js/quixnav-init.js"></script>
     <script src="template/js/custom.min.js"></script>
 
 
     <!-- Vectormap -->
-    <script src="template/vendor/raphael/raphael.min.js"></script>
-    <script src="template/vendor/morris/morris.min.js"></script>
-    <script src="template/vendor/circle-progress/circle-progress.min.js"></script>
-    <script src="template/vendor/chart.js/Chart.bundle.min.js"></script>
-    <script src="template/vendor/gaugeJS/dist/gauge.min.js"></script>
+    <script src="../vendor/manajemen-template/raphael/raphael.min.js"></script>
+    <script src="../vendor/manajemen-template/morris/morris.min.js"></script>
+    <script src="../vendor/manajemen-template/circle-progress/circle-progress.min.js"></script>
+    <script src="../vendor/manajemen-template/chart.js/Chart.bundle.min.js"></script>
+    <script src="../vendor/manajemen-template/gaugeJS/dist/gauge.min.js"></script>
 
     <!--  flot-chart js -->
-    <script src="template/vendor/flot/jquery.flot.js"></script>
-    <script src="template/vendor/flot/jquery.flot.resize.js"></script>
+    <script src="../vendor/manajemen-template/flot/jquery.flot.js"></script>
+    <script src="../vendor/manajemen-template/flot/jquery.flot.resize.js"></script>
 
     <!-- Owl Carousel -->
-    <script src="template/vendor/owl-carousel/js/owl.carousel.min.js"></script>
+    <script src="../vendor/manajemen-template/owl-carousel/js/owl.carousel.min.js"></script>
 
     <!-- Counter Up -->
-    <script src="template/vendor/jqvmap/js/jquery.vmap.min.js"></script>
-    <script src="template/vendor/jqvmap/js/jquery.vmap.usa.js"></script>
-    <script src="template/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+    <script src="../vendor/manajemen-template/jqvmap/js/jquery.vmap.min.js"></script>
+    <script src="../vendor/manajemen-template/jqvmap/js/jquery.vmap.usa.js"></script>
+    <script src="../vendor/manajemen-template/jquery.counterup/jquery.counterup.min.js"></script>
 
     <script src="template/js/dashboard/dashboard-1.js"></script>
 
     <!-- Datatable -->
-    <script src="template/vendor/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="../vendor/manajemen-template/datatables/js/jquery.dataTables.min.js"></script>
     <script src="template/js/plugins-init/datatables.init.js"></script>
-    <script src="template/vendor/global/global.min.js"></script>
+    <script src="../vendor/manajemen-template/global/global.min.js"></script>
     <script src="template/js/quixnav-init.js"></script>
     <script src="template/js/custom.min.js"></script>
 

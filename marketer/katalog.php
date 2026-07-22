@@ -118,7 +118,7 @@
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6">
                 <div class="card mb-5">
                     <a href="detailproduk.php?idkatalog=<?=$data['idkatalog']; ?>" target="_blank">
-                        <img class="card-img-top" src="../adminwnj/foto/<?php echo $data['foto']; ?>" alt="Card image cap">
+                        <img class="card-img-top" src="../image/katalog/<?php echo $data['foto']; ?>" alt="Card image cap">
                         <div class="card-body">
                             <h5 class="card-title" style="color: #4a4a4a;"><?php echo $data['namaproduk']; ?></h5>
                             <p class="card-text" style="color: red;">Rp. <?php echo str_replace("-"," - Rp. ",str_replace(".0000","0.000",str_replace("..000",".000",str_replace("000",".000",str_replace("0000","0.000",$data['harga']))))); ?></p>
@@ -193,8 +193,8 @@
 
     <!-- SCRIPT -->
     <!-- Jquery, Popper, Bootstrap -->
-    <script src="./assets2/js/vendor/modernizr-3.5.0.min.js"></script>
-    <script src="./assets2/js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="../vendor/legacy-js/modernizr-3.5.0.min.js"></script>
+    <script src="../vendor/legacy-js/jquery-1.12.4.min.js"></script>
     <script src="./assets2/js/popper.min.js"></script>
     <script src="./assets2/js/bootstrap.min.js"></script>
 

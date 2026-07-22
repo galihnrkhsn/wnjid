@@ -598,7 +598,7 @@
                                                                     $filebaru .= '.';
                                                                     $filebaru .= $ekstensiGambar;
 
-                                                                    if (move_uploaded_file($tmp, '../adminwnj/ongkir/' . $filebaru)) {
+                                                                    if (move_uploaded_file($tmp, '../image/bukti_ongkir/' . $filebaru)) {
                                                                         try {
                                                                             $sqlupt = $koneksi->query("UPDATE ongkir SET status = 'Konfirmasi Admin', buktitf = '$filebaru',updated_at = '$current_time' WHERE idongkir = '$idongkir'");
                                                                             if ($sqlupt) {
@@ -643,7 +643,7 @@
                                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <img width="50%" src="../adminwnj/ongkir/<?= $dataongkir['buktitf'] ?>">
+                                                            <img width="50%" src="../image/bukti_ongkir/<?= $dataongkir['buktitf'] ?>">
                                                         </div>
                                                     </div>
                                                 </div>

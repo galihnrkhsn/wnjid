@@ -136,7 +136,7 @@
         Scripts
     ***********************************-->
     <!-- Required vendors -->
-    <script src="template/vendor/global/global.min.js"></script>
+    <script src="../vendor/manajemen-template/global/global.min.js"></script>
     <script src="template/js/quixnav-init.js"></script>
     <script src="template/js/custom.min.js"></script>
 </body>

@@ -23,7 +23,7 @@
     <title>Upload Excel Mitra</title>
 
     <!-- Font -->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700" rel="stylesheet">
 
     <!-- SB Admin -->
