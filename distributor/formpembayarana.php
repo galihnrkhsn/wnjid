@@ -309,7 +309,7 @@
             $namaFileBaru .= '.';
             $namaFileBaru .= $ekstensiGambar;
 
-            if (move_uploaded_file($tmp, '../adminwnj/bukti/' . $namaFileBaru)) {
+            if (move_uploaded_file($tmp, '../image/bukti_transfer/' . $namaFileBaru)) {
                 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
                 $koneksi->begin_transaction();
                 try {
@@ -415,7 +415,7 @@
             $namaFileBaru.='.';
             $namaFileBaru.= $ekstensiGambar;
 
-            if (move_uploaded_file($tmp, '../adminwnj/bukti/' . $namaFileBaru)) {
+            if (move_uploaded_file($tmp, '../image/bukti_transfer/' . $namaFileBaru)) {
                 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
                 $koneksi->begin_transaction();
                 try {

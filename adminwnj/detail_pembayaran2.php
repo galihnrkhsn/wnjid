@@ -362,8 +362,8 @@ $tampilpo = $datapo->fetch_assoc();
                             <div class="row">
                                 <div class="col-md-7">
                                     <div class="card mt-4">
-                                        <a href="bukti/<?= $tampilpo['foto']; ?>" target="_blank">
-                                            <img src="bukti/<?= $tampilpo['foto']; ?>" class="card-img-top" alt="Bukti Transfer" style="object-fit: contain; width: 100%; height: 300px;">
+                                        <a href="../image/bukti_transfer/<?= $tampilpo['foto']; ?>" target="_blank">
+                                            <img src="../image/bukti_transfer/<?= $tampilpo['foto']; ?>" class="card-img-top" alt="Bukti Transfer" style="object-fit: contain; width: 100%; height: 300px;">
                                         </a>
                                         <div class="card-body">
                                             <h5 class="card-title">Data Transfer</h5>
