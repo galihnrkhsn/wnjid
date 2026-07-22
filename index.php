@@ -4,6 +4,103 @@
    ini_set('display_startup_errors', '1');
    session_start();
    include '../includes/db.php';
+
+   $loginError         = '';
+   $loginErrorRedirect = '';
+
+   if (isset($_POST['login'])) {
+      $email = $_POST['email']    ?? '';
+      $pass  = $_POST['password'] ?? '';
+
+      $stmtUser = $koneksi->prepare("SELECT * FROM users WHERE email = ?");
+      $stmtUser->bind_param('s', $email);
+      $stmtUser->execute();
+      $data = $stmtUser->get_result()->fetch_assoc();
+
+      if ($data && password_verify($pass, $data['password'])) {
+         // Regenerasi session ID setelah login berhasil supaya tidak rentan session fixation
+         session_regenerate_id(true);
+
+         $role = $data['role'];
+         $id   = $data['id'];
+
+         $_SESSION["user_id"]    = $id;
+         $_SESSION["user_level"] = $role;
+
+         if ($role == "distributor") {
+            $stmtDistributor = $koneksi->prepare("SELECT status, idadmin FROM admin_mitra WHERE iduser = ?");
+            $stmtDistributor->bind_param('i', $id);
+            $stmtDistributor->execute();
+            $distributorData = $stmtDistributor->get_result()->fetch_assoc();
+
+            if (($distributorData['status'] ?? 1) == 1) {
+               $loginError = 'Login Gagal!';
+            } else {
+               $_SESSION["idadmin"] = $distributorData["idadmin"];
+               header('Location: ../distributor/index2.php');
+               exit;
+            }
+         } elseif ($role == "agen") {
+            $stmtAgen = $koneksi->prepare("SELECT idmitraagen FROM mitraagen WHERE iduser = ?");
+            $stmtAgen->bind_param('i', $id);
+            $stmtAgen->execute();
+            $agenData                = $stmtAgen->get_result()->fetch_assoc();
+            $_SESSION["idmitraagen"] = $agenData["idmitraagen"] ?? null;
+
+            header('Location: ../agen/index3.php');
+            exit;
+         } elseif ($role == "reseller") {
+            $stmtReseller = $koneksi->prepare("SELECT idmitrareseller FROM mitrareseller WHERE iduser = ?");
+            $stmtReseller->bind_param('i', $id);
+            $stmtReseller->execute();
+            $resellerData                = $stmtReseller->get_result()->fetch_assoc();
+            $_SESSION["idmitrareseller"] = $resellerData["idmitrareseller"] ?? null;
+
+            header('Location: ../reseller/index3.php');
+            exit;
+         } elseif ($role == "marketer") {
+            $stmtMarketer = $koneksi->prepare("SELECT idmitramarketer FROM mitramarketer WHERE iduser = ?");
+            $stmtMarketer->bind_param('i', $id);
+            $stmtMarketer->execute();
+            $marketerData                = $stmtMarketer->get_result()->fetch_assoc();
+            $_SESSION["idmitramarketer"] = $marketerData["idmitramarketer"] ?? null;
+
+            header('Location: ../marketer/index2.php');
+            exit;
+         } else {
+            $loginError = 'Login gagal!';
+         }
+      } else {
+         $stmtMgmt = $koneksi->prepare("SELECT * FROM management WHERE email = ?");
+         $stmtMgmt->bind_param('s', $email);
+         $stmtMgmt->execute();
+         $managementData = $stmtMgmt->get_result()->fetch_assoc();
+
+         if ($managementData && password_verify($pass, $managementData['password'])) {
+            session_regenerate_id(true);
+
+            $tipe = $managementData['tipe'];
+            $id   = $managementData['id'];
+
+            $_SESSION["user_id"]   = $id;
+            $_SESSION["user_tipe"] = $tipe;
+            $_SESSION["idmanage"]  = $id;
+
+            if ($tipe == "M") {
+               header('Location: ../manajemen/index');
+               exit;
+            } elseif ($tipe == "P") {
+               header('Location: ../produksi/index');
+               exit;
+            } else {
+               $loginError = 'Login gagal!';
+            }
+         } else {
+            $loginError         = 'Login gagal!';
+            $loginErrorRedirect = 'login-multi';
+         }
+      }
+   }
 ?>
 
 <!DOCTYPE html>
@@ -13,8 +110,7 @@
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <!-- mobile metas -->
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
       <!-- site metas -->
       <title>Wanoja App</title>
       <meta name="keywords" content="">
@@ -61,6 +157,14 @@
    </head>
    <!-- body -->
    <body class="main-layout">
+      <?php if ($loginError !== ''): ?>
+      <script>
+         alert(<?= json_encode($loginError) ?>);
+         <?php if ($loginErrorRedirect !== ''): ?>
+         window.location.href = <?= json_encode($loginErrorRedirect) ?>;
+         <?php endif; ?>
+      </script>
+      <?php endif; ?>
       <!-- header -->
       <header>
          <!-- header inner -->
@@ -84,7 +188,7 @@
                         <div class="collapse navbar-collapse" id="navbarsExample04">
                            <ul class="navbar-nav mr-auto">
                               <li class="nav-item active">
-                                 <a class="nav-link" href="index.html">Home</a>
+                                 <a class="nav-link" href="/">Home</a>
                               </li>
                               <li class="nav-item">
                                  <a class="nav-link" href="#">Kemitraan</a>
@@ -208,8 +312,6 @@
                <div class="row">
                   <div class="col-sm-6">
                      <ul class="conta">
-                        <!-- <li><i class="fa fa-map-marker" aria-hidden="true"></i> Passages of Lorem Ipsum available</li> -->
-                        <!-- <li><i class="fa fa-phone" aria-hidden="true"></i> Call : +</li> -->
                      </ul>
                   </div>
                   <div class="col-sm-6">
@@ -219,103 +321,8 @@
                   </div>
                </div>
             </div>
-            <!-- <div class="copyright">
-               <div class="container">
-                  <div class="row">
-                     <div class="col-md-10 offset-md-1">
-                        <p>© 2019 All Rights Reserved. Design by  <a href="https://html.design/"> Free Html Templates</a> Distributed By <a href="https://themewagon.com">ThemeWagon</a></p>
-                     </div>
-                  </div>
-               </div>
-            </div> -->
          </div>
       </footer>
-
-      <?php
-         if(isset($_POST['login'])) {
-            // $koneksi->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
-            try {
-               $email = $_POST['email'];
-               $pass = $_POST['password'];
-
-               $user = $koneksi->query("SELECT * FROM users WHERE email = '$email'");
-               $data = $user->fetch_assoc();
-
-               if (password_verify($pass, $data['password'])) {
-                  $role    = $data['role'];
-                  $id      = $data['id'];
-
-                  $_SESSION["user_id"] = $id;
-                  $_SESSION["user_level"] = $role;
-
-                  if ($role == "distributor") {
-                        $queryDistributor    = $koneksi->query("SELECT status, idadmin FROM admin_mitra WHERE iduser = '$id'");
-                        $distributorData     = $queryDistributor->fetch_assoc();
-                        if ($distributorData['status'] == 1) {
-                           echo "<script>alert('Login Gagal!')</script>";
-                           echo "<script>location='index.php'</script>";
-                        } else {
-                           $_SESSION["idadmin"] = $distributorData["idadmin"];
-   
-                           echo "<script>alert('Login berhasil!')</script>";
-                           echo "<script>location='../distributor/index2.php'</script>";
-                        }
-
-                  } elseif ($role == "agen") {
-                        $query_agen                = $koneksi->query("SELECT idmitraagen FROM mitraagen WHERE iduser = '$id'");
-                        $agen_data                 = $query_agen->fetch_assoc();
-                        $_SESSION["idmitraagen"]   = $agen_data["idmitraagen"];
-                        
-                        echo "<script>alert('Login berhasil!')</script>";
-                        echo "<script>location='../agen/index3.php'</script>";
-                  } elseif ($role == "reseller") {
-                        $query_agen                   = $koneksi->query("SELECT idmitrareseller FROM mitrareseller WHERE iduser = '$id'");
-                        $agen_data                    = $query_agen->fetch_assoc();
-                        $_SESSION["idmitrareseller"]  = $agen_data["idmitrareseller"];
-                        
-                        echo "<script>alert('Login berhasil!')</script>";
-                        echo "<script>location='../reseller/index3.php'</script>";
-                        echo "Berhasil! " . $role;
-                  } elseif ($role == "marketer") {
-                        $query_agen                   = $koneksi->query("SELECT idmitramarketer FROM mitramarketer WHERE iduser = '$id'");
-                        $agen_data                    = $query_agen->fetch_assoc();
-                        $_SESSION["idmitramarketer"]  = $agen_data["idmitramarketer"];
-                        
-                        echo "<script>alert('Login berhasil!')</script>";
-                        echo "<script>location='../marketer/index2.php'</script>";
-                        echo "Berhasil! " . $role;
-                  } else {
-                        echo "Login gagal!";
-                  }
-               } else {
-                  $management = $koneksi->query("SELECT * FROM management WHERE email = '$email'");
-                  $managementData = $management->fetch_assoc();
-   
-                  if ($managementData && password_verify($pass, $managementData['password'])) {
-                        $tipe = $managementData['tipe'];
-                        $id = $managementData['id'];
-   
-                        $_SESSION["user_id"] = $id;
-                        $_SESSION["user_tipe"] = $tipe;
-   
-                        echo "<script>alert('Login berhasil!')</script>";
-                        if ($tipe == "M") {
-                           $_SESSION["idmanage"] = $managementData["id"];
-                           echo "<script>location='../manajemen/index'</script>";
-                        } elseif ($tipe == "P") {
-                           $_SESSION["idmanage"] = $managementData["id"];
-                           echo "<script>location='../produksi/index'</script>";
-                        }
-                  } else {
-                        echo "<script>alert('Login gagal!')</script>";
-                        echo "<script>location='login-multi'</script>";
-                  }
-               }
-            } catch (mysqli_sql_exception $e) {
-               echo "Error: " . $e->getMessage();
-            }
-         }
-      ?>
 
       <script>
          function togglePasswordVisibility() {
