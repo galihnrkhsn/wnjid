@@ -3,7 +3,7 @@
    ini_set('display_errors', '1');
    ini_set('display_startup_errors', '1');
    session_start();
-   include '../includes/db.php';
+   include 'includes/db.php';
 
    $loginError         = '';
    $loginErrorRedirect = '';
