@@ -98,7 +98,7 @@
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
                 <div class="card">
                     <?php if ($data['foto'] <> ""): ?>
-                        <img class="card-img-top fixed-size-img" src="foto/produk/<?= $data['foto']; ?>" alt="Card image">
+                        <img class="card-img-top fixed-size-img" src="../image/produk/<?= $data['foto']; ?>" alt="Card image">
                     <?php else: ?>
                         <img class="card-img-top fixed-size-img" src="foto/nophoto.png" alt="Card image">
                     <?php endif ?>

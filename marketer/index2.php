@@ -60,9 +60,9 @@
     <!-- CAROUSEL -->
     <div class="carousel-container">
         <div class="carousel-slide">
-            <img src="../assets/foto/carousel/61c3d5ba510fb.jpg" alt="Image 1">
-            <img src="../assets/foto/carousel/61d7adf4b142a.jpg" alt="Image 2">
-            <img src="../assets/foto/carousel/61d6b45dd9841.jpg" alt="Image 3">
+            <img src="../image/carousel/61c3d5ba510fb.jpg" alt="Image 1">
+            <img src="../image/carousel/61d7adf4b142a.jpg" alt="Image 2">
+            <img src="../image/carousel/61d6b45dd9841.jpg" alt="Image 3">
         </div>
     </div>
     <!-- CAROUSEL END -->
@@ -73,39 +73,39 @@
             <div class="row mt-5">
                 <div class="col-6">
                     <a href="listnewpo">
-                        <img src="../assets/foto/icon/icon 3d preorder.png" class="d-block w-100">
+                        <img src="../image/icon/icon 3d preorder.png" class="d-block w-100">
                     </a>
                 </div>
                 <div class="col-6">
                     <a href="store4">
-                        <img src="../assets/foto/icon/icon 3d readystock.png" class="d-block w-100">
+                        <img src="../image/icon/icon 3d readystock.png" class="d-block w-100">
                     </a>
                 </div>
             </div>
             <div class="row mt-5 justify-content-center">
                 <div class="col-4 col-lg-2">
                     <a href="https://t.me/joinchat/HI-N0pw7f3rlIxKe" target="blank()">
-                        <img src="../assets/foto/icon/icon 3d nyabar.png" class="d-block w-100"> <p class="namaico">Nyabar</p>
+                        <img src="../image/icon/icon 3d nyabar.png" class="d-block w-100"> <p class="namaico">Nyabar</p>
                     </a>
                 </div>
                 <div class="col-4 col-lg-2">
                     <a href="https://t.me/wnjzizazu_supportcenter">
-                        <img src="../assets/foto/icon/icon 3d suport ticket.png" class="d-block w-100" > <p class="namaico">Support Ticket</p>
+                        <img src="../image/icon/icon 3d suport ticket.png" class="d-block w-100" > <p class="namaico">Support Ticket</p>
                     </a>
                 </div>
                 <div class="col-4 col-lg-2">
                     <a href="katalog">
-                        <img src="../assets/foto/icon/icon 3d katalog.png" class="d-block w-100" > <p class="namaico">Katalog</p>
+                        <img src="../image/icon/icon 3d katalog.png" class="d-block w-100" > <p class="namaico">Katalog</p>
                     </a>
                 </div>
                 <div class="col-4 col-lg-2">
                     <a href="pricelist">
-                        <img src="../assets/foto/icon/icon 3d pricelist.png" class="d-block w-100" > <p class="namaico">Pricelist</p>
+                        <img src="../image/icon/icon 3d pricelist.png" class="d-block w-100" > <p class="namaico">Pricelist</p>
                     </a>
                 </div>
                 <div class="col-4 col-lg-2">
                     <a href="resi">
-                        <img src="../assets/foto/icon/icon 3d resi.png" class="d-block w-100" > <p class="namaico">Resi</p>
+                        <img src="../image/icon/icon 3d resi.png" class="d-block w-100" > <p class="namaico">Resi</p>
                     </a>
                 </div>
             </div>

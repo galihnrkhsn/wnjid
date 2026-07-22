@@ -71,7 +71,7 @@
                 <div class="col-lg-3 col-md-6 col-xs-6 col-6 mb-4">
                     <div class="card">
                         <?php if ($data['foto'] <> ""): ?>
-                            <img class="card-img-top" src="foto/produk/<?php echo $data['foto']; ?>" alt="Card image">
+                            <img class="card-img-top" src="../image/produk/<?php echo $data['foto']; ?>" alt="Card image">
                         <?php else: ?>
                             <img class="card-img-top" src="foto/nophoto.png" alt="Card image">
                         <?php endif ?>

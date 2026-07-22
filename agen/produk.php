@@ -30,7 +30,7 @@
 				?>
 					<div class="col-6 col-sm-2">
 						<div class="card">
-							<img src="../assets/foto/produk/<?= $data['nama_folder'] ?>/<?= $data['foto'] ?>" loading="lazy">
+							<img src="../image/produk/<?= $data['nama_folder'] ?>/<?= $data['foto'] ?>" loading="lazy">
 							<div class="card-body">
 								<div class="card-title">
 									<a href="" class="text-primary link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">

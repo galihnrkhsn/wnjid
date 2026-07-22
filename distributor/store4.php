@@ -159,7 +159,7 @@
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
                 <div class="card product-card">
                     <?php if (!empty($data['foto'])): ?>
-                        <img class="card-img-top fixed-size-img" loading="lazy" src="foto/produk/<?= rawurlencode($data['nama_folder'] ?? '') ?>/<?= rawurlencode($data['foto']) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
+                        <img class="card-img-top fixed-size-img" loading="lazy" src="../image/produk/<?= rawurlencode($data['nama_folder'] ?? '') ?>/<?= rawurlencode($data['foto']) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                     <?php else: ?>
                         <img class="card-img-top fixed-size-img" loading="lazy" src="foto/nophoto.png" alt="Tidak ada foto produk">
                     <?php endif ?>
