@@ -1,6 +1,6 @@
 <?php
-    require '../portal/vendor/autoload.php';
-    require_once '../adminwnj/koneksi.php';
+    require '../vendor/autoload.php';
+    require_once '../includes/db.php';
     header('Content-Type: application/json');
 
     use Endroid\QrCode\QrCode;
