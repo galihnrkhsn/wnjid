@@ -131,6 +131,7 @@
                         $ins_tuser = $stmtTuser->execute();
                         if ($ins_tuser) {
                             $idTuser = $stmtTuser->insert_id;
+                            // $response = file_get_contents("http://localhost/api/generate_qr_api.php?id=$idTuser");
                             $response = file_get_contents("https://wnj.id/api/generate_qr_api.php?id=$idTuser");
 
                             if ($response !== false) {
