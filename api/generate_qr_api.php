@@ -51,10 +51,10 @@
             exit;
         }
 
-        $folder     = '../portal/img/qr/';
+        $folder     = '../image/qr/';
         $filename   = $folder . $id . '.png';
         $scheme     = $_SERVER['REQUEST_SCHEME'] ?? 'https';
-        $file_url   = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/portal/img/qr/' . $id . '.png';
+        $file_url   = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/image/qr/' . $id . '.png';
 
         if (!is_dir($folder)) {
             mkdir($folder, 0755, true);

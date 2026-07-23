@@ -229,9 +229,9 @@
                                 <div class="flex-container">
                                     <div class="section" align="center">
                                         <?php if ($jenisMitra === "WNJ") : ?>
-                                            <img src="../portal/img/wanoja.png" width="100">
+                                            <img src="../image/wanoja.png" width="100">
                                         <?php else : ?>
-                                            <img src="../portal/img/zizazu.png" width="100">
+                                            <img src="../image/zizazu.png" width="100">
                                         <?php endif; ?>
                                     </div>
                                     <div class="qr-container">

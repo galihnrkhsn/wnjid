@@ -10,11 +10,11 @@
     $sql        = $koneksi->query("SELECT * FROM t_user WHERE id_user = '$id'");
     $data       = $sql->fetch_assoc();
     
-    $folder     = 'img/qr/';
+    $folder     = '../image/qr/';
     $filename   = $folder . $id . '.png';
-    
+
     if (!is_dir($folder)) {
-        mkdir($folder, 0777, true);
+        mkdir($folder, 0755, true);
     }
 
     try {
@@ -126,9 +126,9 @@
     <div class="flex-container">
         <div class="section" align="center">
             <?php if ($data['jenis_mitra'] === "WNJ") : ?>
-                <img src="img/wanoja.png" width="100">
+                <img src="../image/wanoja.png" width="100">
             <?php else : ?>
-                <img src="img/zizazu.png" width="100">
+                <img src="../image/zizazu.png" width="100">
             <?php endif; ?>
         </div>
     

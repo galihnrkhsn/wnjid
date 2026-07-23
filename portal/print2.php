@@ -51,9 +51,9 @@
         <tr align="center" colspan="3" height="50">
             <td colspan="3">
                 <?php if ($data['jenis_mitra'] === "WNJ") : ?>
-                    <img src="img/wanoja.png" width="100">
+                    <img src="../image/wanoja.png" width="100">
                 <?php else : ?>
-                    <img src="img/zizazu.png" width="100">
+                    <img src="../image/zizazu.png" width="100">
                 <?php endif; ?>
             </td>
         </tr>
