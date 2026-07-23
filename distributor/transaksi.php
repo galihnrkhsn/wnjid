@@ -1,6 +1,4 @@
 <?php 
-	session_start();
-
 	include 'koneksi.php'; 
 	include 'assets/components/Sessions/sesDistri.php';
 ?>
