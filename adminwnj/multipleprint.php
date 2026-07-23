@@ -1,8 +1,13 @@
 <?php
+session_start();
 include "koneksi.php";
 
-        
-
+if (!isset($_SESSION["administrator"])) {
+    echo "<script>alert('anda harus login terlebih dahulu');</script>";
+    echo "<script>location='login.php';</script>";
+    header('location:login.php');
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -51,65 +56,67 @@ if(isset($_POST['but_export'])){
           if(isset($_POST['update'])){
                 foreach($_POST['update'] as $updateid){
 
-$invoice = $_POST['invoice'.$updateid];
+$invoice = $_POST['invoice'.$updateid] ?? '';
 
-  $query = "SELECT 
+  $stmtPo = $koneksi->prepare("SELECT
             poproduk.namapo
-        FROM poproduk 
-        inner join pomitra on poproduk.idpoproduk=pomitra.idpoproduk 
-        WHERE pomitra.invoice='$invoice'";
-  $sqlpo = mysqli_query($koneksi, $query);  
-  $datapo = mysqli_fetch_array($sqlpo);
-$sum=0;
+        FROM poproduk
+        inner join pomitra on poproduk.idpoproduk=pomitra.idpoproduk
+        WHERE pomitra.invoice=?");
+  $stmtPo->bind_param('s', $invoice);
+  $stmtPo->execute();
+  $poInfo = $stmtPo->get_result()->fetch_assoc();
 
-  $datamitra=$koneksi->query("SELECT admin_mitra.namamitra as db,
+  $stmtMitra = $koneksi->prepare("SELECT admin_mitra.namamitra as db,
                                     admin_mitra.idadmin,
                                     admin_mitra_cs.namacs,
-                              mitraagen.namaagen as agen, 
-                              mitraagen.idmitraagen as idagen, 
+                              mitraagen.namaagen as agen,
+                              mitraagen.idmitraagen as idagen,
                               mitrareseller.namaagen as reseller,
-                              mitrareseller.idmitrareseller as idreseller, 
-                              mitramarketer.namaagen as marketer, 
+                              mitrareseller.idmitrareseller as idreseller,
+                              mitramarketer.namaagen as marketer,
                               mitramarketer.idmitramarketer as idmarketer,
                               podropship.namapenerima,
                               poproduk.idpoproduk
                               FROM `pomitra`
-                              LEFT JOIN podropship on pomitra.invoice=podropship.invoice 
-                              LEFT JOIN mitraagen on mitraagen.idmitraagen=pomitra.idmitraagen 
-                              LEFT JOIN mitrareseller on mitrareseller.idmitrareseller=pomitra.idmitrareseller 
-                              LEFT JOIN mitramarketer on mitramarketer.idmitramarketer=pomitra.idmitramarketer 
-                              LEFT JOIN admin_mitra on (mitraagen.idadmin=admin_mitra.idadmin or mitrareseller.idadmin=admin_mitra.idadmin or mitramarketer.idadmin=admin_mitra.idadmin or pomitra.idmitra=admin_mitra.idadmin) 
+                              LEFT JOIN podropship on pomitra.invoice=podropship.invoice
+                              LEFT JOIN mitraagen on mitraagen.idmitraagen=pomitra.idmitraagen
+                              LEFT JOIN mitrareseller on mitrareseller.idmitrareseller=pomitra.idmitrareseller
+                              LEFT JOIN mitramarketer on mitramarketer.idmitramarketer=pomitra.idmitramarketer
+                              LEFT JOIN admin_mitra on admin_mitra.idadmin = COALESCE(pomitra.idmitra, mitraagen.idadmin, mitrareseller.idadmin, mitramarketer.idadmin)
                               LEFT JOIN admin_mitra_cs on admin_mitra.idadmin = admin_mitra_cs.idadmin
-                              INNER JOIN poproduk on pomitra.idpoproduk=poproduk.idpoproduk 
-                              WHERE pomitra.invoice='$invoice'");
-                            $tampilnama=$datamitra->fetch_assoc();                            
+                              INNER JOIN poproduk on pomitra.idpoproduk=poproduk.idpoproduk
+                              WHERE pomitra.invoice=?");
+  $stmtMitra->bind_param('s', $invoice);
+  $stmtMitra->execute();
+  $tampilnama = $stmtMitra->get_result()->fetch_assoc();
  ?>
 
 <center><p style="font-size:60;margin-bottom:0;"><strong>WNJ.ID</strong></p></center>
-<center><p style="font-size:60;margin-bottom:0;"><strong><?= $datapo['namapo']; ?></strong></p></center>
-<center><p style="font-size:50;margin-top:0;"><strong>Inv. <?= $invoice?></strong></p></center>
+<center><p style="font-size:60;margin-bottom:0;"><strong><?= htmlspecialchars($poInfo['namapo'] ?? '') ?></strong></p></center>
+<center><p style="font-size:50;margin-top:0;"><strong>Inv. <?= htmlspecialchars($invoice) ?></strong></p></center>
 
   <div class="row align-items-start">
     <div class="col">
-       <h5><strong style="float:left">Mitra : <?php echo $tampilnama['db']; ?>(<?php echo $tampilnama['idadmin']; ?>)
+       <h5><strong style="float:left">Mitra : <?php echo htmlspecialchars($tampilnama['db'] ?? '') ?>(<?php echo htmlspecialchars($tampilnama['idadmin'] ?? '') ?>)
        <?php if ($tampilnama['idagen'] or $tampilnama['idreseller'] or $tampilnama['idmarketer']): ?>
-       / <?= $tampilnama['idagen']; ?><?= $tampilnama['idreseller']; ?><?= $tampilnama['idmarketer']; ?>         
+       / <?= htmlspecialchars($tampilnama['idagen'] ?? '') ?><?= htmlspecialchars($tampilnama['idreseller'] ?? '') ?><?= htmlspecialchars($tampilnama['idmarketer'] ?? '') ?>
        <?php endif ?>
        </strong></h5>
     </div>
     <div class="col">
     </div>
     <div class="col">
-      <h5><strong style="float:rigth">Nama CS : <?php echo $tampilnama['namacs']; ?> </strong></h5>
+      <h5><strong style="float:rigth">Nama CS : <?php echo htmlspecialchars($tampilnama['namacs'] ?? '') ?> </strong></h5>
     </div>
   </div>
 
-    <?php if ($idpoproduk=='97' || $tampilnama['idpoproduk'] == '259' || $tampilnama['idpoproduk'] == '267' || $tampilnama['idpoproduk'] == '277' || $tampilnama['idpoproduk'] == '239') { ?>
-      <strong> Nama Keluarga : <?php echo $tampilnama['namapenerima']; ?> </strong><br>
+    <?php if ($tampilnama['idpoproduk']=='97' || $tampilnama['idpoproduk'] == '259' || $tampilnama['idpoproduk'] == '267' || $tampilnama['idpoproduk'] == '277' || $tampilnama['idpoproduk'] == '239') { ?>
+      <strong> Nama Keluarga : <?php echo htmlspecialchars($tampilnama['namapenerima'] ?? '') ?> </strong><br>
     <?php } ?>
 
      <?php if ($tampilnama['agen']<>'' OR $tampilnama['reseller']<>'' OR $tampilnama['marketer']<>'') { ?>
-    <strong> Nama Sub DB : <?php echo $tampilnama['agen']; ?> <?php echo $tampilnama['reseller']; ?>  <?php echo $tampilnama['marketer']; ?></strong>
+    <strong> Nama Sub DB : <?php echo htmlspecialchars($tampilnama['agen'] ?? '') ?> <?php echo htmlspecialchars($tampilnama['reseller'] ?? '') ?>  <?php echo htmlspecialchars($tampilnama['marketer'] ?? '') ?></strong>
   <?php } ?>
   <br>
     <?php if($tampilnama['idpoproduk'] == '276' || $tampilnama['idpoproduk'] == '278' || $tampilnama['idpoproduk'] == '281' || $tampilnama['idpoproduk'] == '283') : ?>
@@ -123,10 +130,9 @@ $sum=0;
               <th>No</th>
               <th>Nama Produk</th>
               <th>Qty</th>
-<?php if(substr($invoice,0,2)=="MH" and substr($invoice,2,1)<>"P" or substr($invoice,0,2)=="BR" or $tampilnama['idpoproduk'] == '261') : ?>
               <th>Custom</th>
               <th>Font</th>
-<?php endif; ?>
+              <th>Template</th>
             <?php if($tampilnama['idpoproduk'] == '276' || $tampilnama['idpoproduk'] == '278' || $tampilnama['idpoproduk'] == '281' || $tampilnama['idpoproduk'] == '283') : ?>
                 <th>Produksi</th>
                 <th>Distribusi</th>
@@ -140,33 +146,36 @@ $sum=0;
               <th>Penerima</th>
             <?php endif; ?>
             </tr>
-                          <?php 
+                          <?php
 $qty=0;
-                            $datapo=$koneksi->query("SELECT 
+                            $stmtDetail = $koneksi->prepare("SELECT
                              podetail.harga,
-                                            podetail.variant, 
-                                            pomitra.jumlah, 
+                                            podetail.variant,
+                                            pomitra.jumlah,
                                             pomitra.invoice,
-                                            pomitra.custom, 
-                                            pomitra.font, 
+                                            pomitra.custom,
+                                            pomitra.font,
+                                            pomitra.template,
                                             pomitra.idpodetail
                                     FROM pomitra
                                     JOIN podetail ON podetail.idpodetail = pomitra.idpodetail
-                                    WHERE pomitra.invoice= '$invoice'
+                                    WHERE pomitra.invoice = ?
                                     AND pomitra.jumlah>0
                                     ");
+                            $stmtDetail->bind_param('s', $invoice);
+                            $stmtDetail->execute();
+                            $detailResult = $stmtDetail->get_result();
                             $no=1;
-                          
-                            while($tampilkan=$datapo->fetch_assoc()){
+
+                            while($tampilkan=$detailResult->fetch_assoc()){
                             ?>
             <tr>
-                <td><?php echo $no++; ?></td>    
-                <td><?= $tampilkan['variant'];?> (<?= $tampilkan['custom']; ?>)</td>
-                <td><?= $tampilkan['jumlah'];?></td>  
-                <?php if(substr($tampilkan['invoice'],0,2)=="MH" and substr($tampilkan['invoice'],2,1)<>"P" or substr($invoice,0,2)=="BR" or $tampilnama['idpoproduk'] == '261') : ?>           
-                    <td><?= $tampilkan['custom']; ?></td>  
-                    <td><?= $tampilkan['font']; ?></td>
-                <?php endif; ?>            
+                <td><?php echo $no++; ?></td>
+                <td><?= htmlspecialchars($tampilkan['variant']) ?> (<?= htmlspecialchars($tampilkan['custom'] ?? '') ?>)</td>
+                <td><?= htmlspecialchars($tampilkan['jumlah']) ?></td>
+                <td><?= htmlspecialchars($tampilkan['custom'] ?? '') ?></td>
+                <td><?= htmlspecialchars($tampilkan['font'] ?? '') ?></td>
+                <td><?= htmlspecialchars($tampilkan['template'] ?? '') ?></td>
                 <?php if($tampilnama['idpoproduk'] == '276' || $tampilnama['idpoproduk'] == '278' || $tampilnama['idpoproduk'] == '281' || $tampilnama['idpoproduk'] == '283') : ?>
                     <td></td>
                     <td></td>
@@ -175,20 +184,20 @@ $qty=0;
                     <td></td>
                     <td></td>
                 <?php endif; ?>
-<?php 
+<?php
 $qty += $tampilkan['jumlah'];
-?>           
-              
+?>
+
                         </tr>
                         <?php } ?>
                         <tr>
-                          <?php if(substr($tampilkan['invoice'],0,2)=="MH" and substr($tampilkan['invoice'],2,1)<>"P" or substr($invoice,0,2)=="BR") : ?>           
+                          <?php if(substr($invoice,0,2)=="MH" and substr($invoice,2,1)<>"P" or substr($invoice,0,2)=="BR") : ?>
                             <td colspan="4">Total</td>
                           <?php else : ?>
                             <td colspan="2">Total</td>
                           <?php endif; ?>
                           <td><?= $qty; ?></td>
-<?php if(substr($tampilkan['invoice'],0,2)=="MH" and substr($tampilkan['invoice'],2,1)<>"P") : ?>             
+<?php if(substr($invoice,0,2)=="MH" and substr($invoice,2,1)<>"P") : ?>
               <td></td>
               <td></td>
 <?php endif; ?>
@@ -314,18 +323,19 @@ $qty += $tampilkan['jumlah'];
                 <?php else : ?>
                   Note : Setelah barang diterima, mohon langsung dicek<?php if($tampilnama['idpoproduk'] == '276' || $tampilnama['idpoproduk'] == '278' || $tampilnama['idpoproduk'] == '281' || $tampilnama['idpoproduk'] == '283') : ?>, lalu kurangi di web<?php endif; ?>. Surat jalan yang sudah diverifikasi dan sudah ditandatangani mohon untuk difoto dan dikirim melalui No HP CS Pusat maksimal 3 X 24 Jam
                 <?php endif; ?>
+                </p>
 <br>
 <br>
+            </div>
 
-</body>                    
     <div class="footer"></div>
     <footer></footer>
     <!-- End of Content Wrapper -->
 
-<?php                
+<?php
  }
               }
-        } 
+        }
         ?>
 
 </body>
