@@ -114,7 +114,6 @@
                 <div id="home" class="tab-pane fade show active" role="tabpanel"> 
                     <div class="table-responsive mt-4">
                         <div class="mb-3">
-                            <input type="hidden" class="form-control form-control-sm" value="<?= $mitra['invoice'] ?>" name="parse">
                             <input type="hidden" class="form-control form-control-sm" value="<?= $tampilnama['namacs']; ?>" name="namacs">
                             <button type='submit' class="btn btn-success mb-4" onclick="redirectPrint('alamat')">
                                 Cetak Alamat
@@ -292,6 +291,9 @@
                                                                     AND pomitra.jumlah > 0
                                                                 ");
                                 $no = 1;
+                                $total_sisa     = 0;
+                                $total_jumlah   = 0;
+                                $total_proses   = 0;      
                                 while($data = mysqli_fetch_array($sql)){ // Ambil semua data dari hasil eksekusi $sql
                                     $idpodetail = $data['idpodetail'];
                                     $idpomitra = $data['idpomitra'];
@@ -633,6 +635,11 @@
         });
 
         params.append('type', type);
+
+        let namacsField = document.querySelector('input[name="namacs"]');
+        if (namacsField) {
+            params.append('namacs', namacsField.value);
+        }
 
         window.open(
             'multiprintds3.php?' + params.toString(),

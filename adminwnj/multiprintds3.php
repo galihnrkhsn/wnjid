@@ -2,12 +2,13 @@
     error_reporting(E_ALL);
 
     include 'koneksi.php';
-    $ids = $_GET['ids'] ?? [];
-    $type = $_GET['type'] ?? '';
+    $rawIds = $_GET['ids'] ?? [];
+    $type   = $_GET['type'] ?? '';
 
-    if (!is_array($ids)) {
-        $ids = [$ids];
+    if (!is_array($rawIds)) {
+        $rawIds = [$rawIds];
     }
+    $ids = array_values(array_filter(array_map('intval', $rawIds)));
 ?>
 
 <style type="text/css">
@@ -18,8 +19,10 @@
 <?php
     if ($type == 'alamat') {
         if (!empty($ids)) {
-            foreach ($ids as $updateid) {
-                $sql = $koneksi->query("SELECT 
+            // Ambil semua baris dropship yang diminta dalam satu query (hindari N+1 SELECT per item)
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmtAlamat = $koneksi->prepare("SELECT
+                                            podropship.iddropship,
                                             podropship.namapengirim,
                                             podropship.tlppengirim,
                                             podropship.namapenerima,
@@ -32,7 +35,6 @@
                                             podropship.ekspedisi,
                                             podropship.layanan,
                                             poproduk.namapo,
-                                            poproduk.idpoproduk,
                                             tb_ro_provinces.province_name AS provinsi,
                                             tb_ro_cities.city_name AS kota,
                                             tb_ro_subdistricts.subdistrict_name AS kecamatan,
@@ -48,90 +50,98 @@
                                             LEFT JOIN mitrareseller ON podropship.idmitrareseller = mitrareseller.idmitrareseller
                                             LEFT JOIN mitramarketer ON podropship.idmitramarketer = mitramarketer.idmitramarketer
                                             LEFT JOIN admin_mitra ON podropship.idadmin = admin_mitra.idadmin
-                                        WHERE podropship.iddropship = '$updateid'
-                                        ");
-                $data = $sql->fetch_assoc();
-                $tanggal        = date('Y-m-d');
-                $invoice        = $data['invoice'];
-                $penerima       = $data['namapenerima'];
-                $keterangan     = $data['keterangan'];
-                $namacs         = $_POST['namacs'];
-                $ekspedisi      = $data['ekspedisi'];
-                $pengirim       = $data['namapengirim'];
-                $telp_pengirim  = $data['tlppengirim'];
-                $telp_penerima  = $data['tlppenerima'];
-                $idpoproduk     = $data['idpoproduk'];
-                $alamat_parts = array_filter([
-                    $data['alamatpenerima'],
-                    $data['kecamatan'],
-                    $data['kota'],
-                    $data['provinsi']
-                ]);
+                                        WHERE podropship.iddropship IN ($placeholders)");
+            $stmtAlamat->bind_param(str_repeat('i', count($ids)), ...$ids);
+            $stmtAlamat->execute();
+            $rowsById = [];
+            foreach ($stmtAlamat->get_result() as $row) {
+                $rowsById[$row['iddropship']] = $row;
+            }
+            $namacs = $_GET['namacs'] ?? ($_POST['namacs'] ?? '');
 
-                
-                $alamat = implode(', ', $alamat_parts);
-                $idmitra        = $data['idmitra'] ?? NULL;
-                $idadmin_mitra  = $data['idadmin_mitra'] ?? NULL;
-                $idmitraagen     = ($idmitra == $data['idmitraagen']) ? "'$idmitra'" : "NULL";
-                $idmitrareseller = ($idmitra == $data['idmitrareseller']) ? "'$idmitra'" : "NULL";
-                $idmitramarketer = ($idmitra == $data['idmitramarketer']) ? "'$idmitra'" : "NULL";
-
-                $ins_log = $koneksi->query("INSERT INTO logistik3 
-                                                                (
-                                                                    `idlogistik`,
-                                                                    `tgl`, `penerima`, `ekspedisi`, `noresi`, `biayakirim`, `jumlah_koli`,
-                                                                    `keterangan`, `status`, `idadmin`, `idmitraagen`, `idmitrareseller`, `idmitramarketer`,
-                                                                    `namacs`, `no_sj`, `jenis_mitra`, `jenis_pengiriman`, `detail_pengiriman`
-                                                                )
-                                                            VALUES 
-                                                                (
-                                                                    NULL, '$tanggal', '$penerima', '$ekspedisi', NULL, 0, 0,
-                                                                    '$keterangan', NULL, '$idadmin_mitra', 
-                                                                    " . ($idmitra == $data['idmitraagen'] ? "'$idmitra'" : "NULL") . ",
-                                                                    " . ($idmitra == $data['idmitrareseller'] ? "'$idmitra'" : "NULL") . ",
-                                                                    " . ($idmitra == $data['idmitramarketer'] ? "'$idmitra'" : "NULL") . ",
-                                                                    '$namacs', NULL, 'WNJ', 'PO', '$idpoproduk'
-                                                                )
-                                        ");
-                if (!$ins_log) {
-                    echo "Error: " . $koneksi->error;
+            foreach ($ids as $updateid) {
+                if (!isset($rowsById[$updateid])) {
+                    continue;
                 }
-                if ($ins_log) {
-                    $idlogistik_baru    = mysqli_insert_id($koneksi);
-                    if (!$idlogistik_baru) {
-                        die("Gagal mendapatkan idlogistik_baru: " . $koneksi->error);
+                try {
+                    $data = $rowsById[$updateid];
+                    $tanggal        = date('Y-m-d');
+                    $invoice        = $data['invoice'];
+                    $penerima       = $data['namapenerima'];
+                    $keterangan     = $data['keterangan'];
+                    $ekspedisi      = $data['ekspedisi'];
+                    $pengirim       = $data['namapengirim'];
+                    $telp_pengirim  = $data['tlppengirim'];
+                    $telp_penerima  = $data['tlppenerima'];
+                    $idpoproduk     = $data['idpoproduk'];
+                    $jenisMitra     = 'WNJ';
+                    $alamat_parts = array_filter([
+                        $data['alamatpenerima'],
+                        $data['kecamatan'],
+                        $data['kota'],
+                        $data['provinsi']
+                    ]);
+
+                    $alamat         = implode(', ', $alamat_parts);
+                    $idmitra        = $data['idmitra'] ?? null;
+                    $idadmin_mitra  = $data['idadmin_mitra'] ?? null;
+                    $logIdmitraagen     = ($idmitra == $data['idmitraagen']) ? $idmitra : null;
+                    $logIdmitrareseller = ($idmitra == $data['idmitrareseller']) ? $idmitra : null;
+                    $logIdmitramarketer = ($idmitra == $data['idmitramarketer']) ? $idmitra : null;
+
+                    $stmtLog = $koneksi->prepare("INSERT INTO logistik3
+                                                        (`idlogistik`,
+                                                         `tgl`, `penerima`, `ekspedisi`, `noresi`, `biayakirim`, `jumlah_koli`,
+                                                         `keterangan`, `status`, `idadmin`, `idmitraagen`, `idmitrareseller`, `idmitramarketer`,
+                                                         `namacs`, `no_sj`, `jenis_mitra`, `jenis_pengiriman`, `detail_pengiriman`)
+                                                    VALUES (NULL,
+                                                            ?, ?, ?, NULL, 0, 0,
+                                                            ?, NULL, ?, ?, ?, ?,
+                                                            ?, NULL, ?, 'PO', ?)");
+                    $stmtLog->bind_param(
+                        'sssssssssss',
+                        $tanggal, $penerima, $ekspedisi, $keterangan, $idadmin_mitra,
+                        $logIdmitraagen, $logIdmitrareseller, $logIdmitramarketer,
+                        $namacs, $jenisMitra, $idpoproduk
+                    );
+                    $ins_log = $stmtLog->execute();
+                    if (!$ins_log) {
+                        echo "Error: " . $stmtLog->error;
                     }
-                    $pengirim       = mysqli_real_escape_string($koneksi, $pengirim);
-                    $alm_penerima   = mysqli_real_escape_string($koneksi, $alm_penerima);
-                    $namacs         = mysqli_real_escape_string($koneksi, $namacs);
-                    $alamat         = mysqli_real_escape_string($koneksi, $alamat);
+                    if ($ins_log) {
+                        $idlogistik_baru = $stmtLog->insert_id;
+                        if (!$idlogistik_baru) {
+                            die("Gagal mendapatkan idlogistik_baru: " . $koneksi->error);
+                        }
 
-                    $ins_tuser          = $koneksi->query("INSERT INTO `t_user`
-                                                                (
-                                                                    `id_user`, `idlogistik`, `namacs`, `nama`, `teleponpengirim`, `nama_penerima`, `teleponpenerima`, 
-                                                                    `alamat`, `keterangan`, `ekspedisi`, `invoice`, `status`,
-                                                                    `created_date`,`modified_date`,`resi_pengiriman`,`ongkir`,`pcs`,`marketplace`,`namamitra`,`idadmin`,`no_sj`,
-                                                                    `jenis_mitra`
-                                                                ) 
-                                                            VALUES 
-                                                                (
-                                                                    NULL, '$idlogistik_baru', '$namacs', '$pengirim', '$telp_pengirim', '$penerima', '$telp_penerima', 
-                                                                    '$alamat', NULL, '$ekspedisi', '$invoice', NULL, NOW(), 
-                                                                    NOW(), NULL, NULL, NULL, NULL, 
-                                                                    '$pengirim', '$idadmin_mitra', NULL, 'WNJ'
-                                                                )
-                                                        ");
-                    if ($ins_tuser) {
-                        $idTuser = $koneksi->insert_id;
-                        $response = file_get_contents("https://wnj.id/api/generate_qr_api.php?id=$idTuser");
+                        $stmtTuser = $koneksi->prepare("INSERT INTO `t_user`
+                                                            (`id_user`, `idlogistik`, `namacs`, `nama`, `teleponpengirim`, `nama_penerima`, `teleponpenerima`,
+                                                             `alamat`, `keterangan`, `ekspedisi`, `invoice`, `status`,
+                                                             `created_date`, `modified_date`, `resi_pengiriman`, `ongkir`, `pcs`, `marketplace`, `namamitra`, `idadmin`, `no_sj`,
+                                                             `jenis_mitra`)
+                                                        VALUES (NULL, ?, ?, ?, ?, ?, ?,
+                                                                ?, NULL, ?, ?, NULL, NOW(),
+                                                                NOW(), NULL, NULL, NULL, NULL, ?, ?, NULL,
+                                                                ?)");
+                        $stmtTuser->bind_param(
+                            'ssssssssssss',
+                            $idlogistik_baru, $namacs, $pengirim, $telp_pengirim, $penerima, $telp_penerima,
+                            $alamat, $ekspedisi, $invoice, $pengirim, $idadmin_mitra, $jenisMitra
+                        );
+                        $ins_tuser = $stmtTuser->execute();
+                        if ($ins_tuser) {
+                            $idTuser = $stmtTuser->insert_id;
+                            $response = file_get_contents("https://wnj.id/api/generate_qr_api.php?id=$idTuser");
 
-                        if ($response !== false) {
-                            $data = json_decode($response, true);
-                            $qrUrl = $data['qr_url'] ?? '';
-                            $qrId  = $data['id'] ?? '';
+                            if ($response !== false) {
+                                $qrData = json_decode($response, true);
+                                $qrUrl = $qrData['qr_url'] ?? '';
+                                $qrId  = $qrData['id'] ?? '';
 
-                            $koneksi->query("UPDATE podropship SET proses = 'Proses' WHERE iddropship = '$updateid'");
-                            ?>
+                                $stmtProses = $koneksi->prepare("UPDATE podropship SET proses = 'Proses' WHERE iddropship = ?");
+                                $stmtProses->bind_param('i', $updateid);
+                                $stmtProses->execute();
+                                ?>
 
                                 <style>
                                     body {
@@ -218,22 +228,22 @@
 
                                 <div class="flex-container">
                                     <div class="section" align="center">
-                                        <?php if (htmlspecialchars($data['jenis_mitra']) === "WNJ") : ?>
+                                        <?php if ($jenisMitra === "WNJ") : ?>
                                             <img src="../portal/img/wanoja.png" width="100">
                                         <?php else : ?>
                                             <img src="../portal/img/zizazu.png" width="100">
                                         <?php endif; ?>
                                     </div>
                                     <div class="qr-container">
-                                        <img src="<?= $data['qr_url'] ?>" alt="QR Code Pengiriman">
-                                        <p><small><?= $data['id'] ?></small></p>
+                                        <img src="<?= htmlspecialchars($qrUrl) ?>" alt="QR Code Pengiriman">
+                                        <p><small><?= htmlspecialchars($qrId) ?></small></p>
                                     </div>
                                 </div>
 
                                 <table class="columns text-center">
                                     <tr>
-                                        <td><strong>CSO:</strong> <?= htmlspecialchars($data['namacs']) ?></td>
-                                        <td><strong>Ekspedisi:</strong> <?= htmlspecialchars($data['ekspedisi']) ?></td>
+                                        <td><strong>CSO:</strong> <?= htmlspecialchars($namacs) ?></td>
+                                        <td><strong>Ekspedisi:</strong> <?= htmlspecialchars($ekspedisi) ?></td>
                                         <td></td>
                                     </tr>
                                 </table>
@@ -242,8 +252,8 @@
                                     <tr>
                                         <td>
                                             <h4>Pengirim:</h4>
-                                            <p><?= htmlspecialchars($data['nama']) ?></p>
-                                            <p><?= htmlspecialchars($data['tlppengirim']) ?></p>
+                                            <p><?= htmlspecialchars($pengirim) ?></p>
+                                            <p><?= htmlspecialchars($telp_pengirim) ?></p>
                                         </td>
                                     </tr>
                                 </table>
@@ -252,27 +262,30 @@
                                     <tr>
                                         <td>
                                             <h4>Penerima:</h4>
-                                            <p><?= htmlspecialchars($data['nama_penerima']) ?></p>
-                                            <p><?= htmlspecialchars($data['tlppenerima']) ?></p>
-                                            <p><?= htmlspecialchars($data['alamat']) ?></p>
+                                            <p><?= htmlspecialchars($penerima) ?></p>
+                                            <p><?= htmlspecialchars($telp_penerima) ?></p>
+                                            <p><?= htmlspecialchars($alamat) ?></p>
                                         </td>
                                     </tr>
                                 </table>
 
                                 <div class="divider"></div>
 
-                                <p><strong>Note:</strong> <?= htmlspecialchars($data['keterangan']) ?></p>
-                                
+                                <p><strong>Note:</strong> <?= htmlspecialchars($keterangan) ?></p>
+
                                 <div class="left-info">
-                                    <p><strong>Kode Mitra:</strong> <?= htmlspecialchars($data['idadmin']) ?></p>
+                                    <p><strong>Kode Mitra:</strong> <?= htmlspecialchars($idadmin_mitra) ?></p>
                                     <p><strong>Tanggal:</strong> <?= date('d-m-Y') ?></p>
                                 </div>
 
                                 <div class="page-break"></div>
 
                             <?php
+                            }
                         }
                     }
+                } catch (\Throwable $e) {
+                    echo "<!-- Gagal memproses iddropship=" . htmlspecialchars((string) $updateid) . ": " . htmlspecialchars($e->getMessage()) . " -->";
                 }
             }
         }

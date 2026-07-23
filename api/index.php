@@ -1,30 +1,8 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Create The Application
-|--------------------------------------------------------------------------
-|
-| First we need to get an application instance. This creates an instance
-| of the application / container and bootstraps the application so it
-| is ready to receive HTTP / Console requests from the environment.
-|
-*/
-
-// $app = require __DIR__.'/../bootstrap/app.php';
-$app = require __DIR__.'/../../api/bootstrap/app.php';
-// $app = require __DIR__.'/../../api/index.html';
-
-/*
-|--------------------------------------------------------------------------
-| Run The Application
-|--------------------------------------------------------------------------
-|
-| Once we have the application, we can handle the incoming request
-| through the kernel, and send the associated response back to
-| the client's browser allowing them to enjoy the creative
-| and wonderful application we have prepared for them.
-|
-*/
-
-$app->run();
+// Endpoint di folder ini (generate_qr_api.php, get_mitra.php) dipanggil langsung
+// lewat nama filenya masing-masing. index.php hanya menjadi fallback ketika ada
+// request ke path yang tidak cocok dengan file apa pun di dalam api/ (lihat .htaccess).
+header('Content-Type: application/json');
+http_response_code(404);
+echo json_encode(['status' => 'error', 'message' => 'Endpoint tidak ditemukan']);

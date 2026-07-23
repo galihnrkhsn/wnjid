@@ -132,28 +132,44 @@
                     }
                 ?>
                 <a type="submit" class="btn btn-primary btn-lg" name="cari" id="linkmiki<?= $row['idbpo'] ?>" style="color:white;" href="<?= htmlspecialchars($link) ?>"><?= htmlspecialchars($text) ?></a>
-                <p class="countdown" id="demomiki<?= $row['idbpo'] ?>"></p>
+                <p class="countdown" id="demomiki<?= $row['idbpo'] ?>" data-countdown-target="<?= htmlspecialchars($row['tgl']) ?> 23:59:00" data-link="linkmiki<?= (int) $row['idbpo'] ?>"></p>
             </div>
-            <script>
-                const countdownTarget<?= (int) $row['idbpo'] ?> = new Date("<?= addslashes($row['tgl']) ?> 23:59:00").getTime();
-                const interval<?= (int) $row['idbpo'] ?> = setInterval(() => {
-                const now = new Date().getTime();
-                const distance = countdownTarget<?= (int) $row['idbpo'] ?> - now;
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                document.getElementById("demomiki<?= (int) $row['idbpo'] ?>").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-                if (distance < 0) {
-                    clearInterval(interval<?= (int) $row['idbpo'] ?>);
-                    document.getElementById("demomiki<?= (int) $row['idbpo'] ?>").innerHTML = "Link PO tidak tersedia";
-                    document.getElementById("linkmiki<?= (int) $row['idbpo'] ?>").style.display = "none";
-                }
-                }, 1000);
-            </script>
         <?php endwhile; ?>
+        <?php if ($hasOpenPo): ?>
+        <script>
+            (function () {
+                var items = Array.prototype.map.call(document.querySelectorAll('.countdown[data-countdown-target]'), function (el) {
+                    return {
+                        el: el,
+                        target: new Date(el.dataset.countdownTarget).getTime(),
+                        link: document.getElementById(el.dataset.link)
+                    };
+                });
+                if (!items.length) return;
+                var timer;
+                function tick() {
+                    var now = Date.now();
+                    items = items.filter(function (item) {
+                        var distance = item.target - now;
+                        if (distance < 0) {
+                            item.el.innerHTML = "Link PO tidak tersedia";
+                            if (item.link) item.link.style.display = "none";
+                            return false;
+                        }
+                        var days = Math.floor(distance / 86400000);
+                        var hours = Math.floor((distance % 86400000) / 3600000);
+                        var minutes = Math.floor((distance % 3600000) / 60000);
+                        var seconds = Math.floor((distance % 60000) / 1000);
+                        item.el.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                        return true;
+                    });
+                    if (!items.length) clearInterval(timer);
+                }
+                tick();
+                timer = setInterval(tick, 1000);
+            })();
+        </script>
+        <?php endif; ?>
         <div class="text-center mt-5 mb-5" style="color: var(--color1)">
             <h3>PO Regular</h3>
         </div>
@@ -179,14 +195,11 @@
                                                         p.idpoproduk,
                                                         MAX(p.tgl) AS tgl
                                                     FROM pomitra p
-                                                    LEFT JOIN mitraagen ma ON ma.idmitraagen = p.idmitraagen
-                                                    LEFT JOIN mitrareseller mr ON mr.idmitrareseller = p.idmitrareseller
-                                                    LEFT JOIN mitramarketer mm ON mm.idmitramarketer = p.idmitramarketer
                                                     WHERE
                                                         p.idmitra = ?
-                                                        OR ma.idadmin = ?
-                                                        OR mr.idadmin = ?
-                                                        OR mm.idadmin = ?
+                                                        OR p.idmitraagen IN (SELECT idmitraagen FROM mitraagen WHERE idadmin = ?)
+                                                        OR p.idmitrareseller IN (SELECT idmitrareseller FROM mitrareseller WHERE idadmin = ?)
+                                                        OR p.idmitramarketer IN (SELECT idmitramarketer FROM mitramarketer WHERE idadmin = ?)
                                                     GROUP BY p.idpoproduk
                                                 ) x
                                                 JOIN poproduk pr ON pr.idpoproduk = x.idpoproduk

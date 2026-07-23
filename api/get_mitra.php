@@ -3,43 +3,55 @@
     header('Content-Type: application/json');
 
 
-    $draw       = $_POST['draw'] ?? 0;
-    $start      = $_POST['start'] ?? 0;
-    $length     = $_POST['length'] ?? 10;
-    $search     = $_POST['search']['value'] ?? '';
+    $draw       = (int) ($_POST['draw'] ?? 0);
+    $start      = (int) ($_POST['start'] ?? 0);
+    $length     = (int) ($_POST['length'] ?? 10);
+    $search     = trim($_POST['search']['value'] ?? '');
 
     $totalQuery = $koneksi->query("SELECT COUNT(*) as total FROM admin_mitra");
     $totalData  = $totalQuery->fetch_assoc()['total'];
 
-    $sql        = "SELECT   
+    $baseSql    = "SELECT
                         am.idadmin,
                         am.namamitra,
                         am.email,
                         am.alamat,
                         am.whatsapp,
+                        am.privateorder,
                         tc.city_name,
                         amcs.namacs,
                         am.status
                     FROM admin_mitra AS am
                     LEFT JOIN tb_ro_cities tc ON am.kota = tc.city_id
-                    LEFT JOIN admin_mitra_cs amcs ON amcs.idadmin = am.idadmin
-                    WHERE 1 ";
+                    LEFT JOIN admin_mitra_cs amcs ON amcs.idadmin = am.idadmin";
 
-    if (!empty($search)) {
-        $sql    .= " AND (am.namamitra LIKE '%$search%' OR
-                        am.email LIKE '%$search%' OR
-                        am.alamat LIKE '%$search%' OR
-                        tc.city_name LIKE '%$search%' OR
-                        amcs.namacs LIKE '%$search%'
-                        )
-                    ";
+    $whereSql   = '';
+    $params     = [];
+    $types      = '';
+
+    if ($search !== '') {
+        $whereSql = " WHERE am.namamitra LIKE ? OR
+                        am.email LIKE ? OR
+                        am.alamat LIKE ? OR
+                        tc.city_name LIKE ? OR
+                        amcs.namacs LIKE ?";
+        $like     = '%' . $search . '%';
+        $params   = [$like, $like, $like, $like, $like];
+        $types    = 'sssss';
     }
 
-    $filteredQuery  = $koneksi->query($sql);
-    $filteredData   = $filteredQuery->num_rows;
+    $stmtFiltered = $koneksi->prepare($baseSql . $whereSql);
+    if ($types !== '') {
+        $stmtFiltered->bind_param($types, ...$params);
+    }
+    $stmtFiltered->execute();
+    $filteredData = $stmtFiltered->get_result()->num_rows;
 
-    $sql            .= " ORDER BY am.idadmin DESC limit $start, $length";
-    $dataQuery      = $koneksi->query($sql);
+    $stmtData   = $koneksi->prepare($baseSql . $whereSql . " ORDER BY am.idadmin DESC LIMIT ?, ?");
+    $dataParams = array_merge($params, [$start, $length]);
+    $stmtData->bind_param($types . 'ii', ...$dataParams);
+    $stmtData->execute();
+    $dataQuery  = $stmtData->get_result();
 
     $data           = [];
     while($row = $dataQuery->fetch_assoc()) {

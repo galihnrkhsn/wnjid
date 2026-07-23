@@ -12,14 +12,15 @@ if(!isset($_SESSION["administrator"])){
 }
 
 
-$id=$_GET['id'];
+$id = (int) ($_GET['id'] ?? 0);
 
-  $query = "SELECT poproduk.idpoproduk,
+  $stmtPo = $koneksi->prepare("SELECT poproduk.idpoproduk,
             poproduk.namapo
-        FROM poproduk 
-        WHERE poproduk.idpoproduk='$id'";
-  $sqlpo = mysqli_query($koneksi, $query);  
-  $datapo = mysqli_fetch_array($sqlpo);
+        FROM poproduk
+        WHERE poproduk.idpoproduk = ?");
+  $stmtPo->bind_param('i', $id);
+  $stmtPo->execute();
+  $poInfo = $stmtPo->get_result()->fetch_assoc();
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +57,7 @@ $id=$_GET['id'];
 
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Dropship<br><?= $datapo['namapo']; ?></h1>
+            <h1 class="h3 mb-0 text-gray-800">Dropship<br><?= htmlspecialchars($poInfo['namapo'] ?? '') ?></h1>
             <h1 class="h3 mb-0 text-gray-800"><a href="daftards.php"><span class="fa fa-chevron-left"></span> Kembali</a></h1>
 
            <!-- <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-download fa-sm text-white-50"></i> Generate Report</a> -->
@@ -87,54 +88,53 @@ $id=$_GET['id'];
                         </tr>
                       </thead>
                       <tbody>
-                          <?php 
-                            $datapo=$koneksi->query("SELECT 
+                          <?php
+                            $stmtDs = $koneksi->prepare("SELECT
                               admin_mitra.namamitra,
-                              mitraagen.namaagen as agen, 
-                              mitrareseller.namaagen as reseller, 
+                              mitraagen.namaagen as agen,
+                              mitrareseller.namaagen as reseller,
                               mitramarketer.namaagen as marketer,
-                              pomitra.invoice 
+                              pomitra.invoice
                               FROM pomitra
-                              LEFT JOIN mitraagen on pomitra.idmitraagen=mitraagen.idmitraagen 
-                              LEFT JOIN mitrareseller on mitrareseller.idmitrareseller=pomitra.idmitrareseller 
-                              LEFT JOIN mitramarketer on pomitra.idmitramarketer=mitramarketer.idmitramarketer 
-                              LEFT JOIN admin_mitra on (admin_mitra.idadmin=pomitra.idmitra 
-                                                      or mitraagen.idadmin=admin_mitra.idadmin 
-                                                      or mitrareseller.idadmin=admin_mitra.idadmin 
-                                                      or mitramarketer.idadmin=admin_mitra.idadmin)    
-                              WHERE pomitra.idpoproduk = '$id'
-                              and pomitra.jumlah>0 
-                              
+                              LEFT JOIN mitraagen on pomitra.idmitraagen=mitraagen.idmitraagen
+                              LEFT JOIN mitrareseller on mitrareseller.idmitrareseller=pomitra.idmitrareseller
+                              LEFT JOIN mitramarketer on pomitra.idmitramarketer=mitramarketer.idmitramarketer
+                              LEFT JOIN admin_mitra on admin_mitra.idadmin = COALESCE(pomitra.idmitra, mitraagen.idadmin, mitrareseller.idadmin, mitramarketer.idadmin)
+                              WHERE pomitra.idpoproduk = ?
+                              and pomitra.jumlah>0
                               GROUP BY pomitra.invoice order by admin_mitra.namamitra asc");
-                            $no=$mulai+1;
-                          
-                            while($tampilkan=$datapo->fetch_assoc()){
+                            $stmtDs->bind_param('i', $id);
+                            $stmtDs->execute();
+                            $dsResult = $stmtDs->get_result();
+                            $no = 1;
+
+                            while($tampilkan=$dsResult->fetch_assoc()){
                             ?>
                         <tr>
-                         
+
                          <td>
                              <?php echo $no++; ?>
-                        </td>   
+                        </td>
                            <td>
-                           <?php echo $tampilkan['namamitra']; ?> 
+                           <?php echo htmlspecialchars($tampilkan['namamitra'] ?? ''); ?>
                           </td>
                           <td>
-                           <?php echo $tampilkan['agen']; ?> <?php echo $tampilkan['reseller']; ?> <?php echo $tampilkan['marketer']; ?> 
+                           <?php echo htmlspecialchars($tampilkan['agen'] ?? ''); ?> <?php echo htmlspecialchars($tampilkan['reseller'] ?? ''); ?> <?php echo htmlspecialchars($tampilkan['marketer'] ?? ''); ?>
                           </td>
                           <td>
-                            <?php echo $tampilkan['invoice']; ?>
+                            <?php echo htmlspecialchars($tampilkan['invoice']); ?>
                           </td>
                           <td>
                             <?php if ($id==153): ?>
-                              <a href="detaildropship_kolibri.php?id=<?php echo $tampilkan['invoice']; ?>">Klik Disini</a>
+                              <a href="detaildropship_kolibri.php?id=<?php echo urlencode($tampilkan['invoice']); ?>">Klik Disini</a>
                               <?php else: ?>
-                                
-                           <a href="detaildropship.php?id=<?php echo $tampilkan['invoice']; ?>">Klik Disini</a>
+
+                           <a href="detaildropship.php?id=<?php echo urlencode($tampilkan['invoice']); ?>">Klik Disini</a>
                             <?php endif ?>
                             <hr>
-                           <a href="formdropship.php?invoice=<?php echo $tampilkan['invoice']; ?>" class="btn btn-sm btn-primary">Tambah Dropship</a>
-                            
-                          </td>	
+                           <a href="formdropship.php?invoice=<?php echo urlencode($tampilkan['invoice']); ?>" class="btn btn-sm btn-primary">Tambah Dropship</a>
+
+                          </td>
                         </tr>
                         <?php } ?>
                       </tbody>

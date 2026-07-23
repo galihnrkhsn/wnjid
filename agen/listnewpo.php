@@ -60,92 +60,6 @@
 
 
 <div class="container mt-5" align="center">
-<!-- 
-  <button type="submit" class="btn btn-info btn-lg" name="cari" id="linkinner">
-    <a  style="color:white" href="formpoori?id=158">Link PO Sample Bergo Fulica</a>
-  </button>
-  <p id="demoinner"></p>
-  <br>  -->
-
-<script>
-// // Mengatur waktu akhir perhitungan mundur
-// var countDownDateinner = new Date("2022-12-26 09:00:00").getTime();
-
-// // Memperbarui hitungan mundur setiap 1 detik
-// var x = setInterval(function() {
-
-//   // Untuk mendapatkan tanggal dan waktu hari ini
-//   var now = new Date().getTime();
-    
-//   // Temukan jarak antara sekarang dan tanggal hitung mundur
-//   var distance = countDownDateinner - now;
-    
-//   // Perhitungan waktu untuk hari, jam, menit dan detik
-//   var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-//   var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-//   var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-//   var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    
-//   // Keluarkan hasil dalam elemen dengan id = "demo"
-//   document.getElementById("demoinner").innerHTML = days + "d " + hours + "h "
-//   + minutes + "m " + seconds + "s ";
-    
-//   // Jika hitungan mundur selesai, tulis beberapa teks 
-//   if (distance < 0) {
-//     clearInterval(x);
-//     document.getElementById("demoinner").innerHTML = "Link PO tidak tersedia";
-//       var x = document.getElementById("linkinner");
- 
-//     //x.style.display = "block";
-//     x.style.display = "none";
-//     }
-// }, 1000);
-</script>
-
-<!-- 
-  <button type="submit" class="btn btn-info btn-lg" name="cari" id="linkinnernya">
-    <a  style="color:white" href="formpobrooch_customstok.php?id=137">Link PO Brooch Custom Name Batch V WNJ</a>
-  </button>
-  <p id="demoinnernya"></p>
-  <br>  -->
-
-<script>
-// Mengatur waktu akhir perhitungan mundur
-// var countDownDateinner1 = new Date("Oct 10, 2022 23:59:59").getTime();
-
-// // Memperbarui hitungan mundur setiap 1 detik
-// var x = setInterval(function() {
-
-//   // Untuk mendapatkan tanggal dan waktu hari ini
-//   var now = new Date().getTime();
-    
-//   // Temukan jarak antara sekarang dan tanggal hitung mundur
-//   var distance = countDownDateinner1 - now;
-    
-//   // Perhitungan waktu untuk hari, jam, menit dan detik
-//   var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-//   var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-//   var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-//   var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    
-//   // Keluarkan hasil dalam elemen dengan id = "demo"
-//   document.getElementById("demoinnernya").innerHTML = days + "d " + hours + "h "
-//   + minutes + "m " + seconds + "s ";
-    
-//   // Jika hitungan mundur selesai, tulis beberapa teks 
-//   if (distance < 0) {
-//     clearInterval(x);
-//     document.getElementById("demoinnernya").innerHTML = "Link PO tidak tersedia";
-//       var x = document.getElementById("linkinnernya");
- 
-//     //x.style.display = "block";
-//     x.style.display = "none";
-//     }
-// }, 1000);
-</script>
-
-
-<!--------------------------------------------------------------------------------------------------------------------------------------------------------------------->
 <?php
   $dataproduk=$koneksi->query("SELECT bukapo.idbpo,
                                     bukapo.jenis_mitra,
@@ -214,11 +128,6 @@
             <a  style="color:white" href="formpo_karakterstok?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?> (Custom)</a>
         <?php endif ?>                          
         
-        <?php
-            include 'koneksi.php';
-            $idmitraagen=$_SESSION ['idmitraagen'];
-        ?>
-
         <?php if ($tampilkan['jenis_po'] == "PO Bundling 2"): ?>
             <a  style="color:white" href="formpobundling2?id=<?php echo $tampilkan['idpoproduk']; ?>&idadmin=<?= $idmitra ?>"><?php echo $tampilkan['namapo']; ?></a>
         <?php endif ?>
@@ -286,54 +195,43 @@
 
 
       </button>
-      <p id="demomiki<?= $tampilkan['idbpo']; ?>" >
-
-
-      </p>
+      <p id="demomiki<?= $tampilkan['idbpo']; ?>" class="countdown" data-countdown-target="<?= htmlspecialchars($tampilkan['tgl']); ?> 23:59:00" data-link="linkmiki<?= (int) $tampilkan['idbpo']; ?>"></p>
       <br>
 
-
+<?php } ?>
 <script>
-
-// Mengatur waktu akhir perhitungan mundur
-var countDownDatemiki<?= $tampilkan['idbpo']; ?>= new Date("<?php echo $tampilkan['tgl']; ?> 23:59:00").getTime();
-
-// Memperbarui hitungan mundur setiap 1 detik
-var x = setInterval(function() {
-
-  // Untuk mendapatkan tanggal dan waktu hari ini
-  var now = new Date().getTime();
-    
-  // Temukan jarak antara sekarang dan tanggal hitung mundur
-  var distance = countDownDatemiki<?= $tampilkan['idbpo']; ?> - now;
-    
-  // Perhitungan waktu untuk hari, jam, menit dan detik
-  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    
-  // Keluarkan hasil dalam elemen dengan id = "demo"
-  document.getElementById("demomiki<?= $tampilkan['idbpo']; ?>").innerHTML = days + "d " + hours + "h "
-  + minutes + "m " + seconds + "s ";
-    
-  // Jika hitungan mundur selesai, tulis beberapa teks 
-  if (distance < 0) {
-    clearInterval(x);
-    document.getElementById("demomiki<?= $tampilkan['idbpo']; ?>").innerHTML = "Link PO tidak tersedia";
-      var x = document.getElementById("linkmiki<?= $tampilkan['idbpo']; ?>");
- 
-    //x.style.display = "block";
-    x.style.display = "none";
+(function () {
+    var items = Array.prototype.map.call(document.querySelectorAll('.countdown[data-countdown-target]'), function (el) {
+        return {
+            el: el,
+            target: new Date(el.dataset.countdownTarget).getTime(),
+            link: document.getElementById(el.dataset.link)
+        };
+    });
+    if (!items.length) return;
+    var timer;
+    function tick() {
+        var now = Date.now();
+        items = items.filter(function (item) {
+            var distance = item.target - now;
+            if (distance < 0) {
+                item.el.innerHTML = "Link PO tidak tersedia";
+                if (item.link) item.link.style.display = "none";
+                return false;
+            }
+            var days = Math.floor(distance / 86400000);
+            var hours = Math.floor((distance % 86400000) / 3600000);
+            var minutes = Math.floor((distance % 3600000) / 60000);
+            var seconds = Math.floor((distance % 60000) / 1000);
+            item.el.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+            return true;
+        });
+        if (!items.length) clearInterval(timer);
     }
-}, 1000);
+    tick();
+    timer = setInterval(tick, 1000);
+})();
 </script>
-
-<?php } ?>  
-<!--------------------------------------------------------------------------------------------------------------------------------------------------------------------->
-
-  
-<!--------------------------------------------------------------------------------------------------------------------------------------------------------------------->
 
       
       <div class="text-center mt-5 mb-5" style="color: var(--color1)">
@@ -350,11 +248,7 @@ var x = setInterval(function() {
             </thead>
             <tbody>
                 <?php
-                // Include / load file koneksi.php
-                include "koneksi.php";
-                $idmitraagen = $_SESSION['idmitraagen'];
-
-                $sql = mysqli_query($koneksi, "SELECT
+                $stmtRegular = $koneksi->prepare("SELECT
                         pomitra.tgl,
                         pomitra.status AS pomitra_status,
                         pomitra.invoice,
@@ -362,24 +256,23 @@ var x = setInterval(function() {
                         poproduk.idpoproduk,
                         poproduk.status AS poproduk_status,
                         poproduk.jenis
-                    FROM 
+                    FROM
                         pomitra
-                    INNER JOIN 
+                    INNER JOIN
                         poproduk ON pomitra.idpoproduk = poproduk.idpoproduk
-                    LEFT JOIN 
-                        mitraagen ON pomitra.idmitraagen = mitraagen.idmitraagen
-                    LEFT JOIN 
-                        admin_mitra ON mitraagen.idadmin = admin_mitra.idadmin  
-                    WHERE 
-                        (pomitra.idmitraagen = '$idmitraagen')
+                    WHERE
+                        pomitra.idmitraagen = ?
                         AND poproduk.status = 'Open'
                         AND poproduk.tipe = 'Normal'
-                    GROUP BY 
+                    GROUP BY
                         poproduk.idpoproduk, poproduk.namapo, poproduk.status
-                    ORDER BY 
+                    ORDER BY
                         pomitra.tgl DESC
                 ");
-                
+                $stmtRegular->bind_param('s', $idmitraagen);
+                $stmtRegular->execute();
+                $sql = $stmtRegular->get_result();
+
                 while($data = mysqli_fetch_array($sql)){
                     $idpoproduk = $data['idpoproduk'];
                 ?>
