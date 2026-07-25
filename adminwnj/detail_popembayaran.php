@@ -111,12 +111,12 @@ $idpoproduk = $tampilpo['idpoproduk'];
                                       ?>                                      
                                           <div class="card" style="width: 500px; margin-left: 2%; margin-top: 2%;">
                                             <?php if ($tampilpo['idpoproduk'] == '343' || $tampilpo['idpoproduk'] == '494') : ?>
-                                              <a href="../distributor/buktikonin/<?= $tampilkan['gambar']; ?>" target="blank_()">
-                                                <img src="../distributor/buktikonin/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
+                                              <a href="../image/buktikonin/<?= $tampilkan['gambar']; ?>" target="blank_()">
+                                                <img src="../image/buktikonin/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
                                               </a>
                                             <?php else : ?>
-                                              <a href="../distributor/bukti/<?= $tampilkan['gambar']; ?>" target="blank_()">
-                                                <img src="../distributor/bukti/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
+                                              <a href="../image/bukti/<?= $tampilkan['gambar']; ?>" target="blank_()">
+                                                <img src="../image/bukti/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
                                               </a>
                                             <?php endif; ?>
                                             <div class="card-body">
