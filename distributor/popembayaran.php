@@ -190,7 +190,7 @@
                 }
 
                 $namaFileBaru = 'D' . $idadmin . $idpoproduk . uniqid() . '.' . $ekstensiGambar;
-                move_uploaded_file($tmp, 'bukti/' . $namaFileBaru);
+                move_uploaded_file($tmp, '../image/bukti_transfer/' . $namaFileBaru);
             } else {
                 echo "<script>alert('Silahkan upload bukti transfer');</script>";
                 echo "<script>location='popembayaran.php?invoice=" . rawurlencode($invoice) . "&total=" . rawurlencode($grandtotal) . "&bayar=" . rawurlencode($bayar) . "&idpo=" . $idpoproduk . "&jenis=" . rawurlencode($jenis) . "';</script>";

@@ -115,8 +115,8 @@ $idpoproduk = $tampilpo['idpoproduk'];
                                                 <img src="../image/buktikonin/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
                                               </a>
                                             <?php else : ?>
-                                              <a href="../image/bukti/<?= $tampilkan['gambar']; ?>" target="blank_()">
-                                                <img src="../image/bukti/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
+                                              <a href="../image/bukti_transfer/<?= $tampilkan['gambar']; ?>" target="blank_()">
+                                                <img src="../image/bukti_transfer/<?= $tampilkan['gambar']; ?>" class="card-img-top" alt="..." style="object-fit: contain;width: 100%;height: 300px;">
                                               </a>
                                             <?php endif; ?>
                                             <div class="card-body">
