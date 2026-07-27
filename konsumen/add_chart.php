@@ -9,12 +9,14 @@
     date_default_timezone_set('Asia/Jakarta');
 
     $idvariant  = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+    $idproduk   = isset($_GET['pid']) ? (int) $_GET['pid'] : 0;
     $idKonsumen = $_SESSION['idkonsumen'];
     $waktu      = date('H:i:s');
+    $kembali    = $idproduk > 0 ? 'produk.php?id=' . $idproduk : 'index.php';
 
     if ($idvariant <= 0) {
         $_SESSION['message'] = 'Produk tidak valid';
-        header('Location: index.php');
+        header('Location: ' . $kembali);
         exit;
     }
 
@@ -29,7 +31,7 @@
     if (!$stock) {
         $koneksi->rollback();
         $_SESSION['message'] = 'Variant tidak ditemukan';
-        header('Location: index.php');
+        header('Location: ' . $kembali);
         exit;
     }
 
@@ -60,5 +62,5 @@
         $_SESSION['message'] = 'Produk Telah Habis';
     }
 
-    header('Location: index.php');
+    header('Location: ' . $kembali);
     exit;

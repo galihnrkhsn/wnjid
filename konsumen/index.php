@@ -15,7 +15,7 @@
     $page        = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
     $limit_start = ($page - 1) * $limit;
 
-    // ---- Build WHERE clause shared by count & data queries ----
+    // ---- Build WHERE clause shared by count & data queries (level variant) ----
     $whereSql = "v.status <> 1 AND v.stock > 0";
     $params   = [];
     $types    = '';
@@ -26,7 +26,8 @@
         $types    .= 's';
     }
 
-    $countStmt = $koneksi->prepare("SELECT COUNT(*) AS jumlah
+    // Jumlah PRODUK (bukan variant) yang punya minimal satu variant aktif & stok
+    $countStmt = $koneksi->prepare("SELECT COUNT(DISTINCT p.id) AS jumlah
                                      FROM variants v
                                      INNER JOIN products p ON v.idproducts = p.id
                                      WHERE $whereSql");
@@ -43,12 +44,34 @@
         $limit_start = ($page - 1) * $limit;
     }
 
-    $dataStmt = $koneksi->prepare("SELECT p.namaproduk, p.idpkategori, p.idkategori, v.*, mf.name AS nama_folder
-                                    FROM variants v
-                                    INNER JOIN products p ON v.idproducts = p.id
-                                    LEFT JOIN master_folder mf ON v.folder = mf.id
-                                    WHERE $whereSql
-                                    ORDER BY v.updated_at DESC
+    // Satu baris per produk: harga termurah/tertinggi, total stok, jumlah variant.
+    // Foto wakil kartu diambil langsung dari foto_produk (foto pertama produk itu),
+    // satu-satunya jalan untuk ambil foto produk sekarang.
+    $dataStmt = $koneksi->prepare("SELECT p.id, p.namaproduk, p.idkategori,
+                                        agg.harga_min, agg.harga_max, agg.hargacoret_max, agg.total_stock, agg.jumlah_variant,
+                                        fp.foto AS foto_file, mf.name AS nama_folder
+                                    FROM products p
+                                    INNER JOIN (
+                                        SELECT v.idproducts,
+                                            MIN(v.harga)      AS harga_min,
+                                            MAX(v.harga)      AS harga_max,
+                                            MAX(v.hargacoret) AS hargacoret_max,
+                                            SUM(v.stock)      AS total_stock,
+                                            COUNT(v.id)       AS jumlah_variant,
+                                            MAX(v.updated_at) AS terakhir_update
+                                        FROM variants v
+                                        INNER JOIN products p ON v.idproducts = p.id
+                                        WHERE $whereSql
+                                        GROUP BY v.idproducts
+                                    ) agg ON agg.idproducts = p.id
+                                    LEFT JOIN (
+                                        SELECT idproduk, MIN(id) AS rep_foto_id
+                                        FROM foto_produk
+                                        GROUP BY idproduk
+                                    ) rf ON rf.idproduk = p.id
+                                    LEFT JOIN foto_produk fp ON fp.id = rf.rep_foto_id
+                                    LEFT JOIN master_folder mf ON fp.folder = mf.id
+                                    ORDER BY agg.terakhir_update DESC
                                     LIMIT ?, ?");
     $dataParams   = $params;
     $dataParams[] = $limit_start;
@@ -102,10 +125,15 @@
             box-shadow: 0 2px 10px rgba(0,0,0,.06);
             transition: transform .15s ease-in-out, box-shadow .15s ease-in-out;
             height: 100%;
+            display: block;
+            color: inherit;
+            text-decoration: none;
         }
         .product-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.1);
+            color: inherit;
+            text-decoration: none;
         }
         .product-card .fixed-size-img {
             width: 100%;
@@ -126,9 +154,8 @@
             text-decoration: line-through;
             font-size: .8rem;
         }
-        .btn-beli {
-            border-radius: 8px;
-            font-weight: 600;
+        .variant-count {
+            font-size: .75rem;
         }
         .empty-state {
             padding: 4rem 1rem;
@@ -176,35 +203,29 @@
             <div class="row">
                 <?php while ($data = $result->fetch_assoc()): ?>
                     <div class="col-6 col-md-4 col-lg-3 mb-4">
-                        <div class="product-card">
-                            <img class="fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
+                        <a class="product-card" href="produk.php?id=<?= (int) $data['id'] ?>">
+                            <img class="fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto_file'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                             <div class="card-body">
-                                <div class="card-title"><?= htmlspecialchars($data['namaproduk']) ?> <?= htmlspecialchars($data['variant']) ?> <?= htmlspecialchars($data['size']) ?></div>
-                                <?php if ($data['status'] == 0): ?>
-                                    <div class="mb-2">
-                                        <?php if ($data['idkategori'] >= 51): ?>
-                                            <span class="text-muted small">Hubungi kami untuk harga</span>
-                                        <?php elseif (strpos($data['namaproduk'], "Vanellus Dress") !== false): ?>
-                                            <div class="price">Rp <?= number_format($data['harga']) ?></div>
-                                            <div class="price-old">Rp <?= number_format(480000) ?></div>
+                                <div class="card-title"><?= htmlspecialchars($data['namaproduk']) ?></div>
+                                <?php if ($data['idkategori'] >= 51): ?>
+                                    <span class="text-muted small">Hubungi kami untuk harga</span>
+                                <?php else: ?>
+                                    <?php if ($data['hargacoret_max'] > 0): ?>
+                                        <div class="price-old">Rp <?= number_format($data['hargacoret_max']) ?></div>
+                                    <?php endif; ?>
+                                    <div class="price">
+                                        <?php if ($data['harga_min'] == $data['harga_max']): ?>
+                                            Rp <?= number_format($data['harga_min']) ?>
                                         <?php else: ?>
-                                            <?php if ($data['hargacoret'] > 0): ?>
-                                                <div class="price-old">Rp <?= number_format($data['hargacoret']) ?></div>
-                                            <?php endif; ?>
-                                            <div class="price">Rp <?= number_format($data['harga']) ?></div>
+                                            Rp <?= number_format($data['harga_min']) ?> &ndash; <?= number_format($data['harga_max']) ?>
                                         <?php endif; ?>
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <a href="add_chart.php?id=<?= (int) $data['id'] ?>" class="btn btn-primary btn-sm btn-beli">
-                                            <i class="bi bi-cart-plus"></i> Beli
-                                        </a>
-                                        <span class="text-muted small">Stok <?= (int) $data['stock'] ?></span>
-                                    </div>
-                                <?php else: ?>
-                                    <p class="text-muted small mb-0">Produk sedang diperbarui.</p>
                                 <?php endif; ?>
+                                <div class="text-muted variant-count mt-1">
+                                    <?= (int) $data['jumlah_variant'] ?> pilihan varian &middot; Stok <?= (int) $data['total_stock'] ?>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 <?php endwhile; ?>
             </div>

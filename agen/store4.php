@@ -46,10 +46,11 @@
         $limit_start = ($page - 1) * $limit;
     }
 
-    $dataStmt = $koneksi->prepare("SELECT p.namaproduk, p.idpkategori, p.idkategori, v.*, mf.name AS nama_folder
+    $dataStmt = $koneksi->prepare("SELECT p.namaproduk, p.idpkategori, p.idkategori, v.*, fp.foto AS foto_file, mf.name AS nama_folder
                                     FROM variants v
                                     INNER JOIN products p ON v.idproducts = p.id
-                                    LEFT JOIN master_folder mf ON v.folder = mf.id
+                                    LEFT JOIN foto_produk fp ON fp.id = v.foto
+                                    LEFT JOIN master_folder mf ON fp.folder = mf.id
                                     WHERE $whereSql
                                     ORDER BY v.updated_at DESC
                                     LIMIT ?, ?");
@@ -162,7 +163,7 @@
             <?php while ($data = $result->fetch_assoc()): ?>
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
                 <div class="card product-card">
-                    <img class="card-img-top fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
+                    <img class="card-img-top fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto_file'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                     <div class="card-body">
                         <h6 class="card-title"><?= htmlspecialchars($data['namaproduk']) ?> <?= htmlspecialchars($data['variant']) ?> <?= htmlspecialchars($data['size']) ?></h6>
                         <?php if ($data['status'] == 0): ?>
