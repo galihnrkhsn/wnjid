@@ -5,6 +5,7 @@
 
     include 'koneksi.php';
     include 'assets/components/Sessions/sesDistri.php';
+    include '../includes/foto_helper.php';
 
     // ---- Input & pagination ----
     $namaproduk = isset($_GET['namaproduk']) ? trim($_GET['namaproduk']) : '';
@@ -158,11 +159,7 @@
             <?php while ($data = $result->fetch_assoc()): ?>
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
                 <div class="card product-card">
-                    <?php if (!empty($data['foto'])): ?>
-                        <img class="card-img-top fixed-size-img" loading="lazy" src="../image/produk/<?= rawurlencode($data['nama_folder'] ?? '') ?>/<?= rawurlencode($data['foto']) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
-                    <?php else: ?>
-                        <img class="card-img-top fixed-size-img" loading="lazy" src="foto/nophoto.png" alt="Tidak ada foto produk">
-                    <?php endif ?>
+                    <img class="card-img-top fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                     <div class="card-body">
                         <h6 class="card-title"><?= htmlspecialchars($data['namaproduk']) ?> <?= htmlspecialchars($data['variant']) ?> <?= htmlspecialchars($data['size']) ?></h6>
                         <?php if ($data['status'] == 0): ?>

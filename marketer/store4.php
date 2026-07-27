@@ -3,6 +3,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesMarketer.php';
     include "settingdatatables.php";
+    include '../includes/foto_helper.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -94,11 +95,7 @@
             ?>
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
                 <div class="card">
-                    <?php if ($data['foto'] <> ""): ?>
-                        <img class="card-img-top fixed-size-img" src="../image/produk/<?= $data['foto']; ?>" alt="Card image">
-                    <?php else: ?>
-                        <img class="card-img-top fixed-size-img" src="../distributor/foto/nophoto.png" alt="Card image">
-                    <?php endif ?>
+                    <img class="card-img-top fixed-size-img" src="<?= fotoProdukSrc(null, $data['foto'] ?? null) ?>" alt="Card image">
                     <div class="card-body">
                         <h6 class="card-title"><?= $data['namaproduk']; ?> <?= $data['variant'] ?> <?= $data['size'] ?></h6>
                         <?php if ($data['status'] == 0): ?>
@@ -124,7 +121,7 @@
                     </div>
                 </div>
             </div>
-            <? } ?>
+            <?php } ?>
         </div>
     </div>
         <!-- PAGINATION -->
@@ -185,7 +182,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include 'menubawahstore.php'; ?>
+    <?php include 'menubawahstore.php'; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->

@@ -33,99 +33,161 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <title>Distributor | Wanoja</title>
-</head> 
+    <style>
+        body {
+            background-color: #f5f7fb;
+        }
+        .po-header {
+            background: #f0f6ff;
+            border-radius: 14px;
+            padding: 22px 24px;
+        }
+        .po-header h4 {
+            margin: 0;
+            color: #2b2f42;
+        }
+        .po-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            padding: 24px;
+        }
+        .po-links a {
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .po-note {
+            border-radius: 10px;
+            font-size: .9rem;
+        }
+        .po-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 4px;
+            border-bottom: 1px solid #eef1f5;
+        }
+        .po-item:last-of-type {
+            border-bottom: none;
+        }
+        .po-item label {
+            margin: 0;
+            font-weight: 600;
+            color: #2b2f42;
+        }
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .qty-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            background: #fff;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .qty-btn:active {
+            background: #f0f6ff;
+        }
+        .qty-input {
+            width: 70px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .btn-submit {
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
 <body>
     <!-- NAVBAR -->
     <? include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
-    <div class="container mt-5"> 
-        <table id="myJudul" class="w3-table-all w3-centered">
-            <?php        
-                $namapo = $data['namapo'];
-                $id = $data['idpoproduk'];
-            ?>
-            <tr>
-                <td colspan="2">
-                    <div class="d-flex justify-content-center">
-                        <h4><b>Formulir Pemesanan <?= $namapo ?></b></h4>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <div class="container panel panel-default mt-4">
-        <?php $query = "SELECT * FROM poproduk WHERE poproduk.idpoproduk = '228'"; ?>
-        <div class="panel-body">
-            <?php if($idpoproduk == 228) : ?>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="container mb-4 text-center">
-                            <a href="https://drive.google.com/drive/folders/16OoJPwCV0zpKeIA9-YFuehYFmfhGomxo?usp=sharing" class="btn btn-warning btn-sm mt-2" target="_blank">Google Drive Legging</a>
-                            <a href="https://ads.wnj.web.id/legging" class="btn btn-success btn-sm mt-2" target="_blank">Landing Page Legging ( Website Legging )</a>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-            <div class="row">
-                <div class="col-md-6">
+    <div class="container mt-4">
+        <?php
+            $namapo = $data['namapo'];
+            $id = $data['idpoproduk'];
+        ?>
+        <div class="po-header text-center mb-4">
+            <h4><i class="fa-solid fa-cart-shopping mr-2"></i><b>Formulir Pemesanan <?= $namapo ?></b></h4>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-6">
+                <div class="po-card">
                     <form method="POST">
-                        <div style="padding: 0 15px;">
-                            <?php
-                                // Initialize total
-                                $idpoproduk = $_GET['id'];
-                                $total = 0;
-                                $index = 0;
-                                $sql = "SELECT * FROM poproduk 
-                                        INNER JOIN pokategori 
-                                        INNER JOIN podetail 
-                                        ON poproduk.idpoproduk=pokategori.idpoproduk 
-                                        AND pokategori.idpo=podetail.idpo 
-                                        WHERE poproduk.idpoproduk='$idpoproduk' 
-                                        AND podetail.variant NOT LIKE '%Custom%'
-                                        AND podetail.idpo NOT IN (4413, 4382, 4351)
-                                        ORDER BY podetail.idpodetail ASC";
-                                $query = $koneksi->query($sql);
+                        <?php
+                            // Initialize total
+                            $idpoproduk = $_GET['id'];
+                            $total = 0;
+                            $index = 0;
+                            $sql = "SELECT * FROM poproduk
+                                    INNER JOIN pokategori
+                                    INNER JOIN podetail
+                                    ON poproduk.idpoproduk=pokategori.idpoproduk
+                                    AND pokategori.idpo=podetail.idpo
+                                    WHERE poproduk.idpoproduk='$idpoproduk'
+                                    AND podetail.variant NOT LIKE '%Custom%'
+                                    AND podetail.idpo NOT IN (4413, 4382, 4351)
+                                    ORDER BY podetail.idpodetail ASC";
+                            $query = $koneksi->query($sql);
 
-                                while($row = $query->fetch_assoc()){
-                            ?>
-                                <div class="form-group">
-                                    <label><?php echo $row['variant']; ?></label>
-                                    <input type="hidden" name="idpodetail[]" value="<?php echo $row['idpodetail']; ?>">
-                                    <input type="number" min="0" name="jmlh[]" class="form-control" style="width:300px;" value=0 required>
+                            while($row = $query->fetch_assoc()){
+                        ?>
+                            <div class="po-item">
+                                <label><?php echo $row['variant']; ?></label>
+                                <input type="hidden" name="idpodetail[]" value="<?php echo $row['idpodetail']; ?>">
+                                <div class="qty-control">
+                                    <button type="button" class="qty-btn qty-minus">&minus;</button>
+                                    <input type="number" min="0" name="jmlh[]" class="form-control qty-input" value="0" required>
+                                    <button type="button" class="qty-btn qty-plus">&plus;</button>
                                 </div>
+                            </div>
 
-                                <?php
-                                    $namapo2 = $row['namapo'];
-                                    $id = $row['idpoproduk'];
-                                    $idadmin = $_SESSION["idadmin"]; 
-                                }
-
-                                $sql_tgl = $koneksi->query("SELECT * FROM bukapo WHERE idpoproduk = '$idpoproduk'");
-                                $query_tgl = $sql_tgl->fetch_assoc();
-                                date_default_timezone_set('Asia/Jakarta');
-                                $today = date("d M Y");
-                            ?>
-                            <!-- <p><strong><font color="red" size="5px">*</font></strong>Jangan Kosongkan Label, Cukup isi dengan Angka 0 jika tidak memesan</p> -->
-                            <!-- <button type='submit' class='btn btn-primary' name='save'>Kirim</button> -->
                             <?php
-                                $sql = $koneksi->query("SELECT COUNT(*) AS total_inv, pomitra.* FROM pomitra WHERE idpoproduk = $idpoproduk AND idmitra = $idadmin");
-                                $row = $sql->fetch_assoc();
-                                if ($row['total_inv'] > 0) : 
-                            ?>
-                                <?php if ($idpoproduk == '405' || $idpoproduk == '406' || $idpoproduk == '407') : ?>
-                                    <a href="datapokolibri3.php?id=<?= $row['idpoproduk'] ?>&invoice=<?= $row['invoice'] ?>" class="btn btn-success btn-sm">Invoice</a>
-                                <?php else : ?>
-                                    <a href="datapo.php?id=<?= $row['idpoproduk'] ?>&invoice=<?= $row['invoice'] ?>" class="btn btn-success btn-sm">Invoice</a>
-                                <?php endif; ?>
-                            <?php else : ?>
-                                <p><strong><font color="red" size="5px">*</font></strong>Jangan Kosongkan Label, Cukup isi dengan Angka 0 jika tidak memesan</p>
-                                <button type='submit' class='btn btn-primary' name='save'>Kirim</button>
-                            <?php endif; ?>
-                        </div>
+                                $namapo2 = $row['namapo'];
+                                $id = $row['idpoproduk'];
+                                $idadmin = $_SESSION["idadmin"];
+                            }
+
+                            $sql_tgl = $koneksi->query("SELECT * FROM bukapo WHERE idpoproduk = '$idpoproduk'");
+                            $query_tgl = $sql_tgl->fetch_assoc();
+                            date_default_timezone_set('Asia/Jakarta');
+                            $today = date("d M Y");
+                        ?>
+                        <?php
+                            $sql = $koneksi->query("SELECT COUNT(*) AS total_inv, pomitra.* FROM pomitra WHERE idpoproduk = $idpoproduk AND idmitra = $idadmin");
+                            $row = $sql->fetch_assoc();
+                            if ($row['total_inv'] > 0) :
+                        ?>
+                            <div class="alert alert-success po-note mt-3 mb-0 text-center">
+                                <i class="fa-solid fa-circle-check mr-1"></i> Pesanan kamu sudah terkirim.
+                                <div class="mt-2">
+                                    <?php if ($idpoproduk == '405' || $idpoproduk == '406' || $idpoproduk == '407') : ?>
+                                        <a href="datapokolibri3.php?id=<?= $row['idpoproduk'] ?>&invoice=<?= $row['invoice'] ?>" class="btn btn-success btn-sm">Lihat Invoice</a>
+                                    <?php else : ?>
+                                        <a href="datapo.php?id=<?= $row['idpoproduk'] ?>&invoice=<?= $row['invoice'] ?>" class="btn btn-success btn-sm">Lihat Invoice</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php else : ?>
+                            <div class="alert alert-warning po-note mt-3 text-center">
+                                <i class="fa-solid fa-circle-info mr-1"></i> Biarkan angka <strong>0</strong> pada varian yang tidak dipesan.
+                            </div>
+                            <button type='submit' class='btn btn-primary btn-block btn-submit' name='save'><i class="fa-solid fa-paper-plane mr-2"></i>Kirim Pesanan</button>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>
@@ -133,7 +195,22 @@
     </div>
 
     <!-- MAIN CONTENT END -->
-    
+
+    <script>
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('qty-plus') || e.target.classList.contains('qty-minus')) {
+                var input = e.target.parentElement.querySelector('.qty-input');
+                var value = parseInt(input.value, 10) || 0;
+                if (e.target.classList.contains('qty-plus')) {
+                    value += 1;
+                } else if (value > 0) {
+                    value -= 1;
+                }
+                input.value = value;
+            }
+        });
+    </script>
+
     <br><br><br><br>
 
     <!-- PHP SYNTAK -->

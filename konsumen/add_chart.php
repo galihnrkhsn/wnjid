@@ -3,19 +3,18 @@
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
 
-    session_start();
     include 'koneksi.php';
-    include 'assets/components/Sessions/sesAgen.php';
+    include 'assets/components/Sessions/sesKonsumen.php';
 
     date_default_timezone_set('Asia/Jakarta');
 
-    $idvariant   = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-    $idmitraagen = $_SESSION['idmitraagen'];
-    $waktu       = date('H:i:s');
+    $idvariant  = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+    $idKonsumen = $_SESSION['idkonsumen'];
+    $waktu      = date('H:i:s');
 
     if ($idvariant <= 0) {
         $_SESSION['message'] = 'Produk tidak valid';
-        header('Location: store4.php');
+        header('Location: index.php');
         exit;
     }
 
@@ -30,7 +29,7 @@
     if (!$stock) {
         $koneksi->rollback();
         $_SESSION['message'] = 'Variant tidak ditemukan';
-        header('Location: store4.php');
+        header('Location: index.php');
         exit;
     }
 
@@ -38,10 +37,10 @@
     $harga = $stock['harga'];
 
     if ($stock['stock'] > 0) {
-        $stmtInsert = $koneksi->prepare("INSERT INTO keranjang (idkeranjang, idproduk, idmitra, idagen, idreseller, idmarketer,
+        $stmtInsert = $koneksi->prepare("INSERT INTO keranjang (idkeranjang, idproduk, idmitra, idagen, idreseller, idmarketer, idkonsumen,
                                                 jmlh, harga, subtotal, tgl, waktu, status, variant)
-                                        VALUES (NULL, ?, '', ?, '', '', 1, ?, ?, NOW(), ?, 'Active', ?)");
-        $stmtInsert->bind_param('isddss', $idvariant, $idmitraagen, $harga, $harga, $waktu, $idvariant);
+                                        VALUES (NULL, ?, '', '', '', '', ?, 1, ?, ?, NOW(), ?, 'Active', ?)");
+        $stmtInsert->bind_param('isddss', $idvariant, $idKonsumen, $harga, $harga, $waktu, $idvariant);
         $stmtInsert->execute();
 
         $stmtUpdate = $koneksi->prepare("UPDATE variants SET stock = stock - 1 WHERE id = ? AND stock > 0");
@@ -61,5 +60,5 @@
         $_SESSION['message'] = 'Produk Telah Habis';
     }
 
-    header('Location: store4.php');
+    header('Location: index.php');
     exit;
