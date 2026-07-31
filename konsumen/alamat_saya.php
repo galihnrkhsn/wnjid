@@ -53,6 +53,9 @@
     $stmtList->bind_param('i', $idKonsumen);
     $stmtList->execute();
     $daftarAlamat = $stmtList->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $maxAlamat = 10;
+    $sudahMaksimal = count($daftarAlamat) >= $maxAlamat;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -88,11 +91,19 @@
         <div class="d-flex align-items-center mt-3 mb-2" style="gap:.75rem;">
             <a href="profile.php" class="text-muted"><i class="bi bi-arrow-left"></i></a>
             <h5 class="font-weight-bold mb-0 flex-grow-1">Alamat Saya</h5>
-            <a href="alamat_form.php" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Tambah</a>
+            <?php if (!$sudahMaksimal): ?>
+                <a href="alamat_form.php" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Tambah</a>
+            <?php endif; ?>
         </div>
 
         <?php if ($pesan !== ''): ?>
             <div class="alert alert-info"><?= htmlspecialchars($pesan) ?></div>
+        <?php endif; ?>
+
+        <?php if ($sudahMaksimal): ?>
+            <div class="alert alert-warning">
+                Sudah mencapai batas maksimal <?= $maxAlamat ?> alamat tersimpan. Hapus salah satu alamat dulu untuk menambah yang baru.
+            </div>
         <?php endif; ?>
 
         <div class="panel">

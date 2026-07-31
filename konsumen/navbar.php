@@ -30,6 +30,12 @@
         font-weight: 700;
         color: #2b2f42;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    .konsumen-navbar .brand-logo {
+        height: 28px;
+        width: auto;
     }
     .konsumen-navbar .cart-link {
         position: relative;
@@ -50,7 +56,7 @@
 </style>
 <nav class="konsumen-navbar">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="index.php" class="brand"><i class="bi bi-shop mr-1"></i> WNJ.ID</a>
+        <a href="index.php" class="brand"><img src="../image/wnjid.PNG" alt="WNJ.ID" class="brand-logo mr-1"> WNJ.ID</a>
         <div class="d-flex align-items-center" style="gap: 1.25rem;">
             <?php if ($namaKonsumen !== ''): ?>
                 <span class="d-none d-sm-inline text-muted">Halo, <?= htmlspecialchars($namaKonsumen) ?></span>

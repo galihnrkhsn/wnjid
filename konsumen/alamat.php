@@ -128,18 +128,23 @@
                 $jumlahAlamatTersimpan = (int) ($stmtCountAlamat->get_result()->fetch_assoc()['jumlah'] ?? 0);
                 $isUtamaBaru = $jumlahAlamatTersimpan === 0 ? 1 : 0;
 
-                $labelAlamatBaru = 'Rumah';
-                $stmtInsertAlamat = $koneksi->prepare("INSERT INTO alamat
-                                                            (tipe_pemilik, id_pemilik, label, nama_penerima, telepon_penerima, alamat_lengkap,
-                                                             provinsi_id, provinsi, kota_id, kota, kecamatan_id, kecamatan, kodepos, catatan, is_utama)
-                                                        VALUES ('konsumen', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtInsertAlamat->bind_param(
-                    'issssisisisssi',
-                    $idKonsumen, $labelAlamatBaru, $nama, $telepon, $alamat,
-                    $provinsiId, $provinsiNama, $kotaId, $kotaNama, $kecamatanId, $kecamatanNama,
-                    $kodepos, $catatan, $isUtamaBaru
-                );
-                $stmtInsertAlamat->execute();
+                // Kalau sudah kena batas maksimal alamat tersimpan, lewati saja penyimpanannya diam-diam
+                // (checkout tidak boleh gagal cuma gara-gara alamat book penuh)
+                $maxAlamat = 10;
+                if ($jumlahAlamatTersimpan < $maxAlamat) {
+                    $labelAlamatBaru = 'Rumah';
+                    $stmtInsertAlamat = $koneksi->prepare("INSERT INTO alamat
+                                                                (tipe_pemilik, id_pemilik, label, nama_penerima, telepon_penerima, alamat_lengkap,
+                                                                 provinsi_id, provinsi, kota_id, kota, kecamatan_id, kecamatan, kodepos, catatan, is_utama)
+                                                            VALUES ('konsumen', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtInsertAlamat->bind_param(
+                        'issssisisisssi',
+                        $idKonsumen, $labelAlamatBaru, $nama, $telepon, $alamat,
+                        $provinsiId, $provinsiNama, $kotaId, $kotaNama, $kecamatanId, $kecamatanNama,
+                        $kodepos, $catatan, $isUtamaBaru
+                    );
+                    $stmtInsertAlamat->execute();
+                }
             }
 
             header('Location: detail.php?invoice=' . urlencode($invoice));

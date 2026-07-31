@@ -107,7 +107,8 @@
         }
 
         if (empty($errors)) {
-            // Cek apakah ini alamat pertama user -> paksa jadi utama walau checkbox tidak dicentang
+            // Cek apakah ini alamat pertama user -> paksa jadi utama walau checkbox tidak dicentang.
+            // Angka yang sama juga dipakai buat batas maksimal alamat tersimpan per user.
             $stmtCount = $koneksi->prepare("SELECT COUNT(*) AS jumlah FROM alamat WHERE tipe_pemilik = 'konsumen' AND id_pemilik = ?" . ($idalamat > 0 ? " AND idalamat != ?" : ""));
             if ($idalamat > 0) {
                 $stmtCount->bind_param('ii', $idKonsumen, $idalamat);
@@ -120,6 +121,13 @@
                 $isUtama = 1;
             }
 
+            $maxAlamat = 10;
+            if ($idalamat <= 0 && $jumlahLain >= $maxAlamat) {
+                $errors[] = "Maksimal $maxAlamat alamat tersimpan, hapus salah satu dulu sebelum menambah alamat baru";
+            }
+        }
+
+        if (empty($errors)) {
             $koneksi->begin_transaction();
             try {
                 if ($isUtama === 1) {
