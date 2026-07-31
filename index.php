@@ -18,7 +18,6 @@
       $data = $stmtUser->get_result()->fetch_assoc();
 
       if ($data && password_verify($pass, $data['password'])) {
-         // Regenerasi session ID setelah login berhasil supaya tidak rentan session fixation
          session_regenerate_id(true);
 
          $role = $data['role'];
@@ -67,38 +66,20 @@
 
             header('Location: ../marketer/index2.php');
             exit;
+         } elseif ($role == "konsumen") {
+            $stmtKonsumen = $koneksi->prepare("SELECT idkonsumen FROM konsumen WHERE iduser = ?");
+            $stmtKonsumen->bind_param('i', $id);
+            $stmtKonsumen->execute();
+            $konsumenData             = $stmtKonsumen->get_result()->fetch_assoc();
+            $_SESSION["idkonsumen"]   = $konsumenData["idkonsumen"] ?? null;
+
+            header('Location: ../konsumen/index.php');
+            exit;
          } else {
             $loginError = 'Login gagal!';
          }
       } else {
-         $stmtMgmt = $koneksi->prepare("SELECT * FROM management WHERE email = ?");
-         $stmtMgmt->bind_param('s', $email);
-         $stmtMgmt->execute();
-         $managementData = $stmtMgmt->get_result()->fetch_assoc();
-
-         if ($managementData && password_verify($pass, $managementData['password'])) {
-            session_regenerate_id(true);
-
-            $tipe = $managementData['tipe'];
-            $id   = $managementData['id'];
-
-            $_SESSION["user_id"]   = $id;
-            $_SESSION["user_tipe"] = $tipe;
-            $_SESSION["idmanage"]  = $id;
-
-            if ($tipe == "M") {
-               header('Location: ../manajemen/index');
-               exit;
-            } elseif ($tipe == "P") {
-               header('Location: ../produksi/index');
-               exit;
-            } else {
-               $loginError = 'Login gagal!';
-            }
-         } else {
-            $loginError         = 'Login gagal!';
-            $loginErrorRedirect = 'login-multi';
-         }
+         $loginError         = 'Login gagal!';
       }
    }
 ?>
@@ -201,6 +182,11 @@
                                     Login
                                  </a>
                               </li>
+                              <!-- <li class="nav-item">
+                                 <a href="register.php" class="nav-link">
+                                    Register
+                                 </a>
+                              </li> -->
                            </ul>
                         </div>
                      </nav>
@@ -241,6 +227,9 @@
                         <div class="text-center mt-3">
                            <button class="btn btn-primary" name="login">Login</button>
                         </div>
+                        <!-- <p class="text-center mt-3 mb-0">
+                           Belum punya akun? <a href="register.php" style="color: red;">Daftar di sini</a>
+                        </p> -->
                      </form>
                   </div>
                </div>
