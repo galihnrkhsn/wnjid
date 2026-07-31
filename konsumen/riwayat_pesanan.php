@@ -171,10 +171,6 @@
                 </ul>
             </nav>
         <?php endif; ?>
-
-        <div class="text-center mb-4">
-            <a href="profile.php" class="small">&larr; Kembali ke Profil</a>
-        </div>
     </div>
 
     <?php include 'footer.php'; ?>

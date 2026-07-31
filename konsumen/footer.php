@@ -61,7 +61,7 @@
     <a href="riwayat_pesanan.php" class="<?= $halamanAktif === 'riwayat_pesanan.php' ? 'active' : '' ?>">
         <i class="bi bi-bag-check"></i> Pesanan
     </a>
-    <a href="profile.php" class="<?= in_array($halamanAktif, ['profile.php', 'alamat_form.php']) ? 'active' : '' ?>">
+    <a href="profile.php" class="<?= in_array($halamanAktif, ['profile.php', 'edit_profile.php', 'alamat_saya.php', 'alamat_form.php', 'ubah_password.php']) ? 'active' : '' ?>">
         <i class="bi bi-person"></i> Profil
     </a>
 </nav>
