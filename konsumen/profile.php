@@ -108,6 +108,9 @@
             exit;
         }
     }
+
+    // Tab yang aktif saat load: ikuti section mana yang barusan error validasi, kalau tidak ada default ke Informasi Akun
+    $activeTab = !empty($errorsPassword) ? 'password' : 'informasi';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -148,93 +151,128 @@
             font-size: 1.4rem;
             color: #0d6efd;
         }
+        .account-sidebar .nav-link {
+            color: #2b2f42;
+            border-radius: 10px;
+            padding: .65rem .9rem;
+            margin-bottom: .25rem;
+            text-align: left;
+        }
+        .account-sidebar .nav-link:last-child {
+            margin-bottom: 0;
+        }
+        .account-sidebar .nav-link.active {
+            background: #0d6efd;
+            color: #fff;
+        }
+        .account-sidebar .nav-link:not(.active):hover {
+            background: #f5f6fa;
+        }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
-    <div class="container" style="max-width: 720px;">
-        <h5 class="font-weight-bold mt-3 mb-2">Profil Saya</h5>
+    <div class="container" style="max-width: 900px;">
+        <h5 class="font-weight-bold mt-3 mb-3">Profil Saya</h5>
 
         <?php if ($pesan !== ''): ?>
             <div class="alert alert-info"><?= htmlspecialchars($pesan) ?></div>
         <?php endif; ?>
 
-        <div class="panel">
-            <a href="alamat_saya.php" class="quick-link">
-                <i class="bi bi-geo-alt"></i>
-                <div>
-                    <div class="font-weight-bold">Alamat Saya</div>
-                    <div class="text-muted small">Kelola alamat pengiriman tersimpan</div>
-                </div>
-            </a>
-            <a href="riwayat_pesanan.php" class="quick-link">
-                <i class="bi bi-bag-check"></i>
-                <div>
-                    <div class="font-weight-bold">Pesanan Saya</div>
-                    <div class="text-muted small">Lihat riwayat & status pesanan</div>
-                </div>
-            </a>
-        </div>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <button class="btn btn-outline-secondary btn-block d-md-none mb-2" type="button" data-toggle="collapse" data-target="#accountSidebar">
+                    <i class="bi bi-list"></i> Menu Akun
+                </button>
 
-        <div class="panel">
-            <h6 class="font-weight-bold mb-3">Informasi Akun</h6>
+                <div class="collapse d-md-block" id="accountSidebar">
+                    <div class="panel p-2 account-sidebar">
+                        <div class="nav flex-column nav-pills" id="account-tab" role="tablist" aria-orientation="vertical">
+                            <a class="nav-link <?= $activeTab === 'informasi' ? 'active' : '' ?>" id="informasi-tab" data-toggle="pill" href="#informasi-akun" role="tab" aria-controls="informasi-akun">
+                                <i class="bi bi-person mr-1"></i> Informasi Akun
+                            </a>
+                            <a class="nav-link <?= $activeTab === 'password' ? 'active' : '' ?>" id="password-tab" data-toggle="pill" href="#ubah-password" role="tab" aria-controls="ubah-password">
+                                <i class="bi bi-shield-lock mr-1"></i> Ubah Password
+                            </a>
+                            <a class="nav-link" href="alamat_saya.php">
+                                <i class="bi bi-geo-alt mr-1"></i> Alamat Saya
+                            </a>
+                            <a class="nav-link" href="riwayat_pesanan.php">
+                                <i class="bi bi-bag-check mr-1"></i> Pesanan Saya
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <?php if (!empty($errorsProfil)): ?>
-                <div class="alert alert-danger">
-                    <ul class="mb-0 pl-3">
-                        <?php foreach ($errorsProfil as $error): ?>
-                            <li><?= htmlspecialchars($error) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
+            <div class="col-md-9">
+                <div class="tab-content" id="account-tabContent">
+                    <div class="tab-pane fade <?= $activeTab === 'informasi' ? 'show active' : '' ?>" id="informasi-akun" role="tabpanel" aria-labelledby="informasi-tab">
+                        <div class="panel">
+                            <h6 class="font-weight-bold mb-3">Informasi Akun</h6>
 
-            <form method="post">
-                <div class="form-group">
-                    <label class="mb-1">Nama Lengkap</label>
-                    <input type="text" class="form-control" name="nama" value="<?= htmlspecialchars($profil['namamitra']) ?>" required>
-                </div>
-                <div class="form-group">
-                    <label class="mb-1">Email</label>
-                    <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($profil['email']) ?>" required>
-                </div>
-                <div class="form-group">
-                    <label class="mb-1">No. WhatsApp</label>
-                    <input type="text" class="form-control" name="whatsapp" value="<?= htmlspecialchars($profil['whatsapp'] ?? '') ?>">
-                </div>
-                <button type="submit" name="update_profile" value="1" class="btn btn-primary">Simpan Perubahan</button>
-            </form>
-        </div>
+                            <?php if (!empty($errorsProfil)): ?>
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0 pl-3">
+                                        <?php foreach ($errorsProfil as $error): ?>
+                                            <li><?= htmlspecialchars($error) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
 
-        <div class="panel">
-            <h6 class="font-weight-bold mb-3">Ubah Password</h6>
+                            <form method="post">
+                                <div class="form-group">
+                                    <label class="mb-1">Nama Lengkap</label>
+                                    <input type="text" class="form-control" name="nama" value="<?= htmlspecialchars($profil['namamitra']) ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="mb-1">Email</label>
+                                    <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($profil['email']) ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="mb-1">No. WhatsApp</label>
+                                    <input type="text" class="form-control" name="whatsapp" value="<?= htmlspecialchars($profil['whatsapp'] ?? '') ?>">
+                                </div>
+                                <button type="submit" name="update_profile" value="1" class="btn btn-primary">Simpan Perubahan</button>
+                            </form>
+                        </div>
+                    </div>
 
-            <?php if (!empty($errorsPassword)): ?>
-                <div class="alert alert-danger">
-                    <ul class="mb-0 pl-3">
-                        <?php foreach ($errorsPassword as $error): ?>
-                            <li><?= htmlspecialchars($error) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
+                    <div class="tab-pane fade <?= $activeTab === 'password' ? 'show active' : '' ?>" id="ubah-password" role="tabpanel" aria-labelledby="password-tab">
+                        <div class="panel">
+                            <h6 class="font-weight-bold mb-3">Ubah Password</h6>
 
-            <form method="post" autocomplete="off">
-                <div class="form-group">
-                    <label class="mb-1">Password Lama</label>
-                    <input type="password" class="form-control" name="password_lama" required>
+                            <?php if (!empty($errorsPassword)): ?>
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0 pl-3">
+                                        <?php foreach ($errorsPassword as $error): ?>
+                                            <li><?= htmlspecialchars($error) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+
+                            <form method="post" autocomplete="off">
+                                <div class="form-group">
+                                    <label class="mb-1">Password Lama</label>
+                                    <input type="password" class="form-control" name="password_lama" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="mb-1">Password Baru</label>
+                                    <input type="password" class="form-control" name="password_baru" minlength="8" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="mb-1">Konfirmasi Password Baru</label>
+                                    <input type="password" class="form-control" name="password_ulang" minlength="8" required>
+                                </div>
+                                <button type="submit" name="update_password" value="1" class="btn btn-outline-primary">Ubah Password</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="mb-1">Password Baru</label>
-                    <input type="password" class="form-control" name="password_baru" minlength="8" required>
-                </div>
-                <div class="form-group">
-                    <label class="mb-1">Konfirmasi Password Baru</label>
-                    <input type="password" class="form-control" name="password_ulang" minlength="8" required>
-                </div>
-                <button type="submit" name="update_password" value="1" class="btn btn-outline-primary">Ubah Password</button>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -242,5 +280,13 @@
 
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Di mobile, tutup lagi menu akun begitu salah satu tab dipilih
+        $('#account-tab a[data-toggle="pill"]').on('click', function () {
+            if ($(window).width() < 768) {
+                $('#accountSidebar').collapse('hide');
+            }
+        });
+    </script>
 </body>
 </html>

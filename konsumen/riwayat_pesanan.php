@@ -75,10 +75,10 @@
                 <a href="detail.php?invoice=<?= urlencode($order['invoice']) ?>" class="order-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
+                            <span class="mb-2 badge badge-<?= $badgeColor ?> p-2"><?= htmlspecialchars($badgeLabel) ?></span>
                             <div class="font-weight-bold"><?= htmlspecialchars($order['invoice']) ?></div>
                             <div class="text-muted small"><?= date('d M Y H:i', strtotime($order['tgl'])) ?></div>
                         </div>
-                        <span class="badge badge-<?= $badgeColor ?> p-2"><?= htmlspecialchars($badgeLabel) ?></span>
                     </div>
                     <div class="mt-2 font-weight-bold">Rp <?= number_format($order['total']) ?></div>
                 </a>
