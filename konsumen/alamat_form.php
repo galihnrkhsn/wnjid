@@ -18,7 +18,7 @@
         $existing = $stmtExisting->get_result()->fetch_assoc();
 
         if (!$existing) {
-            header('Location: alamat_saya.php');
+            header('Location: profile.php?section=alamat');
             exit;
         }
     }
@@ -157,7 +157,7 @@
 
                 $koneksi->commit();
                 $_SESSION['message'] = 'Alamat berhasil disimpan';
-                header('Location: alamat_saya.php');
+                header('Location: profile.php?section=alamat');
                 exit;
             } catch (Exception $e) {
                 $koneksi->rollback();
@@ -270,7 +270,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-block">Simpan Alamat</button>
-                <a href="alamat_saya.php" class="btn btn-link btn-block">Batal</a>
+                <a href="profile.php?section=alamat" class="btn btn-link btn-block">Batal</a>
             </form>
         </div>
     </div>

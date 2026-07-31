@@ -50,7 +50,7 @@
 </style>
 <nav class="konsumen-navbar">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="index.php" class="brand"><i class="bi bi-shop mr-1"></i> Wanoja</a>
+        <a href="index.php" class="brand"><i class="bi bi-shop mr-1"></i> WNJ.ID</a>
         <div class="d-flex align-items-center" style="gap: 1.25rem;">
             <?php if ($namaKonsumen !== ''): ?>
                 <span class="d-none d-sm-inline text-muted">Halo, <?= htmlspecialchars($namaKonsumen) ?></span>

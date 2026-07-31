@@ -63,12 +63,8 @@
 
                 $koneksi->commit();
 
-                $profil['namamitra'] = $nama;
-                $profil['whatsapp']  = $whatsapp;
-                $profil['email']     = $email;
-
                 $_SESSION['message'] = 'Profil berhasil diperbarui';
-                header('Location: profile.php');
+                header('Location: profile.php?section=informasi');
                 exit;
             } catch (Exception $e) {
                 $koneksi->rollback();
@@ -104,13 +100,66 @@
             $stmtSet->execute();
 
             $_SESSION['message'] = 'Password berhasil diubah';
-            header('Location: profile.php');
+            header('Location: profile.php?section=password');
             exit;
         }
     }
 
-    // Tab yang aktif saat load: ikuti section mana yang barusan error validasi, kalau tidak ada default ke Informasi Akun
-    $activeTab = !empty($errorsPassword) ? 'password' : 'informasi';
+    // Alamat tersimpan digabung ke sini (dulu halaman terpisah alamat_saya.php) supaya kelola
+    // alamat tidak perlu buka halaman baru. Tambah/ubah alamat tetap di alamat_form.php
+    // (form-nya lumayan kompleks dgn dropdown provinsi/kota/kecamatan berjenjang).
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_alamat'])) {
+        $idalamat = (int) $_POST['hapus_alamat'];
+
+        $stmt = $koneksi->prepare("DELETE FROM alamat WHERE idalamat = ? AND tipe_pemilik = 'konsumen' AND id_pemilik = ?");
+        $stmt->bind_param('ii', $idalamat, $idKonsumen);
+        $stmt->execute();
+
+        $_SESSION['message'] = 'Alamat berhasil dihapus';
+        header('Location: profile.php?section=alamat');
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['jadikan_utama_alamat'])) {
+        $idalamat = (int) $_POST['jadikan_utama_alamat'];
+
+        $koneksi->begin_transaction();
+        try {
+            $stmtUnset = $koneksi->prepare("UPDATE alamat SET is_utama = 0 WHERE tipe_pemilik = 'konsumen' AND id_pemilik = ?");
+            $stmtUnset->bind_param('i', $idKonsumen);
+            $stmtUnset->execute();
+
+            $stmtSet = $koneksi->prepare("UPDATE alamat SET is_utama = 1 WHERE idalamat = ? AND tipe_pemilik = 'konsumen' AND id_pemilik = ?");
+            $stmtSet->bind_param('ii', $idalamat, $idKonsumen);
+            $stmtSet->execute();
+
+            $koneksi->commit();
+            $_SESSION['message'] = 'Alamat utama berhasil diubah';
+        } catch (Exception $e) {
+            $koneksi->rollback();
+            error_log($e->getMessage());
+            $_SESSION['message'] = 'Gagal mengubah alamat utama, silakan coba lagi';
+        }
+
+        header('Location: profile.php?section=alamat');
+        exit;
+    }
+
+    $stmtAlamat = $koneksi->prepare("SELECT * FROM alamat WHERE tipe_pemilik = 'konsumen' AND id_pemilik = ? ORDER BY is_utama DESC, updated_at DESC");
+    $stmtAlamat->bind_param('i', $idKonsumen);
+    $stmtAlamat->execute();
+    $daftarAlamat = $stmtAlamat->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    // Section mana yang terbuka duluan: ikuti error validasi kalau ada, atau ?section= dari redirect, default informasi
+    $section = $_GET['section'] ?? 'informasi';
+    if (!empty($errorsPassword)) {
+        $section = 'password';
+    } elseif (!empty($errorsProfil)) {
+        $section = 'informasi';
+    }
+    if (!in_array($section, ['informasi', 'alamat', 'password'], true)) {
+        $section = 'informasi';
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -123,170 +172,239 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body { background: #f5f6fa; }
-        .panel {
+        .profile-summary {
             background: #fff;
             border-radius: 14px;
             box-shadow: 0 2px 10px rgba(0,0,0,.06);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-        .quick-link {
+        .profile-summary .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .acc-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .acc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            color: #2b2f42;
+            text-decoration: none;
+        }
+        .acc-header:hover {
+            color: #2b2f42;
+            text-decoration: none;
+        }
+        .acc-header .title {
             display: flex;
             align-items: center;
             gap: .75rem;
+            font-weight: 700;
+        }
+        .acc-header .title i.bi-icon {
+            font-size: 1.15rem;
+            color: #0d6efd;
+        }
+        .acc-header .chevron {
+            transition: transform .2s ease-in-out;
+            color: #adb5bd;
+        }
+        .acc-header[aria-expanded="true"] .chevron {
+            transform: rotate(180deg);
+        }
+        .acc-body {
+            padding: 0 1.25rem 1.25rem;
+        }
+        .acc-count {
+            font-size: .75rem;
+            font-weight: 400;
+            color: #6c757d;
+        }
+        .alamat-card {
             border: 1px solid #eef1f5;
             border-radius: 10px;
             padding: 1rem;
-            color: inherit;
-            text-decoration: none;
             margin-bottom: .75rem;
         }
-        .quick-link:last-child { margin-bottom: 0; }
-        .quick-link:hover {
-            border-color: #0d6efd;
-            text-decoration: none;
-            color: inherit;
-        }
-        .quick-link i {
-            font-size: 1.4rem;
-            color: #0d6efd;
-        }
-        .account-sidebar .nav-link {
-            color: #2b2f42;
-            border-radius: 10px;
-            padding: .65rem .9rem;
-            margin-bottom: .25rem;
-            text-align: left;
-        }
-        .account-sidebar .nav-link:last-child {
-            margin-bottom: 0;
-        }
-        .account-sidebar .nav-link.active {
-            background: #0d6efd;
-            color: #fff;
-        }
-        .account-sidebar .nav-link:not(.active):hover {
-            background: #f5f6fa;
-        }
+        .alamat-card:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
-    <div class="container" style="max-width: 900px;">
-        <h5 class="font-weight-bold mt-3 mb-3">Profil Saya</h5>
-
+    <div class="container" style="max-width: 640px;">
         <?php if ($pesan !== ''): ?>
-            <div class="alert alert-info"><?= htmlspecialchars($pesan) ?></div>
+            <div class="alert alert-info mt-3 mb-0"><?= htmlspecialchars($pesan) ?></div>
         <?php endif; ?>
 
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <button class="btn btn-outline-secondary btn-block d-md-none mb-2" type="button" data-toggle="collapse" data-target="#accountSidebar">
-                    <i class="bi bi-list"></i> Menu Akun
-                </button>
-
-                <div class="collapse d-md-block" id="accountSidebar">
-                    <div class="panel p-2 account-sidebar">
-                        <div class="nav flex-column nav-pills" id="account-tab" role="tablist" aria-orientation="vertical">
-                            <a class="nav-link <?= $activeTab === 'informasi' ? 'active' : '' ?>" id="informasi-tab" data-toggle="pill" href="#informasi-akun" role="tab" aria-controls="informasi-akun">
-                                <i class="bi bi-person mr-1"></i> Informasi Akun
-                            </a>
-                            <a class="nav-link <?= $activeTab === 'password' ? 'active' : '' ?>" id="password-tab" data-toggle="pill" href="#ubah-password" role="tab" aria-controls="ubah-password">
-                                <i class="bi bi-shield-lock mr-1"></i> Ubah Password
-                            </a>
-                            <a class="nav-link" href="alamat_saya.php">
-                                <i class="bi bi-geo-alt mr-1"></i> Alamat Saya
-                            </a>
-                            <a class="nav-link" href="riwayat_pesanan.php">
-                                <i class="bi bi-bag-check mr-1"></i> Pesanan Saya
-                            </a>
-                        </div>
-                    </div>
-                </div>
+        <div class="profile-summary">
+            <div class="avatar"><i class="bi bi-person"></i></div>
+            <div>
+                <div class="font-weight-bold"><?= htmlspecialchars($profil['namamitra']) ?></div>
+                <div class="text-muted small"><?= htmlspecialchars($profil['email']) ?></div>
             </div>
+        </div>
 
-            <div class="col-md-9">
-                <div class="tab-content" id="account-tabContent">
-                    <div class="tab-pane fade <?= $activeTab === 'informasi' ? 'show active' : '' ?>" id="informasi-akun" role="tabpanel" aria-labelledby="informasi-tab">
-                        <div class="panel">
-                            <h6 class="font-weight-bold mb-3">Informasi Akun</h6>
-
-                            <?php if (!empty($errorsProfil)): ?>
-                                <div class="alert alert-danger">
-                                    <ul class="mb-0 pl-3">
-                                        <?php foreach ($errorsProfil as $error): ?>
-                                            <li><?= htmlspecialchars($error) ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                </div>
-                            <?php endif; ?>
-
-                            <form method="post">
-                                <div class="form-group">
-                                    <label class="mb-1">Nama Lengkap</label>
-                                    <input type="text" class="form-control" name="nama" value="<?= htmlspecialchars($profil['namamitra']) ?>" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="mb-1">Email</label>
-                                    <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($profil['email']) ?>" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="mb-1">No. WhatsApp</label>
-                                    <input type="text" class="form-control" name="whatsapp" value="<?= htmlspecialchars($profil['whatsapp'] ?? '') ?>">
-                                </div>
-                                <button type="submit" name="update_profile" value="1" class="btn btn-primary">Simpan Perubahan</button>
-                            </form>
+        <!-- Informasi Akun -->
+        <div class="acc-card">
+            <a class="acc-header" data-toggle="collapse" href="#sec-informasi" aria-expanded="<?= $section === 'informasi' ? 'true' : 'false' ?>">
+                <span class="title"><i class="bi bi-person bi-icon"></i> Informasi Akun</span>
+                <i class="bi bi-chevron-down chevron"></i>
+            </a>
+            <div class="collapse<?= $section === 'informasi' ? ' show' : '' ?>" id="sec-informasi">
+                <div class="acc-body">
+                    <?php if (!empty($errorsProfil)): ?>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0 pl-3">
+                                <?php foreach ($errorsProfil as $error): ?>
+                                    <li><?= htmlspecialchars($error) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
-                    <div class="tab-pane fade <?= $activeTab === 'password' ? 'show active' : '' ?>" id="ubah-password" role="tabpanel" aria-labelledby="password-tab">
-                        <div class="panel">
-                            <h6 class="font-weight-bold mb-3">Ubah Password</h6>
-
-                            <?php if (!empty($errorsPassword)): ?>
-                                <div class="alert alert-danger">
-                                    <ul class="mb-0 pl-3">
-                                        <?php foreach ($errorsPassword as $error): ?>
-                                            <li><?= htmlspecialchars($error) ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                </div>
-                            <?php endif; ?>
-
-                            <form method="post" autocomplete="off">
-                                <div class="form-group">
-                                    <label class="mb-1">Password Lama</label>
-                                    <input type="password" class="form-control" name="password_lama" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="mb-1">Password Baru</label>
-                                    <input type="password" class="form-control" name="password_baru" minlength="8" required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="mb-1">Konfirmasi Password Baru</label>
-                                    <input type="password" class="form-control" name="password_ulang" minlength="8" required>
-                                </div>
-                                <button type="submit" name="update_password" value="1" class="btn btn-outline-primary">Ubah Password</button>
-                            </form>
+                    <form method="post">
+                        <div class="form-group">
+                            <label class="mb-1">Nama Lengkap</label>
+                            <input type="text" class="form-control" name="nama" value="<?= htmlspecialchars($profil['namamitra']) ?>" required>
                         </div>
-                    </div>
+                        <div class="form-group">
+                            <label class="mb-1">Email</label>
+                            <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($profil['email']) ?>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="mb-1">No. WhatsApp</label>
+                            <input type="text" class="form-control" name="whatsapp" value="<?= htmlspecialchars($profil['whatsapp'] ?? '') ?>">
+                        </div>
+                        <button type="submit" name="update_profile" value="1" class="btn btn-primary btn-block">Simpan Perubahan</button>
+                    </form>
                 </div>
             </div>
         </div>
+
+        <!-- Alamat Saya -->
+        <div class="acc-card">
+            <a class="acc-header" data-toggle="collapse" href="#sec-alamat" aria-expanded="<?= $section === 'alamat' ? 'true' : 'false' ?>">
+                <span class="title"><i class="bi bi-geo-alt bi-icon"></i> Alamat Saya <span class="acc-count">(<?= count($daftarAlamat) ?>)</span></span>
+                <i class="bi bi-chevron-down chevron"></i>
+            </a>
+            <div class="collapse<?= $section === 'alamat' ? ' show' : '' ?>" id="sec-alamat">
+                <div class="acc-body">
+                    <?php if (empty($daftarAlamat)): ?>
+                        <p class="text-muted text-center mb-3">Belum ada alamat tersimpan.</p>
+                    <?php else: ?>
+                        <?php foreach ($daftarAlamat as $alamat): ?>
+                            <div class="alamat-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="font-weight-bold"><?= htmlspecialchars($alamat['label']) ?></span>
+                                        <?php if ((int) $alamat['is_utama'] === 1): ?>
+                                            <span class="badge badge-primary ml-1">Utama</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <a href="alamat_form.php?id=<?= (int) $alamat['idalamat'] ?>" class="small">Ubah</a>
+                                </div>
+                                <div class="font-weight-bold mt-1"><?= htmlspecialchars($alamat['nama_penerima']) ?></div>
+                                <div><?= htmlspecialchars($alamat['telepon_penerima']) ?></div>
+                                <div class="text-muted small"><?= htmlspecialchars($alamat['alamat_lengkap']) ?></div>
+                                <div class="text-muted small">
+                                    <?= htmlspecialchars(trim(implode(', ', array_filter([$alamat['kecamatan'], $alamat['kota'], $alamat['provinsi'], $alamat['kodepos']])))) ?>
+                                </div>
+
+                                <div class="mt-2">
+                                    <?php if ((int) $alamat['is_utama'] !== 1): ?>
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="jadikan_utama_alamat" value="<?= (int) $alamat['idalamat'] ?>">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">Jadikan Utama</button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <form method="post" class="d-inline" onsubmit="return confirm('Hapus alamat ini?');">
+                                        <input type="hidden" name="hapus_alamat" value="<?= (int) $alamat['idalamat'] ?>">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+
+                    <a href="alamat_form.php" class="btn btn-outline-primary btn-block">
+                        <i class="bi bi-plus-lg"></i> Tambah Alamat Baru
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ubah Password -->
+        <div class="acc-card">
+            <a class="acc-header" data-toggle="collapse" href="#sec-password" aria-expanded="<?= $section === 'password' ? 'true' : 'false' ?>">
+                <span class="title"><i class="bi bi-shield-lock bi-icon"></i> Ubah Password</span>
+                <i class="bi bi-chevron-down chevron"></i>
+            </a>
+            <div class="collapse<?= $section === 'password' ? ' show' : '' ?>" id="sec-password">
+                <div class="acc-body">
+                    <?php if (!empty($errorsPassword)): ?>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0 pl-3">
+                                <?php foreach ($errorsPassword as $error): ?>
+                                    <li><?= htmlspecialchars($error) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="post" autocomplete="off">
+                        <div class="form-group">
+                            <label class="mb-1">Password Lama</label>
+                            <input type="password" class="form-control" name="password_lama" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="mb-1">Password Baru</label>
+                            <input type="password" class="form-control" name="password_baru" minlength="8" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="mb-1">Konfirmasi Password Baru</label>
+                            <input type="password" class="form-control" name="password_ulang" minlength="8" required>
+                        </div>
+                        <button type="submit" name="update_password" value="1" class="btn btn-outline-primary btn-block">Ubah Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pesanan Saya (tetap halaman terpisah, isinya list + pagination sendiri) -->
+        <a href="riwayat_pesanan.php" class="acc-header acc-card" style="display:flex;">
+            <span class="title"><i class="bi bi-bag-check bi-icon"></i> Pesanan Saya</span>
+            <i class="bi bi-chevron-right chevron" style="transform:none;"></i>
+        </a>
+
+        <a href="logout.php" class="acc-header acc-card mb-4" style="display:flex;">
+            <span class="title"><i class="bi bi-box-arrow-right bi-icon"></i> Keluar</span>
+            <i class="bi bi-chevron-right chevron" style="transform:none;"></i>
+        </a>
     </div>
 
     <?php include 'footer.php'; ?>
 
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Di mobile, tutup lagi menu akun begitu salah satu tab dipilih
-        $('#account-tab a[data-toggle="pill"]').on('click', function () {
-            if ($(window).width() < 768) {
-                $('#accountSidebar').collapse('hide');
-            }
-        });
-    </script>
 </body>
 </html>
