@@ -150,7 +150,7 @@
     <p><strong>Note:</strong> <?= htmlspecialchars($data['keterangan']) ?></p>
     
     <div class="left-info">
-        <p><strong>Kode Mitra:</strong> <?= htmlspecialchars($data['idadmin']) ?></p>
+        <p><strong>Kode Mitra:</strong> <?= htmlspecialchars($data['idadmin'] ?? '') ?></p>
         <p><strong>Tanggal:</strong> <?= date('d-m-Y') ?></p>
     </div>
 </body>

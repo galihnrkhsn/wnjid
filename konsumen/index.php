@@ -167,6 +167,10 @@
             margin-bottom: 1rem;
             display: block;
         }
+        .pagination {
+            flex-wrap: wrap;
+            row-gap: .35rem;
+        }
     </style>
 </head>
 <body>
@@ -266,6 +270,8 @@
         </nav>
         <?php endif; ?>
     </div>
+
+    <?php include 'footer.php'; ?>
 
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>

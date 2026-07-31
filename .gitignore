@@ -2,6 +2,7 @@ distributor/foto/
 image/
 manajemen/oldfile/
 includes/db.config.php
+includes/rajaongkir.config.php
 mysql-8.4/
 
 # Composer-managed packages inside /vendor (regenerated via `composer install`).

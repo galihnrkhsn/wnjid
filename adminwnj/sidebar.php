@@ -246,7 +246,22 @@
           </div>
         </div>
       </li>
-      
+
+        <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOrderKonsumen" aria-expanded="true" aria-controls="collapseOrderKonsumen">
+          <i class="fas fa-fw fa-shopping-basket"></i>
+          <span>List Order Konsumen</span>
+        </a>
+        <div id="collapseOrderKonsumen" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <a class="collapse-item" href="orderkonsumen.php">Order Konsumen</a>
+            <a class="collapse-item" href="orderkonsumen_ambilbarang.php">Ambil Barang Konsumen</a>
+            <a class="collapse-item" href="orderkonsumen_pengiriman.php">Pengiriman Konsumen</a>
+          </div>
+        </div>
+      </li>
+
       <hr class="sidebar-divider">
       
       <!-- Heading -->

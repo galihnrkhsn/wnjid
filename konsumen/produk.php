@@ -9,7 +9,7 @@
 
     $idproduk = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-    $stmtProduk = $koneksi->prepare("SELECT id, namaproduk, idkategori, spek FROM products WHERE id = ?");
+    $stmtProduk = $koneksi->prepare("SELECT id, namaproduk, idkategori, spek, deskripsi FROM products WHERE id = ?");
     $stmtProduk->bind_param('i', $idproduk);
     $stmtProduk->execute();
     $produk = $stmtProduk->get_result()->fetch_assoc();
@@ -119,6 +119,41 @@
         .gallery-thumb.active {
             border-color: #0d6efd;
         }
+        .deskripsi-accordion {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            margin-top: .75rem;
+            overflow: hidden;
+        }
+        .deskripsi-toggle {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: .75rem 1rem;
+            font-size: .9rem;
+            font-weight: 700;
+            color: #2b2f42;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .deskripsi-toggle .bi {
+            transition: transform .15s ease-in-out;
+        }
+        .deskripsi-toggle.open .bi {
+            transform: rotate(180deg);
+        }
+        .deskripsi-content {
+            display: none;
+            padding: 0 1rem 1rem;
+            font-size: .85rem;
+            color: #495057;
+            white-space: pre-line;
+        }
+        .deskripsi-content.open {
+            display: block;
+        }
         .produk-panel {
             background: #fff;
             border-radius: 14px;
@@ -127,9 +162,10 @@
         }
         .variant-option {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            gap: .75rem;
+            gap: .5rem .75rem;
             padding: .75rem;
             border: 1px solid #eef1f5;
             border-radius: 10px;
@@ -195,14 +231,20 @@
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+
+                <?php if (!empty($produk['deskripsi'])): ?>
+                    <div class="deskripsi-accordion">
+                        <button type="button" class="deskripsi-toggle" onclick="toggleDeskripsi(this)">
+                            <span>Deskripsi Produk</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="deskripsi-content"><?= htmlspecialchars($produk['deskripsi']) ?></div>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="col-md-7">
                 <div class="produk-panel">
                     <h5 class="font-weight-bold mb-1"><?= htmlspecialchars($produk['namaproduk']) ?></h5>
-                    <?php if (!empty($produk['spek'])): ?>
-                        <a target="_blank" style="text-decoration: underline; color: blue;" href="<?= htmlspecialchars($produk['spek']) ?>" class="small mb-3"><?= htmlspecialchars($produk['spek']) ?></a>
-                    <?php endif; ?>
-
                     <?php if (empty($variants)): ?>
                         <div class="empty-state">
                             <i class="bi bi-box-seam" style="font-size:2rem;"></i>
@@ -244,6 +286,8 @@
         </div>
     </div>
 
+    <?php include 'footer.php'; ?>
+
     <script>
         var galleryFotos = <?= json_encode($fotoList) ?>;
         var galleryIndex = 0;
@@ -259,6 +303,12 @@
         function galleryMove(delta) {
             var len = galleryFotos.length;
             gallerySet((galleryIndex + delta + len) % len);
+        }
+
+        function toggleDeskripsi(btn) {
+            var content = btn.parentElement.querySelector('.deskripsi-content');
+            var isOpen  = content.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
         }
     </script>
     <script src="/home/assets/js/jquery.min.js"></script>

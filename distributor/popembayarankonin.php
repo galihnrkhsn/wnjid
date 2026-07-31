@@ -137,7 +137,7 @@
                             <select name="payment" class="form-control form-control-sm" id="payment" required>
                                 <option selected disabled>~ Pilih Rekening Pembayaran ~</option>
                                 <?php
-                                    $queryrek = $koneksi->query("SELECT * FROM rekeningwnj");
+                                    $queryrek = $koneksi->query("SELECT * FROM rekeningwnj WHERE status = 'A'");
                                     while($rekening = $queryrek->fetch_assoc()) {
                                 ?>
                                     <option><?= $rekening['namabank']; ?> <?= $rekening['norekening']; ?></option>

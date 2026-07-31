@@ -134,7 +134,7 @@
             <select class="form-control" name="metodebayar" required>
                 <option value="">~Pilih Metode Bayar~</option>
                 <?php 
-                    $ambilrekening = $koneksi->query("SELECT * FROM rekeningwnj WHERE status IS NULL");
+                    $ambilrekening = $koneksi->query("SELECT * FROM rekeningwnj WHERE status = 'A'");
                     while($datarekening = $ambilrekening->fetch_assoc()){ 
                 ?>
                     <option value="<?= $datarekening['namabank']; ?> <?= $datarekening['norekening']; ?>"><?= $datarekening['namabank']; ?> <?= $datarekening['norekening']; ?></option>
@@ -245,7 +245,7 @@
             <select class="form-control" name="metodebayar" required>
                 <option value="">~Pilih Rekening Pembayaran~</option>
                 <?php 
-                    $ambilrekening = $koneksi->query("SELECT * FROM rekeningwnj WHERE status IS NULL");
+                    $ambilrekening = $koneksi->query("SELECT * FROM rekeningwnj WHERE status = 'A'");
                     while($datarekening = $ambilrekening->fetch_assoc()){ ?>
                     <option value="<?= $datarekening['namabank']; ?> <?= $datarekening['norekening']; ?> & Saldo">
                         <?= $datarekening['namabank']; ?> <?= $datarekening['norekening']; ?></option>
@@ -274,37 +274,7 @@
 <!-- PEMBAYARAN BANK -->
 <?php
     include "koneksi.php";
-
-    if (!function_exists('convertUploadedImageToWebp')) {
-        function convertUploadedImageToWebp(string $tmpPath, string $extension, string $destDir, string $baseName, int $quality = 85) {
-            switch ($extension) {
-                case 'jpg':
-                case 'jpeg':
-                    $image = @imagecreatefromjpeg($tmpPath);
-                    break;
-                case 'png':
-                    $image = @imagecreatefrompng($tmpPath);
-                    break;
-                default:
-                    $image = false;
-            }
-
-            if (!$image) {
-                return null;
-            }
-
-            // Jaga transparansi kalau sumbernya PNG
-            imagepalettetotruecolor($image);
-            imagealphablending($image, true);
-            imagesavealpha($image, true);
-
-            $filename = $baseName . '.webp';
-            $saved    = imagewebp($image, $destDir . $filename, $quality);
-            imagedestroy($image);
-
-            return $saved ? $filename : null;
-        }
-    }
+    include '../includes/image_upload_helper.php';
 
     if(isset($_POST['kirimBank'])){
 

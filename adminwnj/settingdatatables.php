@@ -340,3 +340,33 @@
   });
 </script>
 
+<script type="text/javascript">
+    $(document).ready( function () {
+    $('#tb_orderkonsumen').DataTable({
+        "pageLength": 25
+    });
+} );
+</script>
+
+<script type="text/javascript">
+    $(document).ready( function () {
+    $('#tb_ambilbarang_konsumen').DataTable({
+        "pageLength": 25,
+        columnDefs: [
+            { orderable: false, targets: 0 }
+        ]
+    });
+} );
+</script>
+
+<script type="text/javascript">
+    $(document).ready( function () {
+    $('#tb_pengiriman_konsumen').DataTable({
+        "pageLength": 25,
+        columnDefs: [
+            { orderable: false, targets: 0 }
+        ]
+    });
+} );
+</script>
+

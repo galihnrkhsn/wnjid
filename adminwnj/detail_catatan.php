@@ -97,7 +97,7 @@
                                                             <select class="form-control form-control-sm" name="rekening">
                                                                 <option value="<?= $data['rekening'] ?>"><?= $data['rekening'] ?></option>
                                                                 <?php
-                                                                    $sql = $koneksi->query("SELECT * FROM rekeningwnj ORDER BY namabank");
+                                                                    $sql = $koneksi->query("SELECT * FROM rekeningwnj WHERE status = 'A' ORDER BY namabank");
                                                                     while ($data1 = $sql->fetch_assoc()) {
                                                                 ?>
                                                                     <option value="<?= $data1['namabank'] ?>"><?= $data1['namabank'] ?></option>

@@ -98,7 +98,7 @@
                                 <select class="form-control" name="metodebayar" required>
                                     <option value="">~Pilih Rekening Pembayaran~</option>
                                     <?php 
-                                        $ambil_rek=$koneksi->query("SELECT * FROM rekeningwnj WHERE status IS NULL"); 
+                                        $ambil_rek=$koneksi->query("SELECT * FROM rekeningwnj WHERE status = 'A'");
                                         while($rekening=$ambil_rek->fetch_assoc()): 
                                     ?>          
                                         <option><?= $rekening['namabank']; ?> <?= $rekening['norekening']; ?></option>

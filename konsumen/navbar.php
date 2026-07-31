@@ -1,6 +1,4 @@
 <?php
-    include 'koneksi.php';
-
     $idKonsumen = $_SESSION['idkonsumen'] ?? null;
 
     $namaKonsumen = '';
@@ -63,6 +61,7 @@
                     <span class="cart-badge"><?= $jumlahKeranjang ?></span>
                 <?php endif; ?>
             </a>
+            <a href="profile.php" class="text-muted" title="Profil Saya"><i class="bi bi-person"></i></a>
             <a href="logout.php" class="text-muted" title="Keluar"><i class="bi bi-box-arrow-right"></i></a>
         </div>
     </div>

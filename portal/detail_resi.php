@@ -314,7 +314,17 @@
                                                     echo "❌ Gagal update t_user untuk ID: $id<br>";
                                                     $success = false;
                                                 }
-                                                
+
+                                                // Order konsumen (retail) baru dianggap "Sedang dalam perjalanan" begitu resi-nya
+                                                // diisi di sini, bukan pada saat data masuk ke portal ini (waktu itu masih
+                                                // "Menunggu Resi"). Invoice mitra tidak akan pernah cocok dengan invoice
+                                                // orderkonsumen jadi aman dijalankan untuk semua baris.
+                                                if (!empty($noresiVal) && !empty($invoiceVal)) {
+                                                    $stmtSyncKonsumen = $koneksi->prepare("UPDATE orderkonsumen SET status = 'Sedang dalam perjalanan' WHERE invoice = ? AND status = 'Menunggu Resi'");
+                                                    $stmtSyncKonsumen->bind_param('s', $invoiceVal);
+                                                    $stmtSyncKonsumen->execute();
+                                                }
+
                                                 if ($jenis_mitraVal === 'WNJ') {
                                                     if (!empty($noresiVal) && $ongkirVal !== '' && $ongkirVal !== null) {
                                                         $transaksiStr = ($pengirimanVal == "PO")
