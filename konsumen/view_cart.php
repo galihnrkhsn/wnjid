@@ -6,6 +6,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
     include '../includes/foto_helper.php';
+    include '../includes/promo_badge_helper.php';
 
     $idKonsumen = $_SESSION['idkonsumen'];
 
@@ -90,7 +91,7 @@
     }
 
     $stmt = $koneksi->prepare("SELECT k.idkeranjang, k.jmlh, k.harga, k.subtotal,
-                                    v.variant, v.size, v.stock AS sisa_stock,
+                                    v.variant, v.size, v.stock AS sisa_stock, v.jenis, v.disc,
                                     p.id AS idproduk, p.namaproduk, fp.foto AS foto_file, mf.name AS nama_folder
                                 FROM keranjang k
                                 JOIN variants v ON k.idproduk = v.id
@@ -106,6 +107,65 @@
     $total = 0;
     foreach ($items as $item) {
         $total += (float) $item['subtotal'];
+    }
+
+    // "Promo" = jenis-nya dikenal sebagai badge promo (b1g1/Bundling/dll) ATAU punya disc>0.
+    // Dipakai buat mengelompokkan tampilan keranjang jadi 2 seksi.
+    $itemsPromo = [];
+    $itemsBiasa = [];
+    foreach ($items as $item) {
+        $isPromo = promoBadgeLabel($item['jenis'] ?? null) !== null || (int) ($item['disc'] ?? 0) > 0;
+        if ($isPromo) {
+            $itemsPromo[] = $item;
+        } else {
+            $itemsBiasa[] = $item;
+        }
+    }
+
+    function renderCartItem(array $item): void
+    {
+        $badgeJenis = promoBadgeLabel($item['jenis'] ?? null);
+        $badgeDisc  = discBadgeLabel($item['disc'] ?? null);
+    ?>
+        <div class="cart-item">
+            <input type="checkbox" class="item-checkbox" data-subtotal="<?= (float) $item['subtotal'] ?>" data-idkeranjang="<?= (int) $item['idkeranjang'] ?>" checked>
+
+            <a href="produk.php?id=<?= (int) $item['idproduk'] ?>">
+                <img src="<?= fotoProdukSrc($item['nama_folder'] ?? null, $item['foto_file'] ?? null) ?>" alt="">
+            </a>
+
+            <div class="flex-grow-1">
+                <a href="produk.php?id=<?= (int) $item['idproduk'] ?>" class="produk-link">
+                    <div class="font-weight-bold">
+                        <?= htmlspecialchars($item['namaproduk'] ?? '') ?>
+                        <?php if ($badgeJenis !== null): ?>
+                            <span class="item-promo-badge"><?= htmlspecialchars($badgeJenis) ?></span>
+                        <?php endif; ?>
+                        <?php if ($badgeDisc !== null): ?>
+                            <span class="item-promo-badge"><?= htmlspecialchars($badgeDisc) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </a>
+                <div class="text-muted small"><?= htmlspecialchars($item['variant']) ?> <?= htmlspecialchars($item['size'] ?? '') ?></div>
+                <div>Rp <?= number_format($item['harga']) ?> &times; <?= (int) $item['jmlh'] ?></div>
+                <div class="text-muted small">Sisa stok: <?= (int) $item['sisa_stock'] ?></div>
+
+                <form method="post" class="qty-form">
+                    <input type="hidden" name="idkeranjang" value="<?= (int) $item['idkeranjang'] ?>">
+                    <input type="number" name="jmlh" value="<?= (int) $item['jmlh'] ?>" min="1" max="<?= (int) $item['jmlh'] + (int) $item['sisa_stock'] ?>">
+                    <button type="submit" name="update_jmlh" value="1" class="btn btn-outline-secondary btn-sm">Update</button>
+                </form>
+            </div>
+
+            <div class="text-right">
+                <div class="font-weight-bold mb-2 item-subtotal">Rp <?= number_format($item['subtotal']) ?></div>
+                <form method="post" onsubmit="return confirm('Hapus item ini dari keranjang?');">
+                    <input type="hidden" name="hapus" value="<?= (int) $item['idkeranjang'] ?>">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
+                </form>
+            </div>
+        </div>
+    <?php
     }
 ?>
 <!DOCTYPE html>
@@ -141,6 +201,31 @@
         }
         .cart-item a.produk-link:hover {
             color: #0d6efd;
+        }
+        .item-promo-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: .35rem;
+            vertical-align: middle;
+        }
+        .cart-section-heading {
+            font-weight: 700;
+            font-size: .85rem;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            color: #6c757d;
+            margin: 1.25rem 0 .75rem;
+            padding-bottom: .35rem;
+            border-bottom: 2px solid #eef1f5;
+        }
+        .cart-section-heading.promo {
+            color: #dc3545;
+            border-bottom-color: #dc3545;
         }
         .qty-form {
             display: flex;
@@ -214,38 +299,21 @@
                 </label>
             </div>
 
-            <?php foreach ($items as $item): ?>
-                <div class="cart-item">
-                    <input type="checkbox" class="item-checkbox" data-subtotal="<?= (float) $item['subtotal'] ?>" data-idkeranjang="<?= (int) $item['idkeranjang'] ?>" checked>
+            <?php if (!empty($itemsPromo)): ?>
+                <div class="cart-section-heading promo">🏷️ Item Promo</div>
+                <?php foreach ($itemsPromo as $item): ?>
+                    <?php renderCartItem($item); ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
-                    <a href="produk.php?id=<?= (int) $item['idproduk'] ?>">
-                        <img src="<?= fotoProdukSrc($item['nama_folder'] ?? null, $item['foto_file'] ?? null) ?>" alt="">
-                    </a>
-
-                    <div class="flex-grow-1">
-                        <a href="produk.php?id=<?= (int) $item['idproduk'] ?>" class="produk-link">
-                            <div class="font-weight-bold"><?= htmlspecialchars($item['namaproduk'] ?? '') ?></div>
-                        </a>
-                        <div class="text-muted small"><?= htmlspecialchars($item['variant']) ?> <?= htmlspecialchars($item['size'] ?? '') ?></div>
-                        <div>Rp <?= number_format($item['harga']) ?> &times; <?= (int) $item['jmlh'] ?></div>
-                        <div class="text-muted small">Sisa stok: <?= (int) $item['sisa_stock'] ?></div>
-
-                        <form method="post" class="qty-form">
-                            <input type="hidden" name="idkeranjang" value="<?= (int) $item['idkeranjang'] ?>">
-                            <input type="number" name="jmlh" value="<?= (int) $item['jmlh'] ?>" min="1" max="<?= (int) $item['jmlh'] + (int) $item['sisa_stock'] ?>">
-                            <button type="submit" name="update_jmlh" value="1" class="btn btn-outline-secondary btn-sm">Update</button>
-                        </form>
-                    </div>
-
-                    <div class="text-right">
-                        <div class="font-weight-bold mb-2 item-subtotal">Rp <?= number_format($item['subtotal']) ?></div>
-                        <form method="post" onsubmit="return confirm('Hapus item ini dari keranjang?');">
-                            <input type="hidden" name="hapus" value="<?= (int) $item['idkeranjang'] ?>">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
-                        </form>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+            <?php if (!empty($itemsBiasa)): ?>
+                <?php if (!empty($itemsPromo)): ?>
+                    <div class="cart-section-heading">Item Lainnya</div>
+                <?php endif; ?>
+                <?php foreach ($itemsBiasa as $item): ?>
+                    <?php renderCartItem($item); ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
             <div class="cart-summary d-flex align-items-center justify-content-between mt-3">
                 <div>

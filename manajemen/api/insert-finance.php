@@ -45,7 +45,7 @@
     $sisaAwal       = (float) ($ambil->num_rows > 0) ? $ambil->fetch_assoc()['sisa'] : 0;
     $sisaBaru       = ($jenis == 'kredit') ? ($sisaAwal + $jumlah) : ($sisaAwal - $jumlah);
 
-    $targetDir      = '../buktitransfer/';
+    $targetDir      = '../../image/bukti_transfer';
     $namaFileBaru   = NULL;
     $hasFile = isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK;
 

@@ -1,6 +1,7 @@
 <?php
     include "koneksi.php";
     include "assets/components/Sessions/sesDistri.php";
+    include "../includes/invoice_helper.php";
 
     date_default_timezone_set('Asia/Jakarta');
 
@@ -68,7 +69,6 @@
             exit;
         }
 
-        $today          = date("mdHis");
         $idkeranjang    = $_POST["idkeranjang"];
         $jenis          = $_POST["jenis"] ?? null;
         $jumlah_dipilih = count($idkeranjang);
@@ -202,7 +202,7 @@
                     $idker      = (int) $item['idkeranjang'];
                     $waktu      = date('H:i:s');
                     if (!$invoice) {
-                        $invoice = "D" . $idmitra . $today;
+                        $invoice = generateUniqueInvoice($koneksi, 'ordermitra', 'D', $idmitra);
                     }
 
                     $stmtVariant->bind_param('i', $idproduk);
@@ -220,12 +220,6 @@
                 }
             }
 
-            $stmtPromoCheck = $koneksi->prepare("SELECT namaproduk
-                                            FROM products
-                                            INNER JOIN variants ON variants.idproducts = products.id
-                                            WHERE variants.id = ?
-                                            AND (variants.jenis LIKE '%Promo%' OR variants.jenis LIKE '%Sale%')");
-
             foreach ($non_bundling_items as $item) {
                 $idproduk   = (int) $item['idproduk'];
                 $hargaItem  = $item['harga'];
@@ -236,10 +230,7 @@
                 $waktu      = date('H:i:s');
 
                 if (!$invoice) {
-                    $stmtPromoCheck->bind_param('i', $idproduk);
-                    $stmtPromoCheck->execute();
-                    $sql_produk = $stmtPromoCheck->get_result();
-                    $invoice    = ($sql_produk->num_rows == 1) ? ('DP' . $idmitra . $today) : ('D' . $idmitra . $today);
+                    $invoice = generateUniqueInvoice($koneksi, 'ordermitra', 'D', $idmitra);
                 }
 
                 $stmtVariant->bind_param('i', $idproduk);

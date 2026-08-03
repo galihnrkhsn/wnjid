@@ -2,6 +2,7 @@
     include 'koneksi.php';
     include 'floatingbutton.php';
     include 'assets/components/Sessions/sesDistri.php';
+    include '../includes/discount_rules.php';
     $idadmin = $_SESSION['idadmin'];
     $jenis   = $_GET['jenis'] ?? '';
     $invoice = $_GET["id"] ?? '';
@@ -193,12 +194,12 @@
 
     <?php
         $totalb = 0;
-        $sql    = "SELECT 
+        $sql    = "SELECT
                             ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
                             variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
+                        FROM ordermitra
                     INNER JOIN variants ON variants.id = ordermitra.idproduk
-                    INNER JOIN products ON variants.idproducts = products.id 
+                    INNER JOIN products ON variants.idproducts = products.id
                     WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 2";
         $query  = $koneksi->query($sql);
         while ($gb = $query->fetch_assoc()){
@@ -208,115 +209,30 @@
     <!----------------------------------------------------------------------------------------------------------------------------->
 
     <?php
-        $totald5    = 0;
-        $sql        = "SELECT 
+        // Tier diskon tambahan per-kategori (D5/D10/D15/D17/D20/D25 di tabel kategori) - satu
+        // query+loop dipakai ulang untuk semua tier lewat $categoryDiscountRules
+        // (includes/discount_rules.php), gantiin 6 blok yang isinya sama persis sebelumnya.
+        $totalPerCategory = [];
+        foreach ($categoryDiscountRules as $idkategoriRule => $persenRule) {
+            $totalPerCategory[$idkategoriRule] = 0;
+            $sql    = "SELECT
                             ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
                             variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
+                        FROM ordermitra
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
-                        INNER JOIN products ON variants.idproducts = products.id 
-                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 5";
-        $query      = $koneksi->query($sql);
-        while ($d5 = $query->fetch_assoc()){
-    ?>
-    <?php $totald5 += $d5['subtotal']; } ?>
-    
-    <!----------------------------------------------------------------------------------------------------------------------------->
-
-    <?php
-        $totald10   = 0;
-        $sql        = "SELECT 
-                            ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
-                            variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
-                        INNER JOIN variants ON variants.id = ordermitra.idproduk
-                        INNER JOIN products ON variants.idproducts = products.id 
-                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 10";
-        $query      = $koneksi->query($sql);
-        while ($d10 = $query->fetch_assoc()){
-    ?>
-    <?php  $totald10 += $d10['subtotal']; } ?>
-
-    <!----------------------------------------------------------------------------------------------------------------------------->
-
-    <?php
-        $totald15   = 0;
-        $sql        = "SELECT 
-                            ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
-                            variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
-                        INNER JOIN variants ON variants.id = ordermitra.idproduk
-                        INNER JOIN products ON variants.idproducts = products.id 
-                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 15";
-        $query      = $koneksi->query($sql);
-        while ($d15 = $query->fetch_assoc()){
-    ?>
-    <?php  $totald15 +=  $d15['subtotal']; } ?> 
-
-    <!----------------------------------------------------------------------------------------------------------------------------->
-
-    <?php
-        $totald17   = 0;
-        $sql        = "SELECT 
-                            ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
-                            variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
-                        INNER JOIN variants ON variants.id = ordermitra.idproduk
-                        INNER JOIN products ON variants.idproducts = products.id 
-                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 17";
-        $query      = $koneksi->query($sql);
-        while ($d17 = $query->fetch_assoc()){
-    ?>
-    
-    <?php  $totald17 +=  $d17['subtotal']; } ?>
-
-    <!----------------------------------------------------------------------------------------------------------------------------->
-
-    <?php
-        $totald20   = 0;
-        $sql        = "SELECT 
-                            ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
-                            variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
-                        INNER JOIN variants ON variants.id = ordermitra.idproduk
-                        INNER JOIN products ON variants.idproducts = products.id 
-                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 20";
-        $query      = $koneksi->query($sql);
-        while ($d20 = $query->fetch_assoc()){
-    ?>
-    
-    <?php  $totald20 +=  $d20['subtotal']; } ?>
-
-    <!----------------------------------------------------------------------------------------------------------------------------->
-
-    <?php
-        $totald25   = 0;
-        $sql        = "SELECT 
-                            ordermitra.*, variants.id, variants.idproducts, variants.variant, variants.size, variants.berat,
-                            variants.harga, products.id as product_id, products.idpkategori, products.idkategori, products.namaproduk
-                        FROM ordermitra  
-                        INNER JOIN variants ON variants.id = ordermitra.idproduk
-                        INNER JOIN products ON variants.idproducts = products.id 
-                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 25";
-        $query      = $koneksi->query($sql);
-        while ($d25 = $query->fetch_assoc()){
-    ?>
-    
-    <?php  $totald25 +=  $d25['subtotal']; } ?>   
-
-    <!----------------------------------------------------------------------------------------------------------------------------->
-
-    <?php
-        $ttl52  = 0;
-        $sql    = "SELECT MAX(variants.harga) AS subtotal 
-                    FROM ordermitra 
-                    INNER JOIN variants ON variants.id = ordermitra.idproduk
-                    INNER JOIN products ON variants.idproducts = products.id 
-                    WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = 52";
-        $query  = $koneksi->query($sql);
-        $d52    = $query->fetch_assoc();
-        $ttl52 += $d52['subtotal'];
-        // $sql = "SELECT * FROM ordermitra INNER JOIN produk ON produk.idproduk = ordermitra.idproduk WHERE ordermitra.invoice AND ordermitra.jumlah > 0 AND products.idkategori = 52";
+                        INNER JOIN products ON variants.idproducts = products.id
+                        WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 AND products.idkategori = $idkategoriRule";
+            $query  = $koneksi->query($sql);
+            while ($d = $query->fetch_assoc()) {
+                $totalPerCategory[$idkategoriRule] += $d['subtotal'];
+            }
+        }
+        $totald5  = $totalPerCategory[5];
+        $totald10 = $totalPerCategory[10];
+        $totald15 = $totalPerCategory[15];
+        $totald17 = $totalPerCategory[17];
+        $totald20 = $totalPerCategory[20];
+        $totald25 = $totalPerCategory[25];
     ?>
 
     <?php
@@ -354,53 +270,22 @@
     <?php
         $apaja      = $pengiriman['dropship'];
         $dropship   = $pengiriman['berat'];
-    
-        if($dropship <= 5000 && $dropship >= 0 && $apaja == 'ya') {
-            $biayad=3000;
-        } else if($dropship <= 10000 && $dropship >= 6000 && $apaja == 'ya') {
-            $biayad=5000;
-        } else if($dropship <= 20000 && $dropship >= 11000 && $apaja == 'ya') {
-            $biayad=10000;
-        } else if($dropship <= 30000 && $dropship >= 21000 && $apaja == 'ya') {
-            $biayad=15000;
-        } else if($dropship <= 40000 && $dropship >= 31000 && $apaja == 'ya') {
-            $biayad=20000;
-        } else if($dropship <= 50000 && $dropship >= 41000 && $apaja == 'ya') {
-            $biayad=25000;
-        } else if($dropship <= 60000 && $dropship >= 51000 && $apaja == 'ya') {
-            $biayad=30000;
-        } else if($dropship <= 70000 && $dropship >= 61000 && $apaja == 'ya') {
-            $biayad=35000;
-        } else if($dropship <= 80000 && $dropship >= 71000 && $apaja == 'ya') {
-            $biayad=40000;
-        } else if($dropship <= 90000 && $dropship >= 81000 && $apaja == 'ya') {
-            $biayad=45000;
-        } else if($dropship <= 100000 && $dropship >= 91000 && $apaja == 'ya') {
-            $biayad=50000;
-        } else if($dropship <= 110000 && $dropship >= 101000 && $apaja == 'ya') {
-            $biayad=55000;
-        } else if($dropship <= 120000 && $dropship >= 111000 && $apaja == 'ya') {
-            $biayad=60000;
-        } else if($dropship <= 130000 && $dropship >= 121000 && $apaja == 'ya') {
-            $biayad=65000;
-        } else if($dropship <= 140000 && $dropship >= 131000 && $apaja == 'ya') {
-            $biayad=70000;
-        } else if($dropship <= 150000 && $dropship >= 141000 && $apaja == 'ya') {
-            $biayad=75000;
-        } else if($dropship <= 160000 && $dropship >= 151000 && $apaja == 'ya') {
-            $biayad=80000;
-        } else if($dropship <= 170000 && $dropship >= 161000 && $apaja == 'ya') {
-            $biayad=85000;
-        } else if($dropship <= 180000 && $dropship >= 171000 && $apaja == 'ya') {
-            $biayad=90000;
-        } else if($dropship <= 190000 && $dropship >= 181000 && $apaja == 'ya') {
-            $biayad=95000;
-        } else if($dropship <= 200000 && $dropship >= 191000 && $apaja == 'ya') {
-            $biayad=100000;
-        } else if($apaja=='tidak'){
-            $biayad=0;
+
+        // Tangga biaya dropship per-band berat - band & biaya dipindah ke $dropshipFeeTiers
+        // (includes/discount_rules.php), gantiin 20 blok if/elseif yang isinya sama persis
+        // sebelumnya. Celah antar band (mis. 5001-5999 gram tidak kena band manapun) sengaja
+        // dipertahankan sama seperti kondisi if/elseif aslinya.
+        if ($apaja == 'ya') {
+            foreach ($dropshipFeeTiers as [$beratMin, $beratMax, $biayaTier]) {
+                if ($dropship >= $beratMin && $dropship <= $beratMax) {
+                    $biayad = $biayaTier;
+                    break;
+                }
+            }
+        } elseif ($apaja == 'tidak') {
+            $biayad = 0;
         }
-        
+
         $diskonfree     = $totaldfree*50/100; 
         $totala         = $totala+$totald51-$diskonfree;
         $tbiayad        = number_format($biayad); 
@@ -409,7 +294,6 @@
         $diskonramadhan = $pengiriman['diskonramadhan'];
         $idpengiriman   = $pengiriman['idorderp'];
         
-        $diskonbg       = $ttl52*35/100;
         $diskona        = $totala*35/100;
         $diskonb        = $totalb*70/100;
         $diskon5        = $totald5*5/100;
@@ -438,7 +322,6 @@
         $flashSale      = number_format($diskonFlash);
         $tdiskonb       = number_format($diskonb);
         $tdiskon5       = number_format($diskon5);
-        $tdiskon52      = number_format($diskonbg);
         $tdiskon10      = number_format($diskon10);
         $tdiskon15      = number_format($diskon15);
         $tdiskon17      = number_format($diskon17);
@@ -480,18 +363,6 @@
         //     $ttl_barang = number_format($total_barang);
         // }
         
-        $totalbg        = number_format($ttl52);
-        $grandtotalbg   = ($ttl52 + $biayad + $ongkir + $totala + $totalb) - ($diskonbg + $diskona + $diskonb + $diskon5 + $diskon10 + $diskon15 + $diskon17 + $diskon20 + $diskon25);
-        $tgrandtotalbg  = number_format($grandtotalbg);
-
-        // $totalbg = $totala+$ttl52;
-        // $tbiayabg = number_format($biayad);
-        // $ongkirbg = $pengiriman['ongkir'];
-        // $kurirbg = $pengiriman['ekspedisi'];
-        // $diskon52 = $ttl52*50/100;
-        
-        // $tdiskon52 = number_format($diskon52);
-        // $grandtotal = 
         if($ongkir == 0){
             if($kurir == 'Ahsan' or $kurir == 'Gosend' or $kurir == 'Ambil ke Pusat' or $kurir == 'Disatukan') {
                 $ceksql = "SELECT * FROM ordermitra 

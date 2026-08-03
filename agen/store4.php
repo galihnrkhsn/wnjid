@@ -8,6 +8,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesAgen.php';
     include '../includes/foto_helper.php';
+    include '../includes/promo_badge_helper.php';
 
     // ---- Input & pagination ----
     $namaproduk = isset($_GET['namaproduk']) ? trim($_GET['namaproduk']) : '';
@@ -89,11 +90,36 @@
             object-fit: cover;
         }
         .product-card {
+            position: relative;
             transition: box-shadow .15s ease-in-out, transform .15s ease-in-out;
         }
         .product-card:hover {
             box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
             transform: translateY(-2px);
+        }
+        .promo-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 2;
+            background: #dc3545;
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .disc-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 2;
+            background: #dc3545;
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
         }
         .stock-badge {
             font-size: .8rem;
@@ -163,22 +189,36 @@
             <?php while ($data = $result->fetch_assoc()): ?>
             <div class="col-lg-3 col-md-6 col-sm-6 col-xs-6 col-6" style="margin-bottom: 2%;">
                 <div class="card product-card">
+                    <?php $badge = promoBadgeLabel($data['jenis'] ?? null); ?>
+                    <?php if ($badge !== null): ?>
+                        <span class="promo-badge"><?= htmlspecialchars($badge) ?></span>
+                    <?php endif; ?>
+                    <?php $discBadge = discBadgeLabel($data['disc'] ?? null); ?>
+                    <?php if ($discBadge !== null): ?>
+                        <span class="disc-badge"><?= htmlspecialchars($discBadge) ?></span>
+                    <?php endif; ?>
                     <img class="card-img-top fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto_file'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                     <div class="card-body">
                         <h6 class="card-title"><?= htmlspecialchars($data['namaproduk']) ?> <?= htmlspecialchars($data['variant']) ?> <?= htmlspecialchars($data['size']) ?></h6>
                         <?php if ($data['status'] == 0): ?>
                             <p class="card-text">
-                                <?php if ($data['hargacoret'] > 0) : ?>
-                                    <span class="text-danger text-decoration-line-through">Rp. <?= number_format($data['hargacoret']) ?></span>
-                                <?php endif; ?>
-                                <br>
                                 <?php if ($data['idkategori'] >= 51): ?>
                                     -
-                                <?php elseif (strpos($data['namaproduk'], "Vanellus Dress") !== false) : ?>
-                                    <span>Rp. <?= number_format($data['harga']) ?></span>
-                                    <span class="text-decoration-line-through d-block">Rp. <?= number_format(480000) ?></span>
+                                <?php elseif ($data['disc'] > 0): ?>
+                                    <span class="text-danger text-decoration-line-through">Rp. <?= number_format($data['harga']) ?></span>
+                                    <br>
+                                    Rp. <?= number_format(hargaSetelahDisc((int) $data['harga'], (int) $data['disc'])) ?>
                                 <?php else: ?>
-                                    Rp. <?= number_format($data['harga']) ?>
+                                    <?php if ($data['hargacoret'] > 0) : ?>
+                                        <span class="text-danger text-decoration-line-through">Rp. <?= number_format($data['hargacoret']) ?></span>
+                                    <?php endif; ?>
+                                    <br>
+                                    <?php if (strpos($data['namaproduk'], "Vanellus Dress") !== false) : ?>
+                                        <span>Rp. <?= number_format($data['harga']) ?></span>
+                                        <span class="text-decoration-line-through d-block">Rp. <?= number_format(480000) ?></span>
+                                    <?php else: ?>
+                                        Rp. <?= number_format($data['harga']) ?>
+                                    <?php endif ?>
                                 <?php endif ?>
                             </p>
                             <p class="card-text d-flex align-items-center justify-content-between">

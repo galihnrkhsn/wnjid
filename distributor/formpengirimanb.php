@@ -1,5 +1,6 @@
 <?php
     include 'koneksi.php';
+    include '../includes/invoice_helper.php';
     include 'assets/components/Sessions/sesDistri.php';
 
     $invoice = $_GET["id"]    ?? '';
@@ -318,7 +319,7 @@
                 if (substr($invoice, 0, 1) == "F") {
                     echo "<script>alert('data berhasil ditambah');</script>";
                     echo "<script>location='detailorder_get.php?id=" . rawurlencode($invoice) . "'</script>";
-                } elseif (substr($invoice, 0, 2) == "DP") {
+                } elseif (invoiceHasPromoItem($koneksi, 'ordermitra', $invoice)) {
                     echo "<script>alert('Data berhasil ditambah');</script>";
                     echo "<script>location='dataorder2.php?id=" . rawurlencode($invoice) . "'</script>";
                 } elseif ($jenis == 'Bundling Short') {

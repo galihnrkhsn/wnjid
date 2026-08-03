@@ -2,6 +2,7 @@
     session_start();
     include 'koneksi.php';
     include 'assets/components/Sessions/sesAgen.php';
+    include '../includes/promo_badge_helper.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +47,7 @@
             <div id="home" class="tab-pane fade show active">
                 <br>
                 <form method="POST" action="save_cart2.php" id="cartForm">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -76,7 +77,10 @@
                                                 AND variants.jenis NOT LIKE '%b1g1%')
                                         )";
                                 $query = $koneksi->query($sql);
+                                $adaItemHome = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
@@ -85,32 +89,38 @@
                                 <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
                                 <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                     $disable = "block";
                                     if ( $row['statusnya']=="Expired" ) {
                                         $disable = "none";
                                     }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
                                         <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= $row['namaproduk'];?></td>
                                 <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <?php
                                     $max    = $row['stock'];
@@ -121,23 +131,21 @@
                                         <?= $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                    
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
+                                <?php
+                                    $berat += $row['berat'];
                                 ?>
                             </tr>
-                            <?php $qty += $row['jmlh']; } ?>
+                            <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total, 2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -157,7 +165,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if ($total == 0) {
+                        if (!$adaItemHome) {
                             echo "<a href='store2.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -169,7 +177,7 @@
             <div id="get" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart2.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -194,7 +202,10 @@
                                         AND keranjang.status = 'Active'
                                         AND variants.jenis LIKE '%Sale%'";
                                 $query = $koneksi->query($sql);
+                                $adaItemGet = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
@@ -203,32 +214,38 @@
                                 <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
                                 <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
                                         <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= $row['namaproduk'];?></td>
                                 <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <?php
                                     $max    = $row['stock'];
@@ -239,26 +256,23 @@
                                         <?= $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                    
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
+                                <?php
+                                    $berat += $row['berat'];
                                 ?>
                             </tr>
                             <?php
-                                $qty+=$row['jmlh'];
                                 }
                             ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -274,7 +288,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemGet) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -286,7 +300,7 @@
             <div id="short" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart2.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -311,7 +325,10 @@
                                         AND keranjang.status = 'Active'
                                         AND variants.jenis LIKE '%b1g1%'";
                                 $query = $koneksi->query($sql);
+                                $adaItemShort = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
@@ -320,33 +337,39 @@
                                 <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
                                 <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <input type="hidden" name="jenis" value="<?= $row['jenis']; ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
                                         <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= $row['namaproduk'];?></td>
                                 <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <?php
                                     $max    = $row['stock'];
@@ -360,24 +383,21 @@
                                      <?= $row['jmlh']; ?>
                                     <!-- <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                     -->
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
+                                <?php
+                                    $berat += $row['berat'];
                                 ?>
                             </tr>
                             <?php
-                                $qty+=$row['jmlh'];
                                 }
                             ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -393,7 +413,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemShort) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -405,7 +425,7 @@
             <div id="flash" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart2.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -430,7 +450,10 @@
                                         AND keranjang.status = 'Active'
                                         AND variants.jenis LIKE '%Flash%'";
                                 $query = $koneksi->query($sql);
+                                $adaItemFlash = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= $row['idproduk']; ?>">
@@ -439,32 +462,38 @@
                                 <input type="hidden" name="idmitra" value="<?= $idmitra; ?>">
                                 <input type="hidden" name="stock[]" value="<?= $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= $row['subtotal']; ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
-                                    <?php 
+                                    <?php
                                         $disable = "block";
                                         if ( $row['statusnya']=="Expired" ) {
                                             $disable = "none";
                                         }
                                     ?>
                                     <?php if ( $row['statusnya'] == "Expired" ): ?>
-                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> | 
+                                        <div class="badge bg-warning text-white rounded-pill"><a href="hapus_expired.php?idkeranjang=<?= $row['idkeranjang']; ?>" class="link text-white" onclick="return confirm('Yakin Akan Menghapus Pesanan Keranjang?');">Hapus</a></div> |
                                         <div class="badge bg-danger text-white rounded-pill"><?= $row['statusnya']; ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= $row['namaproduk'];?></td>
                                 <td><?= $row['variant'] . ' - Sz ' . $row['size']; ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2); 
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>"; 
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <?php
                                     $max    = $row['stock'];
@@ -475,26 +504,23 @@
                                         <?= $row['jmlh']; ?>
                                         <br>
                                      <?php endif ?>
-                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>                                    
+                                    <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= $row['stock']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
-                                <?php 
-                                    $total += $row['subtotal']; 
-                                    $berat += $row['berat'] 
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
+                                <?php
+                                    $berat += $row['berat'];
                                 ?>
                             </tr>
                             <?php
-                                $qty+=$row['jmlh'];
                                 }
                             ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -510,7 +536,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemFlash) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -534,22 +560,47 @@
 
     <!-- SCRIPT -->
     <script type="text/javascript">
+        // Jumlah Qty & Total tiap tabel dihitung ulang dari checkbox yang DICENTANG saja
+        // (data-jmlh & data-subtotal sudah termasuk hargaSetelahDisc kalau produknya ada disc).
+        function recalcAllTables() {
+            document.querySelectorAll('table[data-cart-table]').forEach(function (table) {
+                let qty = 0;
+                let total = 0;
+                table.querySelectorAll('.item-checkbox:checked').forEach(function (cb) {
+                    qty   += parseInt(cb.dataset.jmlh || '0', 10);
+                    total += parseFloat(cb.dataset.subtotal || '0');
+                });
+                let qtyEl   = table.querySelector('.js-qty');
+                let totalEl = table.querySelector('.js-total');
+                if (qtyEl)   qtyEl.textContent   = qty;
+                if (totalEl) totalEl.textContent = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            });
+        }
+
         function checkAll(box) {
             let checkboxes = document.getElementsByTagName('input');
-            if (box.checked) { 
+            if (box.checked) {
                 for (let i = 0; i < checkboxes.length; i++) {
                     if (checkboxes[i].type == 'checkbox') {
                         checkboxes[i].checked = true;
                     }
                 }
-            } else { 
+            } else {
                 for (let i = 0; i < checkboxes.length; i++) {
                     if (checkboxes[i].type == 'checkbox') {
                         checkboxes[i].checked = false;
                     }
                 }
             }
+            recalcAllTables();
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.item-checkbox').forEach(function (cb) {
+                cb.addEventListener('change', recalcAllTables);
+            });
+            recalcAllTables();
+        });
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>

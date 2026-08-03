@@ -1,7 +1,8 @@
 <?php 
 	session_start();
 
-	include 'koneksi.php'; 
+	include 'koneksi.php';
+	include '../includes/invoice_helper.php';
 	include 'assets/components/Sessions/sesAgen.php';
 
 	$invoice		= $_GET["id"];
@@ -337,7 +338,7 @@ include "koneksi.php";
 			$sql = mysqli_query( $koneksi, $query);
 		} 
 		if ( $sql == TRUE ){
-			if (substr($invoice, 0, 2) == "AP") {
+			if (invoiceHasPromoItem($koneksi, 'orderagen', $invoice)) {
 				echo "<script>alert('Data berhasil ditambah');</script>";
 				echo "<script>location='dataorder2.php?id=$invoice'</script>";
 			} elseif ($jenis == 'Bundling Short') { 

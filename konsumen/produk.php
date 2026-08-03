@@ -6,6 +6,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
     include '../includes/foto_helper.php';
+    include '../includes/promo_badge_helper.php';
 
     $idproduk = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
@@ -193,6 +194,17 @@
             font-size: .8rem;
             margin-right: .5rem;
         }
+        .disc-badge-inline {
+            display: inline-block;
+            background: #dc3545;
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: .35rem;
+            vertical-align: middle;
+        }
         .btn-tambah {
             border-radius: 10px;
             padding: .7rem;
@@ -268,10 +280,16 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <?php if ($v['hargacoret'] > 0): ?>
-                                            <span class="variant-price-old">Rp <?= number_format($v['hargacoret']) ?></span>
+                                        <?php if ($v['disc'] > 0): ?>
+                                            <span class="variant-price-old">Rp <?= number_format($v['harga']) ?></span>
+                                            <span class="variant-price">Rp <?= number_format(hargaSetelahDisc((int) $v['harga'], (int) $v['disc'])) ?></span>
+                                            <span class="disc-badge-inline"><?= htmlspecialchars(discBadgeLabel((int) $v['disc'])) ?></span>
+                                        <?php else: ?>
+                                            <?php if ($v['hargacoret'] > 0): ?>
+                                                <span class="variant-price-old">Rp <?= number_format($v['hargacoret']) ?></span>
+                                            <?php endif; ?>
+                                            <span class="variant-price">Rp <?= number_format($v['harga']) ?></span>
                                         <?php endif; ?>
-                                        <span class="variant-price">Rp <?= number_format($v['harga']) ?></span>
                                     </div>
                                 </label>
                             <?php endforeach; ?>

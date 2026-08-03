@@ -1,6 +1,7 @@
 <?php
     include 'koneksi.php';
     include 'assets/components/Sessions/sesDistri.php';
+    include '../includes/promo_badge_helper.php';
 
     $idmitra = $_SESSION["idadmin"];
 ?>
@@ -34,7 +35,7 @@
             <div id="home" class="tab-pane fade show active">
                 <br>
                 <form method="POST" action="save_cart.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -74,8 +75,11 @@
                             <tr><td colspan="6" class="text-center text-muted">Belum ada produk Ready Stok Reguler di keranjang.</td></tr>
                             <?php
                                 endif;
+                                $adaItemHome = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
                                     $idproduk = $row['id'];
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
@@ -84,7 +88,7 @@
                                 <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
                                 <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
                                     <?php
                                         $disable = "block";
@@ -97,19 +101,25 @@
                                         <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= htmlspecialchars($row['namaproduk']); ?></td>
                                 <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2);
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
@@ -118,22 +128,19 @@
                                      <?php endif ?>
                                     <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
                                 <?php
-                                    $total += $row['subtotal'];
                                     $berat += $row['berat'];
-                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
                             <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -149,7 +156,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemHome) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -161,7 +168,7 @@
             <div id="get" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -193,7 +200,10 @@
                             <tr><td colspan="6" class="text-center text-muted">Belum ada produk Buy 1 Get 1 di keranjang.</td></tr>
                             <?php
                                 endif;
+                                $adaItemGet = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
@@ -202,7 +212,7 @@
                                 <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
                                 <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <input type="hidden" name="jenis" value="<?= htmlspecialchars($row['jenis']); ?>">
                                 <td style="text-align: right;">
                                     <?php
@@ -216,19 +226,25 @@
                                         <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= htmlspecialchars($row['namaproduk']); ?></td>
                                 <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2);
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
@@ -237,22 +253,19 @@
                                      <?php endif ?>
                                      <?= (int) $row['jmlh']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
                                 <?php
-                                    $total += $row['subtotal'];
                                     $berat += $row['berat'];
-                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
                             <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -268,7 +281,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemGet) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -280,7 +293,7 @@
             <div id="bundling3" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -312,18 +325,18 @@
                             <tr><td colspan="6" class="text-center text-muted">Belum ada produk Bundling 3 di keranjang.</td></tr>
                         <?php
                             endif;
+                            $adaItemB3 = ($query->num_rows > 0);
                             while($row = $query->fetch_assoc()) {
                                 $kelipatan = intval($row['jmlh'] / 3);
                                 $pengurangan = $kelipatan * 15000;
 
-                                $row['subtotal'] -= $pengurangan;
-                                if ($row['subtotal'] < 0) {
-                                    $row['subtotal'] = 0;
+                                $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'] - $pengurangan;
+                                if ($subtotalDinamis < 0) {
+                                    $subtotalDinamis = 0;
                                 }
 
-                                $total += $row['subtotal'];
                                 $berat += $row['berat'];
-                                $qty   += $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
@@ -332,7 +345,7 @@
                                 <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
                                 <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
                                     <?php
                                     $disable = "block";
@@ -351,13 +364,17 @@
                                         <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ($row['statusnya'] == "Active"): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= htmlspecialchars($row['namaproduk']); ?></td>
                                 <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php if ($row['jmlh'] % 3 == 0) : ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php elseif ($row['jmlh'] % 3 == 0) : ?>
                                         <span style='text-decoration: line-through'>
                                             Rp. <?= number_format($row['harga'], 2); ?>
                                         </span>
@@ -375,7 +392,7 @@
                                     Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <td>
-                                    Rp. <?= number_format($row['subtotal'], 2); ?> <br>
+                                    Rp. <?= number_format($subtotalDinamis, 2); ?> <br>
                                 </td>
                             </tr>
                             <?php
@@ -383,11 +400,11 @@
                             ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -403,7 +420,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemB3) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -415,7 +432,7 @@
             <div id="bundling5" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -447,18 +464,18 @@
                             <tr><td colspan="6" class="text-center text-muted">Belum ada produk Bundling 5 di keranjang.</td></tr>
                             <?php
                                 endif;
+                                $adaItemB5 = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
                                     $kelipatan = intval($row['jmlh'] / 5);
                                     $pengurangan = $kelipatan * 25000;
 
-                                    $row['subtotal'] -= $pengurangan;
-                                    if ($row['subtotal'] < 0) {
-                                        $row['subtotal'] = 0;
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'] - $pengurangan;
+                                    if ($subtotalDinamis < 0) {
+                                        $subtotalDinamis = 0;
                                     }
 
-                                    $total += $row['subtotal'];
                                     $berat += $row['berat'];
-                                    $qty   += $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="idprodukubah[]" value="<?= (int) $row['idproduk']; ?>">
@@ -467,7 +484,7 @@
                                 <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
                                 <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
                                     <?php
                                     $disable = "block";
@@ -486,13 +503,17 @@
                                         <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ($row['statusnya'] == "Active"): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= htmlspecialchars($row['namaproduk']); ?></td>
                                 <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php if ($row['jmlh'] % 5 == 0) : ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php elseif ($row['jmlh'] % 5 == 0) : ?>
                                         <span style='text-decoration: line-through'>
                                             Rp. <?= number_format($row['harga'], 2); ?>
                                         </span>
@@ -510,7 +531,7 @@
                                     Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
                                 <td>
-                                    Rp. <?= number_format($row['subtotal'], 2); ?> <br>
+                                    Rp. <?= number_format($subtotalDinamis, 2); ?> <br>
                                 </td>
                             </tr>
                             <?php
@@ -518,11 +539,11 @@
                             ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -538,7 +559,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemB5) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -550,7 +571,7 @@
             <div id="flash" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -582,7 +603,10 @@
                             <tr><td colspan="6" class="text-center text-muted">Belum ada produk Cuci Gudang di keranjang.</td></tr>
                             <?php
                                 endif;
+                                $adaItemFlash = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="jenis" value="<?= htmlspecialchars($row['jenis']); ?>">
@@ -592,7 +616,7 @@
                                 <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
                                 <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
                                     <?php
                                         $disable = "block";
@@ -605,19 +629,25 @@
                                         <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= htmlspecialchars($row['namaproduk']); ?></td>
                                 <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2);
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
@@ -626,22 +656,19 @@
                                      <?php endif ?>
                                     <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
                                 <?php
-                                    $total += $row['subtotal'];
                                     $berat += $row['berat'];
-                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
                             <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -657,7 +684,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemFlash) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -669,7 +696,7 @@
             <div id="gb" class="tab-pane">
                 <br>
                 <form method="POST" action="save_cart.php">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" data-cart-table>
                         <thead>
                             <th><input type="checkbox" id="pilihsemua" onchange="checkAll(this)"/></th>
                             <th>Nama</th>
@@ -701,7 +728,10 @@
                             <tr><td colspan="6" class="text-center text-muted">Belum ada produk Grade B di keranjang.</td></tr>
                             <?php
                                 endif;
+                                $adaItemGb = ($query->num_rows > 0);
                                 while($row = $query->fetch_assoc()) {
+                                    $hargaEfektif    = ($row['disc'] > 0) ? hargaSetelahDisc((int) $row['harga'], (int) $row['disc']) : (int) $row['harga'];
+                                    $subtotalDinamis = $hargaEfektif * (int) $row['jmlh'];
                             ?>
                             <tr>
                                 <input type="hidden" name="jenis" value="<?= htmlspecialchars($row['jenis']); ?>">
@@ -711,7 +741,7 @@
                                 <input type="hidden" name="idmitra" value="<?= htmlspecialchars($idmitra); ?>">
                                 <input type="hidden" name="stock[]" value="<?= (int) $row['stock']; ?>">
                                 <input type="hidden" name="jmlh[]" value="<?= (int) $row['jmlh']; ?>">
-                                <input type="hidden" name="subtotal[]" value="<?= htmlspecialchars($row['subtotal']); ?>">
+                                <input type="hidden" name="subtotal[]" value="<?= $subtotalDinamis; ?>">
                                 <td style="text-align: right;">
                                     <?php
                                         $disable = "block";
@@ -724,19 +754,25 @@
                                         <div class="badge bg-danger text-white rounded-pill"><?= htmlspecialchars($row['statusnya']); ?></div>
                                     <?php endif ?>
                                     <?php if ( $row['statusnya'] == "Active" ): ?>
-                                        <input type="checkbox" name="idkeranjang[]" value="<?= (int) $row['idkeranjang']; ?>"/>
+                                        <input type="checkbox" name="idkeranjang[]" class="item-checkbox" data-jmlh="<?= (int) $row['jmlh']; ?>" data-subtotal="<?= $subtotalDinamis; ?>" value="<?= (int) $row['idkeranjang']; ?>"/>
                                     <?php endif ?>
                                 </td>
                                 <td><?= htmlspecialchars($row['namaproduk']); ?></td>
                                 <td><?= htmlspecialchars($row['variant'] . ' - Sz ' . $row['size']); ?></td>
                                 <td>
-                                    <?php $coret = number_format($row['hargacoret'],2);
-                                        if($row['hargacoret'] <> 0){
-                                            echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
-                                        }
-                                    ?>
-                                    <br>
-                                    Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php if ($row['disc'] > 0): ?>
+                                        <span style='text-decoration: line-through'>Rp. <?= number_format($row['harga'], 2); ?></span>
+                                        <br>
+                                        Rp. <?= number_format($hargaEfektif, 2); ?>
+                                    <?php else: ?>
+                                        <?php $coret = number_format($row['hargacoret'],2);
+                                            if($row['hargacoret'] <> 0){
+                                                echo "<span style='text-decoration: line-through'>Rp. $coret </span>";
+                                            }
+                                        ?>
+                                        <br>
+                                        Rp. <?= number_format($row['harga'], 2); ?>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if ($row['statusnya']=="Expired"): ?>
@@ -745,22 +781,19 @@
                                      <?php endif ?>
                                     <input type="number" min="0" class="form-control" style="display: <?= $disable; ?>" value="<?= (int) $row['jmlh']; ?>" name="jmlhbaru[]">Ready Stock : <?= (int) $row['stock']; ?>
                                 </td>
-                                <?php $subtotal = number_format($row['subtotal'], 2); ?>
-                                <td><?= $subtotal  ?></td>
+                                <td><?= number_format($subtotalDinamis, 2) ?></td>
                                 <?php
-                                    $total += $row['subtotal'];
                                     $berat += $row['berat'];
-                                    $qty   += $row['jmlh'];
                                 ?>
                             </tr>
                             <?php } ?>
                             <tr>
                                 <td colspan="5" align="right"><b>Jumlah Qty</b></td>
-                                <td><b><?= $qty; ?></b></td>
+                                <td><b><span class="js-qty">0</span></b></td>
                             </tr>
                             <tr>
                                 <td colspan="5" align="right"><b>Total</b></td>
-                                <td><b><?= number_format($total,2); ?></b></td>
+                                <td><b><span class="js-total">0.00</span></b></td>
                             </tr>
                         </tbody>
                     </table>
@@ -776,7 +809,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <?php
-                        if($total == 0) {
+                        if(!$adaItemGb) {
                             echo "<a href='store4.php' class='btn btn-primary btn-lg'>Lanjut Belanja Yuk!</a>";
                         } else {
                             echo "<button type='submit' class='btn btn-primary btn-lg' name='checkout'> CHECKOUT <i class='fa-solid fa-chevron-right'></i></button>";
@@ -797,6 +830,23 @@
 
     <!-- SCRIPT -->
     <script type="text/javascript">
+        // Jumlah Qty & Total tiap tabel dihitung ulang dari checkbox yang DICENTANG saja
+        // (data-jmlh & data-subtotal sudah termasuk hargaSetelahDisc kalau produknya ada disc).
+        function recalcAllTables() {
+            document.querySelectorAll('table[data-cart-table]').forEach(function (table) {
+                let qty = 0;
+                let total = 0;
+                table.querySelectorAll('.item-checkbox:checked').forEach(function (cb) {
+                    qty   += parseInt(cb.dataset.jmlh || '0', 10);
+                    total += parseFloat(cb.dataset.subtotal || '0');
+                });
+                let qtyEl   = table.querySelector('.js-qty');
+                let totalEl = table.querySelector('.js-total');
+                if (qtyEl)   qtyEl.textContent   = qty;
+                if (totalEl) totalEl.textContent = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            });
+        }
+
         function checkAll(box)
         {
             let checkboxes = document.getElementsByTagName('input');
@@ -814,7 +864,15 @@
                     }
                 }
             }
+            recalcAllTables();
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.item-checkbox').forEach(function (cb) {
+                cb.addEventListener('change', recalcAllTables);
+            });
+            recalcAllTables();
+        });
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>

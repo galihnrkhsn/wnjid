@@ -4,52 +4,89 @@
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
     include "koneksi.php";
+    include "../includes/invoice_helper.php";
 
-    if(isset($_POST['save'])){
-        $idmitra            = $_SESSION["idmitraagen"];
-        $jmlh               = $_POST["jmlh"];
-        $harga              = $_POST["harga"];
-        $jmlhbaru           = $_POST["jmlhbaru"];
-        $idkeranjang        = $_POST["idkeranjang"];
-        $idprodukubah       = $_POST["idprodukubah"];
-        $idkeranjangubah    = $_POST["idkeranjangubah"];
-        $jumlah_dipilih     = count($idprodukubah);
-            
-        for($x = 0; $x < $jumlah_dipilih; $x++){
-            $datastock   = $koneksi->query("SELECT stock FROM variants WHERE id = '$idprodukubah[$x]'");
-            $tampil      = $datastock->fetch_assoc();
-            $stock       = $tampil["stock"];
-            $selisih[$x] = $jmlhbaru[$x] - $jmlh[$x];
+    date_default_timezone_set('Asia/Jakarta');
 
-            if($selisih[$x] <= $stock){
-                $koneksi->query("UPDATE keranjang SET jmlh = '$jmlhbaru[$x]', subtotal = $harga[$x] * $jmlhbaru[$x] 
-                                WHERE idkeranjang = '$idkeranjangubah[$x]'");
-                $total[$x] = $stock - $selisih[$x];
-                $koneksi->query("UPDATE variants SET stock = '$total[$x]' WHERE id = '$idprodukubah[$x]' ");
-                $_SESSION['message'] = 'Keranjang Berhasil di Simpan ';
-                echo "<script>location='view_cart.php';</script>";
-            } 
-            if($selisih[$x] >= $stock){
-                $_SESSION['message'] = 'Stock Kami tidak mencukupi jumlah yang diminta, Silahkan Periksa Lagi Stock yang Tersedia';
-                echo "<script>location='view_cart.php';</script>";
+    // idmitraagen HARUS selalu dari session, jangan pernah percaya $_POST untuk ini
+    // (nilai POST bisa dimanipulasi siapa saja untuk checkout atas nama agen lain)
+    $idmitra = $_SESSION["idmitraagen"];
+
+    if (isset($_POST['save'])) {
+        $idprodukubah    = $_POST["idprodukubah"]    ?? [];
+        $harga           = $_POST["harga"]           ?? [];
+        $idkeranjangubah = $_POST["idkeranjangubah"] ?? [];
+        $jmlh            = $_POST["jmlh"]             ?? [];
+        $jmlhbaru        = $_POST["jmlhbaru"]         ?? [];
+        $jumlah_dipilih  = count($idprodukubah);
+
+        if (count($harga) !== $jumlah_dipilih || count($idkeranjangubah) !== $jumlah_dipilih
+            || count($jmlh) !== $jumlah_dipilih || count($jmlhbaru) !== $jumlah_dipilih) {
+            $_SESSION['message'] = 'Data keranjang tidak valid, silahkan coba lagi';
+            header('Location: view_cart.php');
+            exit;
+        }
+
+        $gagal = false;
+
+        $stmtStock  = $koneksi->prepare("SELECT stock FROM variants WHERE id = ?");
+        $stmtUpdKrj = $koneksi->prepare("UPDATE keranjang SET jmlh = ?, subtotal = ? WHERE idkeranjang = ? AND idagen = ?");
+        $stmtUpdVar = $koneksi->prepare("UPDATE variants SET stock = ? WHERE id = ?");
+
+        for ($x = 0; $x < $jumlah_dipilih; $x++) {
+            $idproduk    = (int) $idprodukubah[$x];
+            $idkeranjang = (int) $idkeranjangubah[$x];
+            $hargaSatuan = (float) $harga[$x];
+            $jmlhLama    = (int) $jmlh[$x];
+            $jmlhBaru    = max(0, (int) $jmlhbaru[$x]);
+
+            $stmtStock->bind_param('i', $idproduk);
+            $stmtStock->execute();
+            $tampil = $stmtStock->get_result()->fetch_assoc();
+            $stock  = $tampil['stock'] ?? 0;
+
+            $selisih = $jmlhBaru - $jmlhLama;
+
+            if ($selisih <= $stock) {
+                $subtotalBaru = $hargaSatuan * $jmlhBaru;
+                $stmtUpdKrj->bind_param('ddis', $jmlhBaru, $subtotalBaru, $idkeranjang, $idmitra);
+                $stmtUpdKrj->execute();
+
+                $stockBaru = $stock - $selisih;
+                $stmtUpdVar->bind_param('ii', $stockBaru, $idproduk);
+                $stmtUpdVar->execute();
+            } else {
+                $gagal = true;
             }
         }
-    } elseif (isset($_POST['checkout'])){
-        date_default_timezone_set('Asia/Jakarta');
-        $today          = date("mdHis");
-        $idmitra        = $_SESSION["idmitraagen"];
-        $id             = 'A';
+
+        $_SESSION['message'] = $gagal
+            ? 'Stock Kami tidak mencukupi jumlah yang diminta, Silahkan Periksa Lagi Stock yang Tersedia'
+            : 'Keranjang Berhasil di Simpan';
+        header('Location: view_cart.php');
+        exit;
+    } elseif (isset($_POST['checkout'])) {
+        if (!isset($_POST['idkeranjang']) || empty($_POST['idkeranjang'])) {
+            $_SESSION['message'] = 'Check salah satu barang yang ingin di checkout';
+            header('Location: view_cart.php');
+            exit;
+        }
+
         $idkeranjang    = $_POST["idkeranjang"];
+        $jenis          = $_POST["jenis"] ?? null;
         $jumlah_dipilih = count($idkeranjang);
-        $user           = $koneksi->query("SELECT idadmin FROM mitraagen WHERE idmitraagen = '$idmitra'");
-        $dataUser       = $user->fetch_assoc();
-        $iddb           = $dataUser['idadmin'];
         $berat          = 0;
         $invoice        = '';
-        $jenis          = $_POST['jenis'];
+        $data_keranjang = [];
 
-        for ( $i = 0; $i < $jumlah_dipilih; $i++ ) {
-            $data = $koneksi->query("SELECT 
+        $stmtDb = $koneksi->prepare("SELECT idadmin FROM mitraagen WHERE idmitraagen = ?");
+        $stmtDb->bind_param('i', $idmitra);
+        $stmtDb->execute();
+        $dataUser = $stmtDb->get_result()->fetch_assoc();
+        $iddb     = $dataUser['idadmin'] ?? null;
+
+        // Ambil item keranjang HANYA milik agen yang sedang login (mencegah checkout keranjang orang lain)
+        $stmtItem = $koneksi->prepare("SELECT
                                              keranjang.idproduk,
                                              keranjang.idkeranjang,
                                              keranjang.jmlh,
@@ -58,54 +95,46 @@
                                              variants.berat,
                                              variants.jenis,
                                              variants.idproducts
-                                         FROM
-                                             keranjang
-                                                 INNER JOIN
-                                             variants ON keranjang.idproduk = variants.id
-                                         WHERE
-                                             idkeranjang = '$idkeranjang[$i]'
-                                     ");
-            $item               = $data->fetch_assoc();
-            $data_keranjang[]   = $item;
+                                         FROM keranjang
+                                         INNER JOIN variants ON keranjang.idproduk = variants.id
+                                         WHERE keranjang.idkeranjang = ? AND keranjang.idagen = ?");
+
+        for ($i = 0; $i < $jumlah_dipilih; $i++) {
+            $idkeranjangItem = (int) $idkeranjang[$i];
+            $stmtItem->bind_param('is', $idkeranjangItem, $idmitra);
+            $stmtItem->execute();
+            $item = $stmtItem->get_result()->fetch_assoc();
+            if ($item) {
+                $data_keranjang[] = $item;
+            }
+        }
+
+        if (count($data_keranjang) === 0) {
+            $_SESSION['message'] = 'Item keranjang tidak ditemukan';
+            header('Location: view_cart.php');
+            exit;
         }
 
         if ($jenis == 'b1g1') {
-            $idproducts             = array_column($data_keranjang, 'idproducts');
-            $categories = [
-                'sarung_etnik'          => [2514],
-                'voal_hampers'          => [2489],
-                'koko_etnik'            => [2516,2517,2524,2525],
-                'rail_sport'            => [2509,2510,2511],
-                'outer_parotia'         => [2455],
-                'khimar_kolibri_anak'   => [2336],
-                'bergo_fiarca'          => [2230],
-                'limicola_abaya'        => [2226,2248],
-                'konin_25'              => [
-                                                2521,2527,
-                                                2528,2522,2520,2519,
-                                                2565,2526,2523,2529,2531,2530,2566
-                                            ],
-                'konin_24'              => [2422,2421,2420,2412,2413,2414,2417,2418,2416,2415,2419],
-                'sula_scarves'          => [2502],
-                'mukena_skena'          => [2515],
-                'kolibri_25'            => [2513],
-                'kolibri_22'            => [2334],
-                'kolibri_24'            => [2400,2391,2394,2398,2399,2395,2396,2397],
-                'kolibri_luxury'        => [2558,2559],
-                'kolibri_sarung'        => [2536]
-            ];
+            // Produk yang boleh digabung dalam 1x checkout B1G1 harus dari artikel/koleksi yang
+            // sama. Grouping ini hidup di kolom products.kode_artikel (diisi staff lewat
+            // adminwnj/tambah_produk.php), bukan array hardcoded lagi - lihat database/products_kode_artikel.sql
+            $idproductsUnik = array_values(array_unique(array_column($data_keranjang, 'idproducts')));
+            $placeholders   = implode(',', array_fill(0, count($idproductsUnik), '?'));
+            $types          = str_repeat('i', count($idproductsUnik));
 
-            $productCategories = [];
-            foreach ($idproducts as $id) {
-                foreach ($categories as $catName => $catIds) {
-                    if (in_array($id, $catIds)) {
-                        $productCategories[] = $catName;
-                        break;
-                    }
-                }
+            $stmtArtikel = $koneksi->prepare("SELECT DISTINCT kode_artikel FROM products WHERE id IN ($placeholders)");
+            $stmtArtikel->bind_param($types, ...$idproductsUnik);
+            $stmtArtikel->execute();
+            $kodeArtikelList = array_column($stmtArtikel->get_result()->fetch_all(MYSQLI_ASSOC), 'kode_artikel');
+
+            if (in_array(null, $kodeArtikelList, true) || in_array('', $kodeArtikelList, true)) {
+                $_SESSION['message'] = 'Ada produk yang belum diberi kode artikel untuk promo B1G1, hubungi admin';
+                echo "<script>alert('Ada produk yang belum diberi kode artikel untuk promo B1G1, hubungi admin'); location='view_cart.php';</script>";
+                exit;
             }
 
-            $all_same_category = count(array_unique($productCategories)) === 1;
+            $all_same_category = count(array_unique($kodeArtikelList)) === 1;
 
             if (!$all_same_category) {
                 $_SESSION['message'] = 'Tidak bisa memilih lebih dari 1 Artikel!';
@@ -121,96 +150,115 @@
             }
         }
 
-        $bundling_items         = array_filter($data_keranjang, fn($item) => $item['jenis'] === 'bundling');
-        $non_bundling_items     = array_filter($data_keranjang, fn($item) => $item['jenis'] !== 'bundling');
+        // Alias lama 'bundling' (huruf kecil) disatukan ke 'Bundling 3' - aturannya identik
+        // (1 bundling = 1 produk saja, kelipatan 3), jadi tidak perlu jadi tier terpisah.
+        foreach ($data_keranjang as &$itemNormalisasi) {
+            if ($itemNormalisasi['jenis'] === 'bundling') {
+                $itemNormalisasi['jenis'] = 'Bundling 3';
+            }
+        }
+        unset($itemNormalisasi);
 
-        if (count($bundling_items) > 0) {
-            $idproducts             = array_column($bundling_items, 'idproducts');
-            $total_qty_bundling     = array_sum(array_column($bundling_items, 'jmlh'));
-            $all_same_idproducts    = count(array_unique($idproducts)) === 1;
+        // Tier bundling: jenis -> kelipatan qty yang wajib. Nambah tier baru (mis. "Bundling 7")
+        // cukup tambah 1 baris di sini, tidak perlu blok kode baru.
+        $bundlingRules = [
+            'Bundling 3' => 3,
+            'Bundling 5' => 5,
+        ];
 
-            if (!$all_same_idproducts) {
-                $_SESSION['message'] = 'Produk dalam bundling harus sama!';
-                echo "<script>location='view_cart.php'</script>";
-                return false;
+        $bundlingItemsByRule = [];
+        foreach ($bundlingRules as $jenisRule => $kelipatan) {
+            $bundlingItemsByRule[$jenisRule] = array_filter($data_keranjang, fn($item) => $item['jenis'] === $jenisRule);
+        }
+
+        $non_bundling_items = array_filter($data_keranjang, fn($item) => !array_key_exists($item['jenis'], $bundlingRules));
+
+        $koneksi->begin_transaction();
+
+        $stmtVariant   = $koneksi->prepare("SELECT * FROM variants WHERE variants.id = ?");
+        $stmtInsertOrd = $koneksi->prepare("INSERT INTO orderagen
+                                (idorder, idmitraagen, iddb, idproduk, harga, jumlah, subtotal, tgl, invoice, status, payment, berat, no_sj, status_progres, disc)
+                                VALUES (NULL, ?, ?, ?, ?, ?, ?, NOW(), ?, 'Pending', 'Belum Bayar', ?, NULL, 0, ?)");
+        $stmtDeleteKrj = $koneksi->prepare("DELETE FROM keranjang WHERE idkeranjang = ? AND idagen = ?");
+
+        try {
+            foreach ($bundlingRules as $jenisRule => $kelipatan) {
+                $items = $bundlingItemsByRule[$jenisRule];
+                if (count($items) === 0) {
+                    continue;
+                }
+
+                $idproductsBundling  = array_column($items, 'idproducts');
+                $total_qty_bundling  = array_sum(array_column($items, 'jmlh'));
+                $all_same_idproducts = count(array_unique($idproductsBundling)) === 1;
+
+                if (!$all_same_idproducts) {
+                    throw new RuntimeException('Produk dalam bundling harus sama!');
+                }
+                if ($total_qty_bundling % $kelipatan !== 0) {
+                    throw new RuntimeException("QTY Bundling harus kelipatan $kelipatan");
+                }
+
+                foreach ($items as $item) {
+                    $idproduk   = (int) $item['idproduk'];
+                    $hargaItem  = $item['harga'];
+                    $jmlhbaru   = $item['jmlh'];
+                    $subtotal   = $item['subtotal'];
+                    $berattotal = $item['berat'] * $jmlhbaru;
+                    $idker      = (int) $item['idkeranjang'];
+                    if (!$invoice) {
+                        $invoice = generateUniqueInvoice($koneksi, 'orderagen', 'A', $idmitra);
+                    }
+
+                    $stmtVariant->bind_param('i', $idproduk);
+                    $stmtVariant->execute();
+                    $dataProduk = $stmtVariant->get_result()->fetch_assoc();
+                    $disc       = $dataProduk['disc'] ?? 0;
+
+                    $stmtInsertOrd->bind_param('iiidddsdd', $idmitra, $iddb, $idproduk, $hargaItem, $jmlhbaru, $subtotal, $invoice, $berattotal, $disc);
+                    $stmtInsertOrd->execute();
+
+                    $stmtDeleteKrj->bind_param('is', $idker, $idmitra);
+                    $stmtDeleteKrj->execute();
+
+                    $berat += $berattotal;
+                }
             }
 
-            if ($total_qty_bundling % 3 !== 0) {
-                $_SESSION['message'] = 'QTY Bundling harus kelipatan 3';
-                echo "<script>location='view_cart.php'</script>";
-                return false;
-            }
-
-            foreach ($bundling_items as $item) {
-                $idproduk   = $item['idproduk'];
-                $harga      = $item['harga'];
+            foreach ($non_bundling_items as $item) {
+                $idproduk   = (int) $item['idproduk'];
+                $hargaItem  = $item['harga'];
                 $jmlhbaru   = $item['jmlh'];
                 $subtotal   = $item['subtotal'];
                 $berattotal = $item['berat'] * $jmlhbaru;
-                $idker      = $item['idkeranjang'];
+                $idker      = (int) $item['idkeranjang'];
 
                 if (!$invoice) {
-                    $invoice = "A" . $idmitra . $today;
+                    $invoice = generateUniqueInvoice($koneksi, 'orderagen', 'A', $idmitra);
                 }
 
-                $dataProduk = $koneksi->query("SELECT * FROM variants WHERE variants.id = '$idproduk'")->fetch_assoc();
-                $disc = $dataProduk['disc'] ?? 0;
+                $stmtVariant->bind_param('i', $idproduk);
+                $stmtVariant->execute();
+                $dataProduk = $stmtVariant->get_result()->fetch_assoc();
+                $disc       = $dataProduk['disc'] ?? 0;
 
-                $koneksi->query("INSERT INTO orderagen 
-                                        (
-                                            `idorder`,`idmitraagen`,`iddb`,`idproduk`,`harga`,`jumlah`,`subtotal`,
-                                            `tgl`,`invoice`,`status`,`payment`,`berat`,`no_sj`,`status_progres`, `disc`
-                                        )
-                                    VALUES 
-                                        (
-                                            NULL, '$idmitra', '$iddb', '$idproduk', '$harga', '$jmlhbaru', '$subtotal',
-                                            NOW(), '$invoice', 'Pending', 'Belum Bayar', '$berattotal', NULL, 0, '$disc'
-                                        )
-                                ");
-                $koneksi->query("DELETE FROM keranjang WHERE idkeranjang = '$idker'");
+                $stmtInsertOrd->bind_param('iiidddsdd', $idmitra, $iddb, $idproduk, $hargaItem, $jmlhbaru, $subtotal, $invoice, $berattotal, $disc);
+                $stmtInsertOrd->execute();
+
+                $stmtDeleteKrj->bind_param('is', $idker, $idmitra);
+                $stmtDeleteKrj->execute();
+
                 $berat += $berattotal;
             }
+
+            $koneksi->commit();
+        } catch (RuntimeException $e) {
+            $koneksi->rollback();
+            $_SESSION['message'] = $e->getMessage();
+            header('Location: view_cart.php');
+            exit;
         }
 
-        foreach ($non_bundling_items as $item) {
-            $idproduk   = $item['idproduk'];
-            $harga      = $item['harga'];
-            $jmlhbaru   = $item['jmlh'];
-            $subtotal   = $item['subtotal'];
-            $berattotal = $item['berat'] * $jmlhbaru;
-            $idker      = $item['idkeranjang'];
-
-            if (!$invoice) {
-                $sql_produk = $koneksi->query("SELECT namaproduk 
-                                                FROM products
-                                                INNER JOIN variants ON variants.idproducts = products.id
-                                                WHERE variants.id = '$idproduk'
-                                                AND (variants.jenis LIKE '%Promo%' OR variants.jenis LIKE '%Sale%')
-                                            ");
-                if ($sql_produk->num_rows == 1) {
-                    $invoice = 'DP' . $idmitra . $today;
-                } else {
-                    $invoice = 'A' . $idmitra . $today;
-                }
-            }
-
-            $dataProduk = $koneksi->query("SELECT * FROM variants WHERE variants.id = '$idproduk'")->fetch_assoc();
-            $disc = $dataProduk['disc'] ?? 0;
-
-            $koneksi->query("INSERT INTO orderagen 
-                                        (
-                                            `idorder`,`idmitraagen`,`iddb`,`idproduk`,`harga`,`jumlah`,`subtotal`,
-                                            `tgl`,`invoice`,`status`,`payment`,`berat`,`no_sj`,`status_progres`, `disc`
-                                        )
-                                    VALUES 
-                                        (
-                                            NULL, '$idmitra', '$iddb', '$idproduk', '$harga', '$jmlhbaru', '$subtotal',
-                                            NOW(), '$invoice', 'Pending', 'Belum Bayar', '$berattotal', NULL, 0, '$disc'
-                                        )
-                            ");
-            $koneksi->query("DELETE FROM keranjang WHERE idkeranjang = '$idker'");
-            $berat += $berattotal;
-        }
-        echo "<script>location='formpengiriman.php?id=$invoice&berat=$berat';</script>";
+        header('Location: formpengiriman.php?id=' . rawurlencode($invoice) . '&berat=' . rawurlencode($berat));
+        exit;
     }
-?>

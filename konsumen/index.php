@@ -6,6 +6,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
     include '../includes/foto_helper.php';
+    include '../includes/promo_badge_helper.php';
 
     // ---- Input & pagination ----
     $namaproduk = isset($_GET['namaproduk']) ? trim($_GET['namaproduk']) : '';
@@ -48,7 +49,7 @@
     // Foto wakil kartu diambil langsung dari foto_produk (foto pertama produk itu),
     // satu-satunya jalan untuk ambil foto produk sekarang.
     $dataStmt = $koneksi->prepare("SELECT p.id, p.namaproduk, p.idkategori,
-                                        agg.harga_min, agg.harga_max, agg.hargacoret_max, agg.total_stock, agg.jumlah_variant,
+                                        agg.harga_min, agg.harga_max, agg.hargacoret_max, agg.total_stock, agg.jumlah_variant, agg.jenis_list, agg.disc_max,
                                         fp.foto AS foto_file, mf.name AS nama_folder
                                     FROM products p
                                     INNER JOIN (
@@ -58,7 +59,9 @@
                                             MAX(v.hargacoret) AS hargacoret_max,
                                             SUM(v.stock)      AS total_stock,
                                             COUNT(v.id)       AS jumlah_variant,
-                                            MAX(v.updated_at) AS terakhir_update
+                                            MAX(v.updated_at) AS terakhir_update,
+                                            GROUP_CONCAT(DISTINCT v.jenis SEPARATOR ',') AS jenis_list,
+                                            MAX(v.disc)       AS disc_max
                                         FROM variants v
                                         INNER JOIN products p ON v.idproducts = p.id
                                         WHERE $whereSql
@@ -118,6 +121,7 @@
             box-shadow: none;
         }
         .product-card {
+            position: relative;
             background: #fff;
             border: none;
             border-radius: 14px;
@@ -128,6 +132,30 @@
             display: block;
             color: inherit;
             text-decoration: none;
+        }
+        .promo-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 2;
+            background: #dc3545;
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .disc-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 2;
+            background: #dc3545;
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
         }
         .product-card:hover {
             transform: translateY(-3px);
@@ -208,11 +236,22 @@
                 <?php while ($data = $result->fetch_assoc()): ?>
                     <div class="col-6 col-md-4 col-lg-3 mb-4">
                         <a class="product-card" href="produk.php?id=<?= (int) $data['id'] ?>">
+                            <?php $badge = promoBadgeLabelFromList($data['jenis_list'] ?? null); ?>
+                            <?php if ($badge !== null): ?>
+                                <span class="promo-badge"><?= htmlspecialchars($badge) ?></span>
+                            <?php endif; ?>
+                            <?php $discBadge = discBadgeLabel($data['disc_max'] ?? null); ?>
+                            <?php if ($discBadge !== null): ?>
+                                <span class="disc-badge"><?= htmlspecialchars($discBadge) ?></span>
+                            <?php endif; ?>
                             <img class="fixed-size-img" loading="lazy" src="<?= fotoProdukSrc($data['nama_folder'] ?? null, $data['foto_file'] ?? null) ?>" alt="<?= htmlspecialchars($data['namaproduk']) ?>">
                             <div class="card-body">
                                 <div class="card-title"><?= htmlspecialchars($data['namaproduk']) ?></div>
                                 <?php if ($data['idkategori'] >= 51): ?>
                                     <span class="text-muted small">Hubungi kami untuk harga</span>
+                                <?php elseif ($discBadge !== null): ?>
+                                    <div class="price-old">Rp <?= number_format($data['harga_min']) ?></div>
+                                    <div class="price">Rp <?= number_format(hargaSetelahDisc((int) $data['harga_min'], (int) $data['disc_max'])) ?></div>
                                 <?php else: ?>
                                     <?php if ($data['hargacoret_max'] > 0): ?>
                                         <div class="price-old">Rp <?= number_format($data['hargacoret_max']) ?></div>

@@ -2,6 +2,7 @@
 session_start();
 
 include 'koneksi.php';
+include '../includes/invoice_helper.php';
 include 'assets/components/Sessions/sesDistri.php';
 
 $invoice=$_GET["id"];
@@ -518,7 +519,7 @@ history.pushState(null, null, location.href);
                 if (substr($invoice,0,1)=="F") {
                     echo "<script>alert('data berhasil ditambah');</script>";
                     echo "<script>location='detailorder_get.php?id=$invoice'</script>";
-                } elseif (substr($invoice, 0, 2) == "DP") {
+                } elseif (invoiceHasPromoItem($koneksi, 'ordermitra', $invoice)) {
                     echo "<script>alert('Data berhasil ditambah');</script>";
                     echo "<script>location='dataorder2.php?id=$invoice'</script>";
                 } else{

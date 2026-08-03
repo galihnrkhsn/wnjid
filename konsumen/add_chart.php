@@ -5,6 +5,7 @@
 
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
+    include '../includes/promo_badge_helper.php';
 
     date_default_timezone_set('Asia/Jakarta');
 
@@ -23,7 +24,7 @@
     $koneksi->begin_transaction();
 
     // Kunci baris variant selama transaksi supaya stock tidak double-terjual saat request bersamaan
-    $stmtStock = $koneksi->prepare("SELECT stock, harga FROM variants WHERE id = ? FOR UPDATE");
+    $stmtStock = $koneksi->prepare("SELECT stock, harga, disc FROM variants WHERE id = ? FOR UPDATE");
     $stmtStock->bind_param('i', $idvariant);
     $stmtStock->execute();
     $stock = $stmtStock->get_result()->fetch_assoc();
@@ -35,8 +36,9 @@
         exit;
     }
 
-    // Harga SELALU diambil dari database, bukan dari query string, supaya tidak bisa dimanipulasi user
-    $harga = $stock['harga'];
+    // Harga SELALU diambil dari database, bukan dari query string, supaya tidak bisa dimanipulasi user.
+    // Kalau variant ini punya disc, harga yang tersimpan di keranjang sudah harga setelah diskon.
+    $harga = hargaSetelahDisc((int) $stock['harga'], $stock['disc'] ?? null);
 
     if ($stock['stock'] > 0) {
         $stmtInsert = $koneksi->prepare("INSERT INTO keranjang (idkeranjang, idproduk, idmitra, idagen, idreseller, idmarketer, idkonsumen,

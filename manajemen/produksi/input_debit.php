@@ -138,7 +138,7 @@
             $tglsekarang    = date("ymd");
             $namaFileBaru   = 'D' . $tipe . $tglsekarang . $today . '.' . $ekstensiGambar;
 
-            if (move_uploaded_file($tmp, '../buktitransfer/' . $namaFileBaru)) {
+            if (move_uploaded_file($tmp, '../../image/bukti_transfer' . $namaFileBaru)) {
                 $insert = $koneksi->query("INSERT INTO rekeningkoran 
                                                 (idrk, iduser, tanggal, waktu, keterangan, kredit, debit, 
                                                     sisasaldo, buktitf, tipe, kategori_id) 

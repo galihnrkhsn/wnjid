@@ -5,6 +5,7 @@
 
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
+    include '../includes/invoice_helper.php';
 
     $idKonsumen   = $_SESSION['idkonsumen'];
     $idsKeranjang = array_filter(array_map('intval', $_POST['idkeranjang'] ?? []));
@@ -48,19 +49,14 @@
             $totalBerat = 1000; // fallback minimal 1kg kalau data berat produk belum diisi
         }
 
-        // Header dibuat dulu (invoice sementara kosong, diisi setelah tahu idorder)
+        $invoice = generateUniqueInvoice($koneksi, 'orderkonsumen', 'K', $idKonsumen);
+
         $stmtHeader = $koneksi->prepare("INSERT INTO orderkonsumen
                                             (invoice, idkonsumen, berat, subtotal, ongkir, total, status, payment_status)
-                                            VALUES ('', ?, ?, ?, 0, ?, 'Menunggu Alamat', 'Belum Bayar')");
-        $stmtHeader->bind_param('iidd', $idKonsumen, $totalBerat, $subtotal, $subtotal);
+                                            VALUES (?, ?, ?, ?, 0, ?, 'Menunggu Alamat', 'Belum Bayar')");
+        $stmtHeader->bind_param('siidd', $invoice, $idKonsumen, $totalBerat, $subtotal, $subtotal);
         $stmtHeader->execute();
         $idorder = $stmtHeader->insert_id;
-
-        // Invoice ditempel ke idorder (auto increment) supaya dijamin unik, bukan dari timestamp
-        $invoice = 'K' . date('ymd') . str_pad((string) $idorder, 5, '0', STR_PAD_LEFT);
-        $stmtInvoice = $koneksi->prepare("UPDATE orderkonsumen SET invoice = ? WHERE idorder = ?");
-        $stmtInvoice->bind_param('si', $invoice, $idorder);
-        $stmtInvoice->execute();
 
         $stmtDetail = $koneksi->prepare("INSERT INTO orderkonsumen_detail
                                             (idorder, idvariant, namaproduk, variant, size, harga, jumlah, subtotal)

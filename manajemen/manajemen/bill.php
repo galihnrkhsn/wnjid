@@ -209,7 +209,7 @@
                                                     <?php if($row['buktitf']==""){ ?>
                                                         <img src="..." class="card-img-top" alt="Foto Tidak Ada">
                                                     <?php } else { ?>
-                                                        <img src="../buktitransfer/<?= $row['buktitf'];?>" class="card-img-top" alt="Bukti Transfer">
+                                                        <img src="../../image/bukti_transfer/?= $row['buktitf'];?>" class="card-img-top" alt="Bukti Transfer">
                                                     <?php } ?>
                                                 </div>       
                                             </center>
@@ -448,7 +448,7 @@
                 $namaFileBaru   = 'P' . $vendor . $tglsekarang . $today . '.' . $ekstensiGambar;
 
                 // Ensure directory exists and is writable
-                $targetDir = '../buktitransfer/';
+                $targetDir = '../../image/bukti_transfer';
                 if (!is_dir($targetDir) || !is_writable($targetDir)) {
                     echo "<script>alert('Directory tujuan tidak ada atau tidak bisa ditulisi');</script>";
                     exit;
