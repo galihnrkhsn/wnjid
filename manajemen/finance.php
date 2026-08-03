@@ -154,23 +154,19 @@
                                     <?php if ($tampil['debit'] > 0) { ?>
                                         <b><font color="red">(D) -<?= number_format($tampil['debit']); ?></font></b>
                                         <br>
-                                        <p class="badge badge-danger">
-                                            <font color="black">
-                                                <?= $tampil['nama_kategori']; ?>
-                                            </font>
+                                        <p class="badge badge-danger text-danger">
+                                            <?= $tampil['nama_kategori']; ?>
                                         </p>
                                     <?php } else { ?>
                                         <b><font color="green">(K) +<?= number_format($tampil['kredit']); ?></font></b>
                                         <br>
-                                        <p class="badge badge-success">
-                                            <font color="black">
-                                                <?= $tampil['nama_kategori']; ?>
-                                            </font>
+                                        <p class="badge badge-success text-success">
+                                            <?= $tampil['nama_kategori']; ?>
                                         </p>
                                     <?php } ?>
                                     <?php if (isset($tampil['bank'])) :?>
-                                        <p class="badge badge-success">
-                                            <?= $tampil['bank']; ?>
+                                        <p class="badge badge-success text-primary">
+                                            <?= strtoupper($tampil['bank']); ?>
                                         </p>
                                     <?php endif; ?>
                                 </td>
