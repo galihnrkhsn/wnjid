@@ -18,34 +18,9 @@
     $rowVendor      = $queryVendor->fetch_assoc();
 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title><?= $role ?> | Wanoja</title>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendor Bill</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.min.js"></script>
-</head>
-
-</head> 
-<body>
-    <!-- NAVBAR -->
-    <? include "../assets/components/Navbar/navbar.php"; ?>
-    <!-- NAVBAR END -->
+<!-- NAVBAR -->
+<?php include "../assets/components/Navbar/navbar.php"; ?>
+<!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
     <div class="container mt-5">
@@ -141,9 +116,9 @@
                     </div>
                 </div>
                 <div class="container mt-3">
-                    <button class="btn btn-success" data-toggle="modal" data-target="#modalForm2"><i class="fa fa-plus"></i> Bayar</button>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#modalForm" ><i class="fa fa-plus"></i> Tagihan</button>
-                    <!-- <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal"><i class="fa fa-file-export"></i> Export</button> -->
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalForm2"><i class="fa fa-plus"></i> Bayar</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalForm" ><i class="fa fa-plus"></i> Tagihan</button>
+                    <!-- <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa fa-file-export"></i> Export</button> -->
                 </div>
                 <br>
                 <!-- SALDO END -->
@@ -175,10 +150,10 @@
                             <td class="text-success"><?= number_format($row['bayar']); ?></td>
                             <td>
                                 <div class="View skill">
-                                    <button class="btn btn-info" data-toggle="modal" data-target="#modalView<?= $row['idbill'];?>"><i class="fa fa-eye"></i></button>
+                                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalView<?= $row['idbill'];?>"><i class="fa fa-eye"></i></button>
                                 </div>
                                 <div class="Edit skill" style="display: none">
-                                    <button class="btn btn-warning" data-toggle="modal" data-target="#modalEdit<?= $row['idbill']; ?>"><i class="fa fa-edit"></i></button>
+                                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['idbill']; ?>"><i class="fa fa-edit"></i></button>
                                 </div>
                                 <form method="POST">
                                     <div class="Delete skill" style="display: none">
@@ -195,10 +170,7 @@
                                     <!-- Modal Header -->
                                     <div class="modal-header">
                                         <h4 class="modal-title" id="labelModalKu"><i class="fa fa-eye"></i> View</h4>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span aria-hidden="true">&times;</span>
-                                            <span class="sr-only">Tutup</span>
-                                        </button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <!-- Modal Body -->
                                     <form method="POST" enctype="multipart/form-data">
@@ -216,7 +188,7 @@
                                         </div>
                                         <!-- Modal Footer -->
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                         </div>
                                     </form>
                                 </div>
@@ -229,10 +201,7 @@
                                     <!-- Modal Header -->
                                     <div class="modal-header">
                                         <h4 class="modal-title" id="labelModalKu"><i class="fa fa-edit"></i> Ubah</h4>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span aria-hidden="true">&times;</span>
-                                            <span class="sr-only">Tutup</span>
-                                        </button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <!-- Modal Body -->
                                     <form method="POST" enctype="multipart/form-data">
@@ -258,7 +227,7 @@
                                         </div>
                                         <!-- Modal Footer -->
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                             <button type="submit" class="btn btn-primary" name="pembayaran">KIRIM</button>
                                         </div>
                                     </form>
@@ -275,10 +244,7 @@
                             <!-- Modal Header -->
                             <div class="modal-header">
                                 <h4 class="modal-title" id="labelModalKu"><i class="fa fa-plus"></i> Bayar</h4>
-                                <button type="button" class="close" data-dismiss="modal">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">Tutup</span>
-                                </button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <!-- Modal Body -->
                             <form method="POST" enctype="multipart/form-data">
@@ -305,7 +271,7 @@
                                 </div>
                                 <!-- Modal Footer -->
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                     <button type="submit" class="btn btn-primary" name="pembayaran">KIRIM</button>
                                 </div>
                             </form>
@@ -319,10 +285,7 @@
                             <!-- Modal Header -->
                             <div class="modal-header">
                                 <h4 class="modal-title" id="labelModalKu"><i class="fa fa-minus"></i> Tagihan</h4>
-                                <button type="button" class="close" data-dismiss="modal">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">Tutup</span>
-                                </button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <!-- Modal Body -->
                             <form method="POST" enctype="multipart/form-data">
@@ -349,7 +312,7 @@
                                 </div>
                                 <!-- Modal Footer -->
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                     <button type="submit" class="btn btn-primary" name="pembayaran">KIRIM</button>
                                 </div>
                             </form>
@@ -498,10 +461,5 @@
     ?>
     <!-- MAIN CONTENT END -->
     <!-- FOOTER -->
-    <? include "../assets/components/Footer/footer.php"; ?>
+    <?php include "../assets/components/Footer/footer.php"; ?>
     <!-- FOOTER END -->
-
-    <!-- SCRIPT -->
-    <!-- END SCRIPT -->
-</body>
-</html>

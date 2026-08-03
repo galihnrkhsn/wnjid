@@ -64,7 +64,7 @@
 </head> 
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
@@ -263,7 +263,7 @@
                         <a class="btn btn-success btn-sm" href="invoice.php?idmitra=<?= $idadmin; ?>&id=<?= $idpoproduk ?>&invoice=<?= $invoice ?>">Download PDF</a>
                     </div>
                     <?php if ($datapo['ket'] == 'Perpanjang' or $tgl_bayar == ""): ?>
-                        <?
+                        <?php
                             date_default_timezone_set('Asia/Jakarta');
                             $jumlahhari     = '+1 days';
                             $tgl1           = $datapo['tgl'];
@@ -601,7 +601,7 @@
     <br><br><br><br>
     
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- PHP SYNTAK -->

@@ -1,6 +1,7 @@
 <?php 
     session_start();
-    include 'koneksi.php'; 
+    include 'koneksi.php';
+    include '../includes/image_upload_helper.php';
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
         echo "
             <script>alert('Anda harus login terlebih dahulu!');</script>
@@ -18,29 +19,9 @@
     $data           = $queryManage->fetch_assoc();
     $iduser         = $data['id'];
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <title><?= $role ?> | Wanoja</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-    <!-- Bootstrap CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head> 
-<body>
-    <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
-    <!-- NAVBAR END -->
+<!-- NAVBAR -->
+<?php include "assets/components/Navbar/navbar.php"; ?>
+<!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
     <div class="container mt-5">
@@ -71,7 +52,7 @@
             ?>
             <div class="text-center text-dark bg-warning mt-3 rounded border border-dark">
                 <p class="pt-5">Saldo Akhir</p>
-                <h2 class="pb-5">Rp. <? echo number_format($distributor2["sisa"]); ?></h2>
+                <h2 class="pb-5">Rp. <?= number_format($distributor2["sisa"] ?? 0); ?></h2>
             </div>
         </div>
         <!-- SALDO END -->
@@ -80,7 +61,7 @@
         <div class="col mt-2">
             <div class="mb-3">
                 <?php if ($role == 'Owner' || $role == 'Admin Finance' && $tipe == 'AF') : ?>
-                    <button class="btn btn-success" data-toggle="modal" data-target="#modalForm2"><i class="fa fa-plus"></i> Kredit</button>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalForm2"><i class="fa fa-plus"></i> Kredit</button>
                 <?php endif ?>
                 <?php if ($tipe == 'P') : ?>
                     <a href="produksi/input_kredit.php?tipe=P" class="btn btn-success"><i class="fa fa-plus"></i> Kredit</a>
@@ -90,16 +71,16 @@
                 <?php elseif ($tipe == 'AF') : ?>
                     <a href="produksi/input_debit.php?tipe=AF" class="btn btn-danger"><i class="fa fa-minus"></i> Debit</a>
                 <?php else :?>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#modalForm" ><i class="fa fa-minus"></i> Debit</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalForm" ><i class="fa fa-minus"></i> Debit</button>
                 <?php endif; ?>
-                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal"><i class="fa fa-file-export"></i> Export</button>
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#myModal"><i class="fa fa-file-export"></i> Export</button>
                 <!-- Modal -->
                 <div class="modal fade" id="myModal" role="dialog">
                     <div class="modal-dialog">
                         <!-- Modal content-->
                         <div class="modal-content">
                             <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 <br>
                             </div>
                             <div class="modal-body">
@@ -114,7 +95,7 @@
                                 </form>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
@@ -174,13 +155,17 @@
                                         <b><font color="red">(D) -<?= number_format($tampil['debit']); ?></font></b>
                                         <br>
                                         <p class="badge badge-danger">
-                                            <?= $tampil['nama_kategori']; ?>
+                                            <font color="black">
+                                                <?= $tampil['nama_kategori']; ?>
+                                            </font>
                                         </p>
                                     <?php } else { ?>
                                         <b><font color="green">(K) +<?= number_format($tampil['kredit']); ?></font></b>
                                         <br>
                                         <p class="badge badge-success">
-                                            <?= $tampil['nama_kategori']; ?>
+                                            <font color="black">
+                                                <?= $tampil['nama_kategori']; ?>
+                                            </font>
                                         </p>
                                     <?php } ?>
                                     <?php if (isset($tampil['bank'])) :?>
@@ -191,11 +176,11 @@
                                 </td>
                                 <td>
                                     <div class="Edit skill">
-                                        <button class="btn btn-success" data-toggle="modal" data-target="#modalEdit<?= $tampil['idrk']; ?>"><i class="fa fa-edit"></i></button>
+                                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $tampil['idrk']; ?>"><i class="fa fa-edit"></i></button>
                                     </div>
                                     <?php if ($tipe !== 'MF') :?>
                                     <div class="View skill" style="display: none">
-                                        <button class="btn btn-info" data-toggle="modal" data-target="#modalView<?php echo $tampil['idrk'];?>"><i class="fa fa-eye"></i></button>
+                                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalView<?php echo $tampil['idrk'];?>"><i class="fa fa-eye"></i></button>
                                     </div>
                                     <?php endif; ?>
                                     <form method="POST">
@@ -213,10 +198,7 @@
                                         <!-- Modal Header -->
                                         <div class="modal-header">
                                             <h4 class="modal-title" id="labelModalKu"><i class="fa fa-eye"></i> View</h4>
-                                            <button type="button" class="close" data-dismiss="modal">
-                                                <span aria-hidden="true">&times;</span>
-                                                <span class="sr-only">Tutup</span>
-                                            </button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <!-- Modal Body -->
                                         <form method="POST" enctype="multipart/form-data">
@@ -227,14 +209,14 @@
                                                         <?php if($tampil['buktitf']==""){ ?>
                                                             <img src="..." class="card-img-top" alt="Foto Tidak Ada">
                                                         <?php } else { ?>
-                                                            <img src="buktitransfer/<?php echo $tampil['buktitf'];?>" class="card-img-top" alt="Bukti Transfer">
+                                                            <img src="../image/bukti_manajemen/<?php echo $tampil['buktitf'];?>" class="card-img-top" alt="Bukti Transfer">
                                                         <?php } ?>
                                                     </div>       
                                                 </center>
                                             </div>
                                             <!-- Modal Footer -->
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                             </div>
                                         </form>
                                     </div>
@@ -247,10 +229,7 @@
                                         <!-- Modal Header -->
                                         <div class="modal-header">
                                             <h4 class="modal-title" id="labelModalKu"><i class="fa fa-edit"></i> Ubah</h4>
-                                            <button type="button" class="close" data-dismiss="modal">
-                                                <span aria-hidden="true">&times;</span>
-                                                <span class="sr-only">Tutup</span>
-                                            </button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <!-- Modal Body -->
                                         <form method="POST" enctype="multipart/form-data">
@@ -303,7 +282,7 @@
                                             </div>
                                             <!-- Modal Footer -->
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                                 <button type="submit" class="btn btn-primary" name="kirimubah">KIRIM</button>
                                             </div>
                                         </form>
@@ -328,10 +307,7 @@
                             <!-- Modal Header -->
                             <div class="modal-header">
                                 <h4 class="modal-title" id="labelModalKu"><i class="fa fa-plus"></i> Kredit</h4>
-                                <button type="button" class="close" data-dismiss="modal">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">Tutup</span>
-                                </button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <!-- Modal Body -->
                             <form method="POST" id="formFinanceKredit" enctype="multipart/form-data">
@@ -384,7 +360,7 @@
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                     <button type="submit" class="btn btn-primary">KIRIM</button>
                                 </div>
                             </form>
@@ -398,10 +374,7 @@
                             <!-- Modal Header -->
                             <div class="modal-header">
                                 <h4 class="modal-title" id="labelModalKu"><i class="fa fa-minus"></i> Debit</h4>
-                                <button type="button" class="close" data-dismiss="modal">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">Tutup</span>
-                                </button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <!-- Modal Body -->
                             <form method="POST" id="formFinanceDebit" enctype="multipart/form-data">
@@ -467,7 +440,7 @@
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                     <button type="submit" class="btn btn-primary">KIRIM</button>
                                 </div>
                             </form>
@@ -511,21 +484,18 @@
                     return false;
                 }
                 
-                $ekstensiGambarValid    = ['jpg', 'jpeg', 'png', 'svg'];
-                $ekstensiGambar         = explode('.', $foto);
-                $ekstensiGambar         = strtolower(end($ekstensiGambar));
+                $ekstensiGambarValid    = ['jpg', 'jpeg', 'png'];
+                $ekstensiGambar         = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
                 if (!in_array($ekstensiGambar, $ekstensiGambarValid)) {
-                    echo "<script>alert('Yang anda upload bukan gambar');</script>";
+                    echo "<script>alert('Yang anda upload bukan gambar (jpg/jpeg/png)');</script>";
                     echo "<script>location='finance.php?tipe=$tipe'</script>";
                     return false;
-                }            
-                
-                $today          = date("His"); 
-                $tglsekarang    = date("ymd");
-                $namadepan      = $kredit == 0 ? 'D' . $tipe : 'K' . $tipe;
-                $namaFileBaru   = $namadepan . $tglsekarang . $today . '.' . $ekstensiGambar;
+                }
 
-                if (move_uploaded_file($tmp, 'buktitransfer/' . $namaFileBaru)) {
+                $namadepan      = $kredit == 0 ? 'D' . $tipe : 'K' . $tipe;
+                $namaFileBaru   = convertUploadedImageToWebp($tmp, $ekstensiGambar, '../image/bukti_manajemen/', $namadepan . uniqid());
+
+                if ($namaFileBaru) {
                     $sql = $koneksi->query("UPDATE rekeningkoran SET tanggal='$tanggal', waktu='$waktu', keterangan='$keterangan', kredit='$kredit', debit='$debit', buktitf='$namaFileBaru' WHERE idrk='$idrk'");
                 }
                 if ($sql) {
@@ -540,7 +510,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include "assets/components/Footer/footer.php"; ?>
+    <?php include "assets/components/Footer/footer.php"; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->

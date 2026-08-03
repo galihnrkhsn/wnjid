@@ -173,7 +173,7 @@ include 'assets/components/Sessions/sesMarketer.php';
     <!-- Main Content End -->
 
     <!-- FOOTER -->
-    <?
+    <?php
         include 'menubawahstore.php';
     ?>
     <!-- FOOTER END -->
@@ -198,7 +198,7 @@ include 'assets/components/Sessions/sesMarketer.php';
 		}
 	?>
     <!-- PHP SYNTAK -->
-    <?
+    <?php
     include 'koneksi.php';
     ?>
     <!-- PHP SYNTAK END -->

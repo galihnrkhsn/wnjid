@@ -27,7 +27,7 @@
         <title>WNJ</title>
     </head>
   <body>
-  <? include "assets/components/Navbar/navbar2.php"; ?>
+  <?php include "assets/components/Navbar/navbar2.php"; ?>
 
 <div class="container mt-2">
     <h3 class="text-center">Detail Order</h3>

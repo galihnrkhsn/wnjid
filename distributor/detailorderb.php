@@ -33,7 +33,7 @@ session_start();
         <title>WNJ</title>
     </head>
   <body>
-  <? include "assets/components/Navbar/navbar.php"; ?>
+  <?php include "assets/components/Navbar/navbar.php"; ?>
 
 <div class="container mt-2">
     <h3 class="text-center">Detail Order</h3>

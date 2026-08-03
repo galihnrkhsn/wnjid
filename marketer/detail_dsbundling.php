@@ -208,9 +208,11 @@
                             <td><?= $sisa; ?></td>
                             <td>
                                 <?php if ($idpoproduk == '270' && $data['idpodetail'] == $idsarung): ?>
-                                    <input type='number' class="form-control" min="0" name='jumlah<?= $id ?>' value='' max="<? echo $sisa ?>" disabled>
+                                    <input type='number' class="form-control" min="0" name='jumlah<?= $id ?>' value='' max="<?=
+ $sisa ?>" disabled>
                                 <?php else: ?>
-                                    <input type='number' class="form-control" min="0" name='jumlah<?= $id ?>' value='' max="<? echo $sisa ?>">
+                                    <input type='number' class="form-control" min="0" name='jumlah<?= $id ?>' value='' max="<?=
+ $sisa ?>">
                                 <?php endif; ?>
                             </td>
                             <?php endif; ?>
@@ -658,7 +660,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->

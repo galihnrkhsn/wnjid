@@ -52,11 +52,11 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- PHP -->
-    <? include "settingdatatables.php"; ?>
+    <?php include "settingdatatables.php"; ?>
     <!-- PHP END -->
 
     <!-- SCRIPT -->

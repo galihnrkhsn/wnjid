@@ -120,7 +120,7 @@
     <!-- MAIN CONTENT END -->
 
     <!-- FOOTER -->
-    <?
+    <?php
         include 'menubawah.php';
     ?>
     <!-- FOOTER END -->

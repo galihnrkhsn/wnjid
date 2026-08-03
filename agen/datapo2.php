@@ -390,7 +390,7 @@
                     <? if ($angka1 % 3 == 0 and $angka2 % 3 == 0 and $angka3 % 3 == 0): ?>
                         <? if ($datadp['invoice']=="" and $idpoproduk<>183 and $idpoproduk<>186 and $idpoproduk<>187 and $idpoproduk<>194): ?>
                             <?php if ($datapo['ket']=='Perpanjang' or $tgl_bayar==""): ?>
-                                <?
+                                <?php
                                     date_default_timezone_set('Asia/Jakarta');
                                     $jumlahhari = '+1 days';
                                     $tgl1 = $datapo['tgl'];

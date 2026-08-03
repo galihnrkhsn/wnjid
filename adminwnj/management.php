@@ -46,7 +46,7 @@ if(!isset($_SESSION["administrator"])){
                     </tr>
                 </thead>
                 <tbody>
-                    <?
+                    <?php
                         $queryManage = $koneksi->query("SELECT * FROM management");
                         while($dataManage = $queryManage->fetch_assoc()) {
                     ?>
@@ -73,7 +73,7 @@ if(!isset($_SESSION["administrator"])){
   </a>
 
   <!-- PHP -->
-   <?
+   <?php
     if (isset($_POST["resetPassword"])) {
         $idManage           = $_POST['id'];
         $queryReset         = $koneksi->query("SELECT * FROM management WHERE id = '$idManage'");

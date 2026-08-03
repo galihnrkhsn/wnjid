@@ -146,7 +146,7 @@
 </head> 
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <div class="container mt-3">
@@ -167,7 +167,7 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
     <script>
         function checkAll(master, tab){

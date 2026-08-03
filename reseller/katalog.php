@@ -181,7 +181,7 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->

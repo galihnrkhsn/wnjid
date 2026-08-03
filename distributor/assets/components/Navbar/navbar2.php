@@ -222,7 +222,8 @@
                 <li style="font-size: 15px;">
                     <a href="saldo">
                         <i class="fa-solid fa-money-bill">
-                            <? echo number_format($saldo_sisa) ?>
+                            <?=
+ number_format($saldo_sisa) ?>
                         </i>
                     </a>
                 </li>
@@ -265,7 +266,8 @@
                 <li>
                     <i class="fa-solid fa-money-bill">
                         <a href="saldo">
-                            <? echo number_format($saldo_sisa) ?>
+                            <?=
+ number_format($saldo_sisa) ?>
                         </a>
                     </i>
                 </li>

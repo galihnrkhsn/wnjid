@@ -23,7 +23,7 @@
         <title>WNJ</title>
     </head>
   <body>
-  <? include "assets/components/Navbar/navbar.php"; ?>
+  <?php include "assets/components/Navbar/navbar.php"; ?>
 
 <div class="container mt-2">
     <h3 class="text-center">Detail Order</h3>
@@ -32,7 +32,7 @@
     <h4 class="text-center"><?= $getUser['namamitra'] ?> (Cust ID : <?= $getUser['idadmin']; ?> )</h4><br>
     <b>Status Pesanan</b><br>
     <?= $pengiriman['tgl']; ?><br>
-    <?
+    <?php
         $sql    = "SELECT status, payment FROM ordermitra WHERE invoice = '$invoice' ";
         $query  = $koneksi->query($sql);
         $status = $query->fetch_assoc();
@@ -80,7 +80,7 @@
                 <th>QTY</th>
                 <th>Total</th>
             </tr>
-            <?
+            <?php
                 $nomorurut = 1;
                 $sql = "SELECT * FROM ordermitra
                         INNER JOIN produk ON produk.idproduk = ordermitra.idproduk
@@ -105,7 +105,7 @@
 
         </table>     
     </div>   
-    <?
+    <?php
         $totala = 0;
         $sql    = "SELECT * FROM ordermitra 
                     INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -119,7 +119,7 @@
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totalb = 0;
         $sql    = "SELECT * FROM ordermitra 
                     INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -132,7 +132,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald5    = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -145,7 +145,7 @@
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald10   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -158,7 +158,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald15   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -171,7 +171,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald17   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -185,7 +185,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald20   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -199,7 +199,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald25   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -213,7 +213,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $ttl52  = 0;
         $sql    = "SELECT MAX(variants.harga) AS subtotal 
                     FROM ordermitra 
@@ -226,7 +226,7 @@
         // $sql = "SELECT * FROM ordermitra INNER JOIN produk ON produk.idproduk = ordermitra.idproduk WHERE ordermitra.invoice AND ordermitra.jumlah > 0 AND products.idkategori = 52";
     ?>
 
-    <?
+    <?php
         $totald51   = 0;
         $sql        = "SELECT * FROM ordermitra 
                         INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -239,7 +239,7 @@
     ?>      
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totaldfree=0;
         $sql = "SELECT * FROM ordermitra 
                     INNER JOIN variants ON variants.id = ordermitra.idproduk
@@ -253,7 +253,7 @@
     <!----------------------------------------------------------------------------------------------------------------------------->
 
     <hr>
-    <?
+    <?php
         $apaja      = $pengiriman['dropship'];
         $dropship   = $pengiriman['berat'];
     
@@ -573,12 +573,12 @@
     // }
     ?>
 
-    <?
+    <?php
         if($ongkir==0){
             if($status['status'] == 'Pending' && ($kurir == 'Ahsan' or $kurir == 'Gosend' or $kurir == 'Ambil ke Pusat' or $kurir == 'Disatukan' or $kurir == 'idetruck')){
     ?>
   
-    <?
+    <?php
         $jumlahhari = '+1 days'; 
         $no         = 1;
         $dataproduk = $koneksi->query("SELECT * FROM ordermitra WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0 GROUP BY invoice");
@@ -654,7 +654,7 @@ var x = setInterval(function() {
 
 ?>
       <center><button type="submit" class="btn btn-sm" name="cari" id="linkmiki<?= $tampilkan['idorder']; ?>">
-        <?
+        <?php
             // $sql = "SELECT * FROM ordermitra 
             //         INNER JOIN produk ON produk.idproduk = ordermitra.idproduk 
             //         WHERE ordermitra.invoice = '$invoice' AND ordermitra.jumlah > 0";
@@ -686,7 +686,7 @@ var x = setInterval(function() {
             // var_dump('Harga Barang bukan string', $esacusDressTotal);
         ?>
         
-        <?
+        <?php
             $total_barang = str_replace(',', '', $tgrandtotal);
             $totalForLink = $total_barang;
         ?>

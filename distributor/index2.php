@@ -160,7 +160,7 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <?
+    <?php
         require_once 'menubawah.php';
     ?>
     <!-- FOOTER END -->

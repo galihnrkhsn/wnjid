@@ -279,7 +279,7 @@
                                 </td>
                             </tr>
                                 <?}?>
-                                <?
+                                <?php
                                 while($tampilkan = $datapo->fetch_assoc()){
                                     $id = $tampilkan['id_sj'];
                             ?>

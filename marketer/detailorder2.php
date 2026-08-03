@@ -28,7 +28,7 @@
         <title>WNJ</title>
     </head>
   <body>
-  <? include "assets/components/Navbar/navbar2.php"; ?>
+  <?php include "assets/components/Navbar/navbar2.php"; ?>
 
   <div class="container mt-2">
     <h3 class="text-center">Detail Order</h3>
@@ -37,7 +37,7 @@
     <h4 class="text-center"><?= $getUser['namaagen'] ?> (Cust ID : <?= $getUser['idmitramarketer']; ?> )</h4><br>
     <b>Status Pesanan</b><br>
     <?= $pengiriman['tgl']; ?><br>
-    <?
+    <?php
         $sql    = "SELECT status, payment FROM ordermarketer WHERE invoice = '$invoice' ";
         $query  = $koneksi->query($sql);
         $status = $query->fetch_assoc();
@@ -85,7 +85,7 @@
                 <th>QTY</th>
                 <th>Total</th>
             </tr>
-            <?
+            <?php
                 $nomorurut = 1;
                 $sql = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -112,7 +112,7 @@
 
         </table>     
     </div>   
-    <?
+    <?php
         $totala = 0;
         $sql    = "SELECT * FROM ordermarketer 
                     INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -130,7 +130,7 @@
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totalb = 0;
         $sql    = "SELECT * FROM ordermarketer 
                     INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -143,7 +143,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald5    = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -156,7 +156,7 @@
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald10   = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -169,7 +169,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald15   = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -182,7 +182,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald17   = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -196,7 +196,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald20   = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -210,7 +210,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald25   = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -224,7 +224,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $ttl52  = 0;
         $sql    = "SELECT MAX(variants.harga) AS subtotal 
                     FROM ordermarketer 
@@ -237,7 +237,7 @@
         // $sql = "SELECT * FROM ordermarketer INNER JOIN produk ON produk.idproduk = ordermarketer.idproduk WHERE ordermarketer.invoice AND ordermarketer.jumlah > 0 AND products.idkategori = 52";
     ?>
 
-    <?
+    <?php
         $totald51   = 0;
         $sql        = "SELECT * FROM ordermarketer 
                         INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -250,7 +250,7 @@
     ?>      
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totaldfree=0;
         $sql = "SELECT * FROM ordermarketer 
                     INNER JOIN variants ON variants.id = ordermarketer.idproduk
@@ -264,7 +264,7 @@
     <!----------------------------------------------------------------------------------------------------------------------------->
 
     <hr>
-    <?
+    <?php
         $apaja      = $pengiriman['dropship'];
         $dropship   = $pengiriman['berat'];
     
@@ -616,12 +616,12 @@
     // }
     ?>
 
-    <?
+    <?php
         if($ongkir==0){
             if($status['status'] == 'Pending' && ($kurir == 'Ahsan' or $kurir == 'Gosend' or $kurir == 'Ambil ke Pusat' or $kurir == 'Disatukan' or $kurir == 'idetruck')){
     ?>
   
-    <?
+    <?php
         $jumlahhari = '+1 days'; 
         $no         = 1;
         $dataproduk = $koneksi->query("SELECT * FROM ordermarketer WHERE ordermarketer.invoice = '$invoice' AND ordermarketer.jumlah > 0 GROUP BY invoice");

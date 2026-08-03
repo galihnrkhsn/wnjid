@@ -274,7 +274,7 @@ $idpoproduk=$_GET["idpoproduk"];
                                             <td><?= $pack ?></td>
                                             <td>Rp. <?= number_format($harga) ?></td>
                                         </tr>
-                                        <?
+                                        <?php
                                         $sum += $pack;
                                         $jumlah += $pack * $harga;
                                         ?>

@@ -37,7 +37,7 @@ $idadmin = $_SESSION['admin_mitra']['idadmin'];
 <body>
 <!--================ NAVBARU  =================-->
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
   <div class="container">
@@ -131,7 +131,7 @@ $idadmin = $_SESSION['admin_mitra']['idadmin'];
 
   <!-- FOOTER -->
   <br><br><br><br>
-  <? include 'menubawah.php'; ?>
+  <?php include 'menubawah.php'; ?>
   <!-- FOOTER END -->
  
 <?php

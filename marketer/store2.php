@@ -173,7 +173,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include 'menubawahstore.php'; ?>
+    <?php include 'menubawahstore.php'; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->

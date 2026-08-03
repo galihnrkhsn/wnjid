@@ -152,7 +152,7 @@ include 'assets/components/Sessions/sesAgen.php';
     <!-- Main Content End -->
 
     <!-- FOOTER -->
-    <?
+    <?php
         include 'menubawahstore.php';
     ?>
     <!-- FOOTER END -->
@@ -165,7 +165,7 @@ include 'assets/components/Sessions/sesAgen.php';
 	}
 	?>
     <!-- PHP SYNTAK -->
-    <?
+    <?php
     include 'koneksi.php';
     ?>
     <!-- PHP SYNTAK END -->

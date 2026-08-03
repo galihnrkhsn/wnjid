@@ -13,35 +13,9 @@
     $id             = $_SESSION['user_id'];
     $role           = $_SESSION['user_level'];
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <title><?= $role ?> | Wanoja</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.min.js"></script>
-
-</head> 
-<body>
-    <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
-    <!-- NAVBAR END -->
+<!-- NAVBAR -->
+<?php include "assets/components/Navbar/navbar.php"; ?>
+<!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
     <div class="container mt-5">
@@ -49,7 +23,7 @@
         <div class="card p-3">
             <div class="col mt-2">
                 <h1 class="text-center text-dark"> Pemasukan Harian</h1>
-                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#exampleModal-kredit">
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal-kredit">
                     <i class="bi bi-plus"></i>
                     Pemasukan
                 </button>
@@ -98,9 +72,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel">Tambah Pemasukan</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form id="formPemasukan">
                         <div class="modal-body">
@@ -147,7 +119,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include "assets/components/Footer/footer.php"; ?>
+    <?php include "assets/components/Footer/footer.php"; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->
@@ -186,5 +158,3 @@
     });
     </script>
     <!-- END SCRIPT -->
-</body>
-</html>

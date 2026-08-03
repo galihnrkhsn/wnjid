@@ -16,7 +16,7 @@ session_start();
     </head>
 <body>
     <!-- NAVBAR -->
-        <? include "assets/components/Navbar/navbar.php"; ?>
+        <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <div class="container mt-2">

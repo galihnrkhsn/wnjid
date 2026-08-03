@@ -173,7 +173,8 @@ include 'assets/components/Sessions/sesDistri.php';
                                     <form method="post">
                                         <input type="hidden" name="id" value="<?php echo $row['idmitramarketer'];?>">
                                         <input type="hidden" name="menu" value="marketer">
-                                        <input type="hidden" name="iduser" value="<? echo $row['iduser'] ?>">
+                                        <input type="hidden" name="iduser" value="<?=
+ $row['iduser'] ?>">
                                         <button class="btn btn-danger" name="hapus">
                                             <span class="fa fa-trash"></span>
                                         </button>
@@ -200,13 +201,13 @@ include 'assets/components/Sessions/sesDistri.php';
     <!-- Main Content End -->
 
     <!-- FOOTER -->
-    <?
+    <?php
         include 'menubawah.php';
     ?>
     <!-- FOOTER END -->
   
     <!-- PHP SYNTAK -->
-    <?
+    <?php
     include 'koneksi.php';
         if (isset($_POST["hapus"])) {
             $id = $_POST['id'];

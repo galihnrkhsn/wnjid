@@ -235,7 +235,7 @@ if(!isset($_SESSION["administrator"])){
   <!-- End of Page Wrapper -->
 
   <!-- PHP -->
-   <?
+   <?php
         if (isset($_POST["resetPassword"])) {
             $idmitraagen = $_POST['id'];
             $queryDb     = $koneksi->query("SELECT * FROM mitraagen WHERE idmitraagen = '$idmitraagen'");

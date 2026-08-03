@@ -76,7 +76,7 @@
         </div>
     </div>
     <br><br><br><br>
-    <?
+    <?php
         include 'menubawah.php';
     ?>
     <script>

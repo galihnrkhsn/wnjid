@@ -19,7 +19,7 @@
 </head> 
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
@@ -62,7 +62,7 @@
     <br><br><br><br>
     
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
     
     <!-- SCRIPT -->

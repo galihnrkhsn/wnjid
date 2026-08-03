@@ -120,11 +120,11 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- PHP -->
-    <?
+    <?php
         $idmitraagen = $_SESSION['idmitraagen'];
         // Ambil Data yang Dikirim dari Form
         $email = $_POST['email'];
@@ -235,7 +235,7 @@
           }
         }
     ?>
-    <? include "settingdatatables.php"; ?>
+    <?php include "settingdatatables.php"; ?>
     <!-- PHP END -->
 
     <!-- SCRIPT -->

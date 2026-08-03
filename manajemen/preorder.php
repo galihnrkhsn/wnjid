@@ -28,9 +28,9 @@
         <div class="row">                                                                                  
             <div class="table-responsive">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#home" class="nav-item nav-link active">Per Nama PO</a></li>
-                    <li><a data-toggle="tab" href="#menu1" class="nav-item nav-link">Per Bulan</a></li>
-                    <li><a data-toggle="tab" href="#menu2" class="nav-item nav-link">Per Hari</a></li>
+                    <li class="active"><a data-bs-toggle="tab" href="#home" class="nav-item nav-link active">Per Nama PO</a></li>
+                    <li><a data-bs-toggle="tab" href="#menu1" class="nav-item nav-link">Per Bulan</a></li>
+                    <li><a data-bs-toggle="tab" href="#menu2" class="nav-item nav-link">Per Hari</a></li>
                 </ul>
         
                 <div class="tab-content">

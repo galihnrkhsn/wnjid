@@ -85,7 +85,7 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- PHP -->
@@ -115,7 +115,7 @@
             echo "<script>location='dataalamat.php';</script>";
         }
     ?>
-    <? include "settingdatatables.php"; ?>
+    <?php include "settingdatatables.php"; ?>
     <!-- PHP END -->
 
     <!-- SCRIPT -->

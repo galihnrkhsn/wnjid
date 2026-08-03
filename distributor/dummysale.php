@@ -15,7 +15,7 @@
 </head>
 <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
+    <?php include "assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
 
     <div class="container mt-2" style="padding-bottom: 5rem">
@@ -150,7 +150,7 @@
 
 
     <!-- FOOTER -->
-    <? include 'menubawahstore.php'; ?>
+    <?php include 'menubawahstore.php'; ?>
     <!-- FOOTER END -->
 
     <!-- Jquery, Popper, Bootstrap -->

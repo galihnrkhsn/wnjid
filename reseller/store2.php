@@ -165,11 +165,11 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawahstore.php'; ?>
+    <?php include 'menubawahstore.php'; ?>
     <!-- FOOTER END -->
 
     <!-- PHP -->
-    <? include "settingdatatables.php"; ?>
+    <?php include "settingdatatables.php"; ?>
     <!-- PHP END -->
 
     <!-- SCRIPT -->

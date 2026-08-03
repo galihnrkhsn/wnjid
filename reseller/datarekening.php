@@ -108,11 +108,11 @@
     <br><br><br><br>
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
 
     <!-- PHP -->
-    <?
+    <?php
       if (isset($_POST['tambah'])) {
           $idadmin = $_SESSION["idmitrareseller"];
           $bank = mysqli_real_escape_string($koneksi, $_POST['bank']);
@@ -138,7 +138,7 @@
           }
       }
     ?>
-    <? include "settingdatatables.php"; ?>
+    <?php include "settingdatatables.php"; ?>
     <!-- PHP END -->
 
     <!-- SCRIPT -->

@@ -310,7 +310,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include 'menubawah.php'; ?>
+    <?php include 'menubawah.php'; ?>
     <!-- FOOTER END -->
     
     <!-- SCRIPT -->

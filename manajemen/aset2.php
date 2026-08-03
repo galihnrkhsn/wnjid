@@ -8,11 +8,9 @@
     $iduser         = $user['id'];
     $tgl            = date('Y-m-d');
 ?>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+    <?php include 'assets/components/Navbar/navbar.php'; ?>
+    <!-- jQuery (dipakai script di bawah, bukan bagian dari Bootstrap - Bootstrap-nya sendiri sudah dari navbar.php) -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
-    <?php include 'assets/components/Navbar/navbar.php'; ?>       
     <?php
         $ambil2         = $koneksi->query("SELECT sum(nilai) as total FROM aset"); 
         $distributor2   = $ambil2->fetch_assoc();
@@ -21,7 +19,7 @@
         <h2>Aset Total</h2>
         <h2>Rp. <?php echo number_format($distributor2["total"]); ?></h2>
     </div>    
-    <button class="btn btn-success" data-toggle="modal" data-target="#modalForm2">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalForm2">
         <i class="fa fa-plus"></i> Tambah data
     </button> 
     <a href="index.php" class="btn btn-info">
@@ -56,10 +54,10 @@
                         <td>Rp <?= number_format($tampil['nilai']); ?></td>
                         <td>
                             <div class="Edit skill" style="display: none">
-                                <button class="btn btn-success" data-toggle="modal" data-target="#modalEdit<?= $tampil['id']; ?>"><i class="fa fa-edit"></i></button>
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $tampil['id']; ?>"><i class="fa fa-edit"></i></button>
                             </div>
                             <div class="View skill">
-                                <button class="btn btn-info" data-toggle="modal" data-target="#modalView<?= $tampil['id']; ?>"><i class="fa fa-eye"></i></button>
+                                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalView<?= $tampil['id']; ?>"><i class="fa fa-eye"></i></button>
                             </div>
                             <form method="POST">
                                 <div class="Delete skill" style="display: none">
@@ -89,10 +87,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h4 class="modal-title"><i class="fa fa-eye"></i> View</h4>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span aria-hidden="true">&times;</span>
-                                        <span class="sr-only">Tutup</span>
-                                    </button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form method="POST" enctype="multipart/form-data">
                                     <div class="modal-body">
@@ -111,7 +106,7 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                     </div>
                                 </form>
                             </div>
@@ -124,10 +119,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h4 class="modal-title"><i class="fa fa-edit"></i> Ubah</h4>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">Tutup</span>
-                                    </button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form method="POST" enctype="multipart/form-data">
                                     <div class="modal-body">
@@ -147,7 +139,7 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                                         <button type="submit" class="btn btn-success" name="kirimubah">Ubah</button>
                                     </div>
                                 </form>
@@ -183,10 +175,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title"><i class="fa fa-plus"></i> Aset</h4>
-                    <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Tutup</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
@@ -205,7 +194,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">&times; Close</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">&times; Close</button>
                         <button type="submit" class="btn btn-primary" name="kirimkredit">KIRIM</button>
                     </div>
                 </form>

@@ -1,6 +1,6 @@
-<?php 
+<?php
     session_start();
-    include '../../includes/db.php'; 
+    include '../../includes/db.php';
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
         echo "
             <script>alert('Anda harus login terlebih dahulu!');</script>
@@ -41,15 +41,20 @@
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.min.js"></script>
 
-</head> 
+</head>
 <body>
     <!-- NAVBAR -->
-    <? include "../assets/components/Navbar/navbar.php"; ?>
+    <?php include "../assets/components/Navbar/navbar.php"; ?>
     <!-- NAVBAR END -->
     <div class="container mt-4">
         <a href="../index.php" class="btn btn-info float-right"><i class="fa fa-arrow-left"></i> Kembali</a>
         <h4><i class="fa fa-minus"></i> Kredit</h4>
-        <form method="POST" enctype="multipart/form-data">
+        <p class="statusMsg"></p>
+        <form method="POST" enctype="multipart/form-data" id="formKredit">
+            <input type="hidden" name="tipe" value="<?= htmlspecialchars($tipe) ?>">
+            <input type="hidden" name="iduser" value="<?= htmlspecialchars($iduser) ?>">
+            <input type="hidden" name="jenis_transaksi" value="kredit">
+
             <div class="form-group">
                 <label for="tanggal">Tanggal</label>
                 <input type="date" class="form-control" id="tanggal" name="tanggal" required/>
@@ -60,23 +65,23 @@
             </div>
             <div class="form-group">
                 <label for="kredit">Kredit</label>
-                <input type="number" min="0" class="form-control" id="kredit" name="kredit" placeholder="Masukkan Total Kredit" required/>
+                <input type="number" min="0" class="form-control" id="kredit" name="jumlah" placeholder="Masukkan Total Kredit" required/>
             </div>
             <div class="form-group">
                 <label for="kategoridebit">Kategori</label>
-                <select name="kategoridebit" id="kategoridebit" class="form-control">
+                <select name="kategori" id="kategoridebit" class="form-control">
                     <option value="" disabled selected>~~ Pilih Kategori ~~</option>
                     <?php
                         $getKate = $koneksi->query("SELECT * FROM kategori_manajemen WHERE tipe = 'kredit'");
                         while ($data = $getKate->fetch_assoc()) {
                     ?>
-                    <option value="<?= $data['idkategori'] ?>"><?= $data['nama_kategori'] ?></option>
+                    <option value="<?= $data['idkategori'] ?>" data-nama="<?= htmlspecialchars($data['nama_kategori']) ?>"><?= $data['nama_kategori'] ?></option>
                     <?php } ?>
                 </select>
             </div>
             <div class="form-group" id="extraSelectContainer" style="display: none;">
                 <label for="extraSelect">Pilih Bank</label>
-                <select name="extraSelect" id="extraSelect" class="form-control">
+                <select name="pindah_bank" id="extraSelect" class="form-control">
                     <option value="" disabled selected>~~ Pilih Sub Kategori ~~</option>
                     <option value="P">Produksi</option>
                     <option value="AF">Admin Finance</option>
@@ -100,74 +105,46 @@
             const extraSelectContainer = document.getElementById('extraSelectContainer');
 
             kategoriSelect.addEventListener('change', function () {
-                const selectedValue = kategoriSelect.value;
-                if (selectedValue == "7") {
+                const selectedOption = kategoriSelect.options[kategoriSelect.selectedIndex];
+                if (selectedOption && selectedOption.dataset.nama === 'Pindah Bank') {
                     extraSelectContainer.style.display = 'block';
                 } else {
                     extraSelectContainer.style.display = 'none';
                 }
             });
+
+            const form = document.getElementById('formKredit');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+
+                fetch('../api/insert-finance.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (res) { return res.text(); })
+                    .then(function (text) {
+                        let json;
+                        try {
+                            json = JSON.parse(text);
+                        } catch (e) {
+                            console.error('Respon bukan JSON valid:', text);
+                            alert('Terjadi kesalahan, silakan coba lagi');
+                            return;
+                        }
+                        if (json.success) {
+                            alert(json.message);
+                            location.href = '../finance.php?tipe=<?= urlencode($tipe) ?>';
+                        } else {
+                            alert('Gagal: ' + json.message);
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Network error:', err);
+                        alert('Gagal terhubung ke server, silakan coba lagi');
+                    });
+            });
         });
     </script>
-    <?php 
-        if (isset($_POST["kirimdebit"])) {
-            date_default_timezone_set('Asia/Jakarta');
-            $waktu          = date('H:i:s');
-            $tanggal        = $_POST["tanggal"];
-            $keterangan     = addslashes(htmlspecialchars($_POST["keterangan"]));
-            $kategori       = $_POST['kategoridebit'];
-            $kredit         = $_POST["kredit"];
-            $pindahBank     = $_POST["extraSelect"];
-            $sisa           = $distributor2['sisa'] - $kredit;
-
-            $foto           = $_FILES['foto']['name'];
-            $tmp            = $_FILES['foto']['tmp_name'];
-            $ukuranFile     = $_FILES['foto']['size'];
-
-            // Cek apakah yang diupload adalah gambar
-            $ekstensiGambarValid    = ['jpg', 'jpeg', 'png', 'svg'];
-            $ekstensiGambar         = explode('.', $foto);
-            $ekstensiGambar         = strtolower(end($ekstensiGambar));
-            if (!in_array($ekstensiGambar, $ekstensiGambarValid)) {
-                echo "<script>alert('Yang anda upload bukan gambar');</script>";
-                echo "<script>location='../finance.php?tipe=$tipe'</script>";
-                return false;
-            }
-
-            $today          = date("His"); 
-            $tglsekarang    = date("ymd");
-            $namaFileBaru   = 'D' . $tipe . $tglsekarang . $today . '.' . $ekstensiGambar;
-
-            if (move_uploaded_file($tmp, '../../image/bukti_transfer/' . $namaFileBaru)) {
-                $insert = $koneksi->query("INSERT INTO rekeningkoran 
-                                                (idrk, iduser, tanggal, waktu, keterangan, kredit, debit, 
-                                                    sisasaldo, buktitf, tipe, kategori_id) 
-                                            VALUES 
-                                                (null, '$iduser', '$tanggal', '$waktu', '$keterangan', '$kredit', 
-                                                '0', '$sisa', '$namaFileBaru', '$tipe', '$kategori')");
-
-                if ($kategori == "7") {
-                    $pindah = $koneksi->query("INSERT INTO rekeningkoran 
-                                                    (idrk, iduser, tanggal, waktu, keterangan, kredit, debit, 
-                                                        sisasaldo, buktitf, tipe, kategori_id)   
-                                                VALUES 
-                                                    (NULL, '$iduser', '$tanggal', '$waktu', '$keterangan', '$kredit', 
-                                                    '0', '$sisa', '$namaFileBaru', '$pindahBank', '$kategori')
-                                            ");
-                    if (!$pindah) {
-                        echo "<script>alert('Pindah Bank ($keterangan) Gagal ditambahkan');</script>";
-                        echo "<script>location='../finance.php?tipe=$tipe'</script>";
-                    }            
-                }
-                if ($insert) {
-                    echo "<script>alert('Debit ($keterangan) berhasil ditambahkan');</script>";
-                    echo "<script>location='../finance.php?tipe=$tipe'</script>";
-                } else {
-                    echo "<script>alert('Debit ($keterangan) Gagal ditambahkan');</script>";
-                    echo "<script>location='../finance.php?tipe=$tipe'</script>";
-                }
-            }
-        }
-    ?>      
 </body>
 </html>

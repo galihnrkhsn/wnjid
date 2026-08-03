@@ -44,7 +44,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-RdQdUI6YgeTYOPzN/v53qu3Zk5S8dHf73GAdEP+EeFwkw4FEcGITeJEmG70T1NrM" crossorigin="anonymous"></script>
 </head>
 <body>
-<? include "assets/components/Navbar/navbar.php"; ?>
+<?php include "assets/components/Navbar/navbar.php"; ?>
 <div class="container my-4">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">

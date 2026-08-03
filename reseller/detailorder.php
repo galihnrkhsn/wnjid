@@ -30,7 +30,7 @@
     </head>
     <body>
     <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar2.php"; ?>
+    <?php include "assets/components/Navbar/navbar2.php"; ?>
     <!-- NAVBAR END -->
     <div class="container mt-4">
         <h3 class="text-center">Detail Order</h3>

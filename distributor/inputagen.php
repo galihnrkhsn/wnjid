@@ -17,7 +17,7 @@ include 'koneksi.php';
 	</head>
 	<body>
         <!-- NAVBAR -->
-        <? include 'assets/components/Navbar/navbar.php'; ?>
+        <?php include 'assets/components/Navbar/navbar.php'; ?>
         <br>
         <!-- NAVBAR END -->
 
@@ -118,7 +118,7 @@ include 'koneksi.php';
         <!-- MAIN CONTENT END -->
     
     <!-- PHP SYNTAK -->
-    <?
+    <?php
         if (isset($_POST['tambah'])) {
             $idadmin = $_SESSION["idadmin"];
             $namaagen = $_POST['namaagen'];
@@ -225,7 +225,7 @@ include 'koneksi.php';
     <!-- SCRIPT END -->
 </body>
 </html>  
-<?
+<?php
 $idadmin = $_POST["name"];
 $namaagen = $_POST['namaagen'];
 "INSERT INTO mitrareseller (id, name) VALUES (NULL, '$idadmin',)";

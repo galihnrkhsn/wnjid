@@ -239,7 +239,7 @@ body{
                 $total = $total +$tampilkandata['progres']; 
                 }
             ?>
-            <?
+            <?php
                 while($tampilkandata = $datapo->fetch_assoc()){
             ?>
             <tr>

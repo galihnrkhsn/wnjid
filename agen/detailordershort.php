@@ -30,7 +30,7 @@
     <h4 class="text-center"><?= $getUser['namaagen'] ?> (Cust ID : <?= $getUser['idmitraagen']; ?> )</h4><br>
     <b>Status Pesanan</b><br>
     <?= $pengiriman['tgl']; ?><br>
-    <?
+    <?php
         $sql    = "SELECT status, payment FROM orderagen WHERE invoice = '$invoice' ";
         $query  = $koneksi->query($sql);
         $status = $query->fetch_assoc();
@@ -78,7 +78,7 @@
                 <th>Nama Barang</th>
                 <th>QTY</th>
             </tr>
-            <?
+            <?php
                 $nomorurut = 1;
                 $sql = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -121,7 +121,7 @@
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totalb = 0;
         $sql    = "SELECT * FROM orderagen 
                     INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -132,7 +132,7 @@
     ?>
     <? $totalb += $gb['subtotal']; } ?>
 
-    <?
+    <?php
         $totald5    = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -145,7 +145,7 @@
     
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald10   = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -158,7 +158,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald15   = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -171,7 +171,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald17   = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -185,7 +185,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald20   = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -199,7 +199,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totald25   = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -213,7 +213,7 @@
 
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $ttl52  = 0;
         $sql    = "SELECT MAX(variants.harga) AS subtotal 
                     FROM orderagen 
@@ -226,7 +226,7 @@
         // $sql = "SELECT * FROM orderagen INNER JOIN produk ON produk.idproduk = orderagen.idproduk WHERE orderagen.invoice AND orderagen.jumlah > 0 AND products.idkategori = 52";
     ?>
 
-    <?
+    <?php
         $totald51   = 0;
         $sql        = "SELECT * FROM orderagen 
                         INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -239,7 +239,7 @@
     ?>      
     <!----------------------------------------------------------------------------------------------------------------------------->
 
-    <?
+    <?php
         $totaldfree=0;
         $sql = "SELECT * FROM orderagen 
                     INNER JOIN variants ON variants.id = orderagen.idproduk
@@ -572,12 +572,12 @@
     // }
     ?>
 
-    <?
+    <?php
         if($ongkir==0){
             if($status['status'] == 'Pending' && ($kurir == 'Ahsan' or $kurir == 'Gosend' or $kurir == 'Ambil ke Pusat' or $kurir == 'Disatukan' or $kurir == 'idetruck')){
     ?>
   
-    <?
+    <?php
         $jumlahhari = '+1 days'; 
         $no         = 1;
         $dataproduk = $koneksi->query("SELECT * FROM orderagen WHERE orderagen.invoice = '$invoice' AND orderagen.jumlah > 0 GROUP BY invoice");

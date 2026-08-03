@@ -40,7 +40,7 @@
         <!--**********************************
             Nav header start
         ***********************************-->
-        <? include "assets/components/Navbar/navbar.php"; ?>
+        <?php include "assets/components/Navbar/navbar.php"; ?>
         <!--**********************************
             Nav header end
         ***********************************-->

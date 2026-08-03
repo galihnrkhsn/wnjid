@@ -159,13 +159,13 @@ include 'assets/components/Sessions/sesDistri.php';
     <!-- Main Content End -->
 
     <!-- FOOTER -->
-    <?
+    <?php
         include 'menubawahstore.php';
     ?>
     <!-- FOOTER END -->
   
     <!-- PHP SYNTAK -->
-    <?
+    <?php
     include 'koneksi.php';
     ?>
     <!-- PHP SYNTAK END -->

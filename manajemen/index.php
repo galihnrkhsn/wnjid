@@ -11,6 +11,7 @@
     }
     $id             = $_SESSION['user_id'];
     $role           = $_SESSION['user_level'];
+    $datapm         = 0;
 
     $getSisa        = $koneksi->query("SELECT sisasaldo, tipe FROM saldo_per_tipe"); 
     while($dataSisa = $getSisa->fetch_assoc()){
@@ -48,27 +49,12 @@
     $getAset        = $koneksi->query("SELECT sum(nilai) as total FROM aset");
     $tampil_aset    = $getAset->fetch_assoc();
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <title><?= $role ?> | Wanoja</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-</head> 
-<body>
-    <!-- NAVBAR -->
-    <? include "assets/components/Navbar/navbar.php"; ?>
-    <!-- NAVBAR END -->
+<!-- NAVBAR -->
+<?php include "assets/components/Navbar/navbar.php"; ?>
+<!-- NAVBAR END -->
 
     <!-- MAIN CONTENT -->
-    <div class="container mt-5">
+    <div class="container mt-4">
         <div class="col-xl-8 col-lg-7">
             <?php if ($role == "Owner") : ?>
             <!-- OWNER -->
@@ -76,7 +62,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-success shadow h-100">
                             <!-- Card Header - Accordion -->
-                            <a href="#collapseCardExample" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample" style="margin-top: -2%;">
+                            <a href="#collapseCardExample" class="d-block card-header py-3" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Kas Kecil</h5>
                             </a>
                             <!-- Card Content - Collapse -->
@@ -116,7 +102,7 @@
                 <!-- PEMASUKAN HARIAN -->
                     <div class="card shadow-sm border-left-success mb-4">
                         <!-- Accordion Header -->
-                        <a href="#collapseCardPemasukan" class="card-header py-3 text-decoration-none d-flex justify-content-between align-items-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardPemasukan">
+                        <a href="#collapseCardPemasukan" class="card-header py-3 text-decoration-none d-flex justify-content-between align-items-center" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardPemasukan">
                             <h5 class="mb-0 font-weight-bold text-dark">Pemasukan</h5>
                             <i class="fas fa-chevron-down text-muted"></i>
                         </a>
@@ -196,7 +182,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-primary shadow h-100" >
                             <!-- Card Header - Accordion -->
-                            <a href="#collapsePenjualan" class="d-block card-header py-3" data-toggle="collapse"role="button" aria-expanded="true" aria-controls="collapsePenjualan" style="margin-top: -2%;">
+                            <a href="#collapsePenjualan" class="d-block card-header py-3" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapsePenjualan" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Penjualan WNJ</h5>
                             </a>
                             <!-- Card Content - Collapse -->
@@ -711,7 +697,6 @@
                             </div>
                         </div>
                     </div>
-                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js" integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK" crossorigin="anonymous"></script>
                 <!-- END PENJUALAN WNJ -->
                 <!-- PIUTANG -->
                     <div class="card shadow mb-4">
@@ -773,7 +758,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-danger shadow h-100">
                             <!-- Card Header - Accordion -->
-                            <a href="#collapseStok" class="d-block card-header py-3" data-toggle="collapse"
+                            <a href="#collapseStok" class="d-block card-header py-3" data-bs-toggle="collapse"
                                 role="button" aria-expanded="true" aria-controls="collapseStok" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Aset</h5>
                             </a>
@@ -822,7 +807,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-warning shadow h-100" >                                
                             <!-- Card Header - Accordion -->
-                            <a href="#collapsePO" class="d-block card-header py-3" data-toggle="collapse"
+                            <a href="#collapsePO" class="d-block card-header py-3" data-bs-toggle="collapse"
                                 role="button" aria-expanded="true" aria-controls="collapsePO" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Pre Order WNJ</h5>
                             </a>
@@ -926,7 +911,7 @@
                             <a 
                                 href="#collapseCardProgres" 
                                 class="d-block card-header py-3" 
-                                data-toggle="collapse"
+                                data-bs-toggle="collapse"
                                 role="button" 
                                 aria-expanded="true" 
                                 aria-controls="collapseCardProgres" 
@@ -1113,7 +1098,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-secondary shadow h-100">
                             <!-- Card Header - Accordion -->
-                            <a href="#collapseAds" class="d-block card-header py-3" data-toggle="collapse"
+                            <a href="#collapseAds" class="d-block card-header py-3" data-bs-toggle="collapse"
                                 role="button" aria-expanded="true" aria-controls="collapseAds" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Ads</h5>
                             </a>
@@ -1279,7 +1264,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-primary shadow h-100" >
                             <!-- Card Header - Accordion -->
-                            <a href="#collapsePenjualan" class="d-block card-header py-3" data-toggle="collapse"role="button" aria-expanded="true" aria-controls="collapsePenjualan" style="margin-top: -2%;">
+                            <a href="#collapsePenjualan" class="d-block card-header py-3" data-bs-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapsePenjualan" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Penjualan WNJ</h5>
                             </a>
                             <!-- Card Content - Collapse -->
@@ -1875,7 +1860,7 @@
                             <a 
                                 href="#collapseCardProgres" 
                                 class="d-block card-header py-3" 
-                                data-toggle="collapse"
+                                data-bs-toggle="collapse"
                                 role="button" 
                                 aria-expanded="true" 
                                 aria-controls="collapseCardProgres" 
@@ -2065,7 +2050,7 @@
                             <a 
                                 href="#collapsePO" 
                                 class="d-block card-header py-3" 
-                                data-toggle="collapse"
+                                data-bs-toggle="collapse"
                                 role="button" 
                                 aria-expanded="true" 
                                 aria-controls="collapsePO" 
@@ -2140,7 +2125,7 @@
                             <a 
                                 href="#collapseCardProgres" 
                                 class="d-block card-header py-3" 
-                                data-toggle="collapse"
+                                data-bs-toggle="collapse"
                                 role="button" 
                                 aria-expanded="true" 
                                 aria-controls="collapseCardProgres" 
@@ -2278,7 +2263,7 @@
                     <div class="card shadow mb-4">
                         <div class="card border-left-secondary shadow h-100">
                             <!-- Card Header - Accordion -->
-                            <a href="#collapseAds" class="d-block card-header py-3" data-toggle="collapse"
+                            <a href="#collapseAds" class="d-block card-header py-3" data-bs-toggle="collapse"
                                 role="button" aria-expanded="true" aria-controls="collapseAds" style="margin-top: -2%;">
                                 <h5 class="m-0 font-weight-bold text-dark">Ads</h5>
                             </a>
@@ -2331,7 +2316,7 @@
                         <a 
                             href="#collapseCardProgres" 
                             class="d-block card-header py-3" 
-                            data-toggle="collapse"
+                            data-bs-toggle="collapse"
                             role="button" 
                             aria-expanded="true" 
                             aria-controls="collapseCardProgres" 
@@ -2541,7 +2526,7 @@
     <!-- PHP END -->
 
     <!-- FOOTER -->
-    <? include "assets/components/Footer/footer.php"; ?>
+    <?php include "assets/components/Footer/footer.php"; ?>
     <!-- FOOTER END -->
 
     <!-- SCRIPT -->
