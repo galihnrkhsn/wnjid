@@ -2,6 +2,7 @@
     session_start();
     include 'koneksi.php';
     include '../includes/image_upload_helper.php';
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
         echo "
             <script>alert('Anda harus login terlebih dahulu!');</script>
@@ -288,10 +289,35 @@
                         <?php 
                             }
                             if (isset($_POST["hapus"])) {
-                                $idrk   = $_POST["idrk"];
-                                $koneksi->query("UPDATE rekeningkoran SET deleted_at = NOW() WHERE idrk = '$idrk'");
+                                $idrk = $_POST["idrk"];
+
+                                $koneksi->begin_transaction();
+                                try {
+                                    $stmtSelect = $koneksi->prepare("SELECT tipe, kredit, debit FROM rekeningkoran WHERE idrk = ? AND deleted_at IS NULL FOR UPDATE");
+                                    $stmtSelect->bind_param('i', $idrk);
+                                    $stmtSelect->execute();
+                                    $rowRk = $stmtSelect->get_result()->fetch_assoc();
+                                    $stmtSelect->close();
+
+                                    if ($rowRk) {
+                                        $stmtDelete = $koneksi->prepare("UPDATE rekeningkoran SET deleted_at = NOW() WHERE idrk = ? AND deleted_at IS NULL");
+                                        $stmtDelete->bind_param('i', $idrk);
+                                        $stmtDelete->execute();
+                                        $stmtDelete->close();
+
+                                        $stmtSaldo = $koneksi->prepare("UPDATE saldo_per_tipe SET total_kredit = total_kredit - ?, total_debit = total_debit - ?, sisasaldo = sisasaldo - ? + ?, updated_at = NOW() WHERE tipe = ?");
+                                        $stmtSaldo->bind_param('dddds', $rowRk['kredit'], $rowRk['debit'], $rowRk['kredit'], $rowRk['debit'], $rowRk['tipe']);
+                                        $stmtSaldo->execute();
+                                        $stmtSaldo->close();
+                                    }
+                                    $koneksi->commit();
                                     echo "<script>alert('Transaksi ($idrk) telah berhasil dihapus');</script>";
                                     echo "<script>location='finance.php?tipe=$tipe'</script>";
+                                } catch (Exception $e) {
+                                    $koneksi->rollback();
+                                    echo "<script>alert('Gagal menghapus transaksi ($idrk)');</script>";
+                                    echo "<script>location='finance.php?tipe=$tipe'</script>";
+                                }
                             }
                         ?>
                     </tbody>
