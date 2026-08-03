@@ -1,7 +1,4 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
     include "koneksi.php";
     include "assets/components/Sessions/sesDistri.php";
 
@@ -110,43 +107,25 @@
         }
 
         if ($jenis == 'b1g1') {
-            $idproducts = array_column($data_keranjang, 'idproducts');
+            // Produk yang boleh digabung dalam 1x checkout B1G1 harus dari artikel/koleksi yang
+            // sama. Grouping ini hidup di kolom products.kode_artikel (diisi staff lewat
+            // adminwnj/tambah_produk.php), bukan array hardcoded lagi - lihat database/products_kode_artikel.sql
+            $idproductsUnik = array_values(array_unique(array_column($data_keranjang, 'idproducts')));
+            $placeholders   = implode(',', array_fill(0, count($idproductsUnik), '?'));
+            $types          = str_repeat('i', count($idproductsUnik));
 
-            $categories = [
-                'sarung_etnik'          => [2514],
-                'voal_hampers'          => [2489],
-                'koko_etnik'            => [2516,2517,2524,2525],
-                'rail_sport'            => [2509,2510,2511],
-                'outer_parotia'         => [2455],
-                'khimar_kolibri_anak'   => [2336],
-                'bergo_fiarca'          => [2230],
-                'limicola_abaya'        => [2226,2248],
-                'konin_25'              => [
-                                                2521,2527,
-                                                2528,2522,2520,2519,
-                                                2565,2526,2523,2529,2531,2530,2566
-                                            ],
-                'konin_24'              => [2422,2421,2420,2412,2413,2414,2417,2418,2416,2415,2419],
-                'sula_scarves'          => [2502],
-                'mukena_skena'          => [2515],
-                'kolibri_25'            => [2513],
-                'kolibri_22'            => [2334],
-                'kolibri_24'            => [2400,2391,2394,2398,2399,2395,2396,2397],
-                'kolibri_luxury'        => [2558,2559],
-                'kolibri_sarung'        => [2536]
-            ];
+            $stmtArtikel = $koneksi->prepare("SELECT DISTINCT kode_artikel FROM products WHERE id IN ($placeholders)");
+            $stmtArtikel->bind_param($types, ...$idproductsUnik);
+            $stmtArtikel->execute();
+            $kodeArtikelList = array_column($stmtArtikel->get_result()->fetch_all(MYSQLI_ASSOC), 'kode_artikel');
 
-            $productCategories = [];
-            foreach ($idproducts as $id) {
-                foreach ($categories as $catName => $catIds) {
-                    if (in_array($id, $catIds)) {
-                        $productCategories[] = $catName;
-                        break;
-                    }
-                }
+            if (in_array(null, $kodeArtikelList, true) || in_array('', $kodeArtikelList, true)) {
+                $_SESSION['message'] = 'Ada produk yang belum diberi kode artikel untuk promo B1G1, hubungi admin';
+                echo "<script>alert('Ada produk yang belum diberi kode artikel untuk promo B1G1, hubungi admin'); location='view_cart.php';</script>";
+                exit;
             }
 
-            $all_same_category = count(array_unique($productCategories)) === 1;
+            $all_same_category = count(array_unique($kodeArtikelList)) === 1;
 
             if (!$all_same_category) {
                 $_SESSION['message'] = 'Tidak bisa memilih lebih dari 1 Artikel!';
@@ -162,14 +141,31 @@
             }
         }
 
-        $bundling5_items     = array_filter($data_keranjang, fn($item) => $item['jenis'] === 'Bundling 5');
-        $bundling3_items     = array_filter($data_keranjang, fn($item) => $item['jenis'] === 'Bundling 3');
-        $bundling_items      = array_filter($data_keranjang, fn($item) => $item['jenis'] === 'bundling');
-        $non_bundling_items  = array_filter($data_keranjang, fn($item) =>
-            $item['jenis'] !== 'bundling' &&
-            $item['jenis'] !== 'Bundling 5' &&
-            $item['jenis'] !== 'Bundling 3'
-        );
+        // Alias lama 'bundling' (huruf kecil) disatukan ke 'Bundling 3' - aturannya identik
+        // (1 bundling = 1 produk saja, kelipatan 3), jadi tidak perlu jadi tier terpisah.
+        foreach ($data_keranjang as &$itemNormalisasi) {
+            if ($itemNormalisasi['jenis'] === 'bundling') {
+                $itemNormalisasi['jenis'] = 'Bundling 3';
+            }
+        }
+        unset($itemNormalisasi);
+
+        // Tier bundling: jenis -> kelipatan qty yang wajib. Nambah tier baru (mis. "Bundling 7")
+        // cukup tambah 1 baris di sini, tidak perlu blok kode baru.
+        $bundlingRules = [
+            'Bundling 3' => 3,
+            'Bundling 5' => 5,
+        ];
+
+        $bundlingItemsByRule = [];
+        foreach ($bundlingRules as $jenisRule => $kelipatan) {
+            $bundlingItemsByRule[$jenisRule] = array_filter($data_keranjang, fn($item) => $item['jenis'] === $jenisRule);
+        }
+
+        // Bundling Short sengaja TIDAK masuk $bundlingRules (di luar scope - diskonnya dihitung
+        // belakangan di formpengirimanb.php, bukan divalidasi kelipatan di sini), jadi otomatis
+        // ikut $non_bundling_items seperti item biasa.
+        $non_bundling_items = array_filter($data_keranjang, fn($item) => !array_key_exists($item['jenis'], $bundlingRules));
 
         $koneksi->begin_transaction();
 
@@ -180,97 +176,24 @@
         $stmtDeleteKrj = $koneksi->prepare("DELETE FROM keranjang WHERE idkeranjang = ? AND idmitra = ?");
 
         try {
-            if (count($bundling_items) > 0) {
-                $idproducts          = array_column($bundling_items, 'idproducts');
-                $total_qty_bundling  = array_sum(array_column($bundling_items, 'jmlh'));
-                $all_same_idproducts = count(array_unique($idproducts)) === 1;
+            foreach ($bundlingRules as $jenisRule => $kelipatan) {
+                $items = $bundlingItemsByRule[$jenisRule];
+                if (count($items) === 0) {
+                    continue;
+                }
+
+                $idproductsBundling  = array_column($items, 'idproducts');
+                $total_qty_bundling  = array_sum(array_column($items, 'jmlh'));
+                $all_same_idproducts = count(array_unique($idproductsBundling)) === 1;
 
                 if (!$all_same_idproducts) {
                     throw new RuntimeException('Produk dalam bundling harus sama!');
                 }
-                if ($total_qty_bundling % 3 !== 0) {
-                    throw new RuntimeException('QTY Bundling harus kelipatan 3');
+                if ($total_qty_bundling % $kelipatan !== 0) {
+                    throw new RuntimeException("QTY Bundling harus kelipatan $kelipatan");
                 }
 
-                foreach ($bundling_items as $item) {
-                    $idproduk   = (int) $item['idproduk'];
-                    $hargaItem  = $item['harga'];
-                    $jmlhbaru   = $item['jmlh'];
-                    $subtotal   = $item['subtotal'];
-                    $berattotal = $item['berat'] * $jmlhbaru;
-                    $idker      = (int) $item['idkeranjang'];
-                    $waktu      = date('H:i:s');
-                    if (!$invoice) {
-                        $invoice = "D" . $idmitra . $today;
-                    }
-
-                    $stmtVariant->bind_param('i', $idproduk);
-                    $stmtVariant->execute();
-                    $dataProduk = $stmtVariant->get_result()->fetch_assoc();
-                    $disc       = $dataProduk['disc'] ?? 0;
-
-                    $stmtInsertOrd->bind_param('sidddsdsd', $idmitra, $idproduk, $hargaItem, $jmlhbaru, $subtotal, $invoice, $berattotal, $waktu, $disc);
-                    $stmtInsertOrd->execute();
-
-                    $stmtDeleteKrj->bind_param('is', $idker, $idmitra);
-                    $stmtDeleteKrj->execute();
-
-                    $berat += $berattotal;
-                }
-            }
-
-            if (count($bundling5_items) > 0) {
-                $idproducts          = array_column($bundling5_items, 'idproducts');
-                $total_qty_bundling  = array_sum(array_column($bundling5_items, 'jmlh'));
-                $all_same_idproducts = count(array_unique($idproducts)) === 1;
-
-                if (!$all_same_idproducts) {
-                    throw new RuntimeException('Produk dalam bundling harus sama!');
-                }
-                if ($total_qty_bundling % 5 !== 0) {
-                    throw new RuntimeException('QTY Bundling harus kelipatan 5');
-                }
-
-                foreach ($bundling5_items as $item) {
-                    $idproduk   = (int) $item['idproduk'];
-                    $hargaItem  = $item['harga'];
-                    $jmlhbaru   = $item['jmlh'];
-                    $subtotal   = $item['subtotal'];
-                    $berattotal = $item['berat'] * $jmlhbaru;
-                    $idker      = (int) $item['idkeranjang'];
-                    $waktu      = date('H:i:s');
-                    if (!$invoice) {
-                        $invoice = "D" . $idmitra . $today;
-                    }
-
-                    $stmtVariant->bind_param('i', $idproduk);
-                    $stmtVariant->execute();
-                    $dataProduk = $stmtVariant->get_result()->fetch_assoc();
-                    $disc       = $dataProduk['disc'] ?? 0;
-
-                    $stmtInsertOrd->bind_param('sidddsdsd', $idmitra, $idproduk, $hargaItem, $jmlhbaru, $subtotal, $invoice, $berattotal, $waktu, $disc);
-                    $stmtInsertOrd->execute();
-
-                    $stmtDeleteKrj->bind_param('is', $idker, $idmitra);
-                    $stmtDeleteKrj->execute();
-
-                    $berat += $berattotal;
-                }
-            }
-
-            if (count($bundling3_items) > 0) {
-                $idproducts          = array_column($bundling3_items, 'idproducts');
-                $total_qty_bundling  = array_sum(array_column($bundling3_items, 'jmlh'));
-                $all_same_idproducts = count(array_unique($idproducts)) === 1;
-
-                if (!$all_same_idproducts) {
-                    throw new RuntimeException('Produk dalam bundling harus sama!');
-                }
-                if ($total_qty_bundling % 3 !== 0) {
-                    throw new RuntimeException('QTY Bundling harus kelipatan 3');
-                }
-
-                foreach ($bundling3_items as $item) {
+                foreach ($items as $item) {
                     $idproduk   = (int) $item['idproduk'];
                     $hargaItem  = $item['harga'];
                     $jmlhbaru   = $item['jmlh'];

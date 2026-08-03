@@ -54,9 +54,6 @@
     </a>
     <a href="view_cart.php" class="<?= $halamanAktif === 'view_cart.php' ? 'active' : '' ?>">
         <i class="bi bi-cart3"></i> Keranjang
-        <?php if ($jumlahKeranjangFooter > 0): ?>
-            <span class="nav-badge"><?= $jumlahKeranjangFooter ?></span>
-        <?php endif; ?>
     </a>
     <a href="riwayat_pesanan.php" class="<?= $halamanAktif === 'riwayat_pesanan.php' ? 'active' : '' ?>">
         <i class="bi bi-bag-check"></i> Pesanan

@@ -93,6 +93,21 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="kode_artikel" class="d-flex align-items-center">Kode Artikel <span class="text-muted small ml-1">(opsional, buat promo B1G1)</span></label>
+                            <input list="kode_artikel_list" type="text" class="form-control form-control-sm" placeholder="Contoh: konin_25" name="kode_artikel">
+                            <datalist id="kode_artikel_list">
+                                <?php
+                                    $artikelList = $koneksi->query("SELECT DISTINCT kode_artikel FROM products WHERE kode_artikel IS NOT NULL AND kode_artikel != '' ORDER BY kode_artikel ASC");
+                                    while ($a = $artikelList->fetch_assoc()) {
+                                ?>
+                                    <option value="<?= htmlspecialchars($a['kode_artikel']) ?>">
+                                <?php } ?>
+                            </datalist>
+                            <small class="text-muted">Produk dengan kode artikel yang sama boleh digabung dalam 1x checkout promo B1G1.</small>
+                        </div>
+                    </div>
 
                     <div class="col-sm-12">
                         <button class="btn btn-primary btn-sm" type="submit" name="insert-produk">Tambah Produk</button>
@@ -105,9 +120,11 @@
             </form>
             <?php
                 if (isset($_POST['insert-produk'])) {
-                    $produk    = trim($_POST['products']);
-                    $pkategori = $_POST['pkategori'];
-                    $kategori  = $_POST['kategori'];
+                    $produk       = trim($_POST['products']);
+                    $pkategori    = $_POST['pkategori'];
+                    $kategori     = $_POST['kategori'];
+                    $kodeArtikel  = trim($_POST['kode_artikel'] ?? '');
+                    $kodeArtikel  = $kodeArtikel !== '' ? $kodeArtikel : null;
                     $slug = strtolower($produk); // jadi huruf kecil
                     $slug = preg_replace('/[\s-]+/', '-', $slug); // ganti spasi / double dash jadi 1 dash
                     $slug = trim($slug, '-'); // hapus dash di awal/akhir
@@ -125,8 +142,8 @@
                     $stmtCheck->close();
 
                     // Insert produk baru
-                    $stmtInsert = $koneksi->prepare("INSERT INTO products (namaproduk, idpkategori, idkategori, created_at, updated_at, slug, access) VALUES (?, ?, ?, now(), now(), ?, 0)");
-                    $stmtInsert->bind_param("siis", $produk, $pkategori, $kategori, $slug);
+                    $stmtInsert = $koneksi->prepare("INSERT INTO products (namaproduk, idpkategori, idkategori, kode_artikel, created_at, updated_at, slug, access) VALUES (?, ?, ?, ?, now(), now(), ?, 0)");
+                    $stmtInsert->bind_param("siiss", $produk, $pkategori, $kategori, $kodeArtikel, $slug);
 
                     if ($stmtInsert->execute()) {
                         echo "<script>alert('Data berhasil disimpan.'); window.location.href = 'tambah_produk.php';</script>";
