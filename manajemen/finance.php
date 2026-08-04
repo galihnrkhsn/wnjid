@@ -204,11 +204,11 @@
                                                 <center>
                                                     <div class="card" style="width: 18rem;">
                                                         <?php if($tampil['buktitf']==""){ ?>
-                                                            <img src="..." class="card-img-top" alt="Foto Tidak Ada">
+                                                            <img src="../image/produk/nophoto.png" class="card-img-top" alt="Foto Tidak Ada">
                                                         <?php } else { ?>
                                                             <img src="../image/bukti_manajemen/<?php echo $tampil['buktitf'];?>" class="card-img-top" alt="Bukti Transfer">
                                                         <?php } ?>
-                                                    </div>       
+                                                    </div>
                                                 </center>
                                             </div>
                                             <!-- Modal Footer -->
@@ -488,42 +488,60 @@
                 $kategori   = $_POST['kategori'];
                 $kredit     = $_POST["kredit"];
                 $debit      = $_POST["debit"];
-                $sisa       = $distributor2['sisa'] + $kredit - $debit;
-                
-                $foto       = $_FILES['foto']['name'];
-                $tmp        = $_FILES['foto']['tmp_name'];
-                $ukuranFile = $_FILES['foto']['size'];
-                
-                if ($foto == "") {
-                    $sql = $koneksi->query("UPDATE rekeningkoran SET tanggal = '$tanggal', waktu = '$waktu', keterangan = '$keterangan', kredit = '$kredit', debit = '$debit', kategori_id = '$kategori' WHERE idrk = '$idrk'");
-                    if ($sql) {
-                        echo "<script>alert('Transaksi ($keterangan) berhasil diubah');</script>";
+
+                $foto       = $_FILES['foto']['name'] ?? '';
+                $tmp        = $_FILES['foto']['tmp_name'] ?? '';
+
+                $namaFileBaru = null;
+                if ($foto !== "") {
+                    $ekstensiGambarValid    = ['jpg', 'jpeg', 'png'];
+                    $ekstensiGambar         = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
+                    if (!in_array($ekstensiGambar, $ekstensiGambarValid)) {
+                        echo "<script>alert('Yang anda upload bukan gambar (jpg/jpeg/png)');</script>";
                         echo "<script>location='finance.php?tipe=$tipe'</script>";
-                    } else {
-                        echo "<script>alert('Transaksi ($keterangan) gagal diubah');</script>";
-                        echo "<script>location='finance.php?tipe=$tipe'</script>";
+                        return false;
                     }
-                    return false;
-                }
-                
-                $ekstensiGambarValid    = ['jpg', 'jpeg', 'png'];
-                $ekstensiGambar         = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
-                if (!in_array($ekstensiGambar, $ekstensiGambarValid)) {
-                    echo "<script>alert('Yang anda upload bukan gambar (jpg/jpeg/png)');</script>";
-                    echo "<script>location='finance.php?tipe=$tipe'</script>";
-                    return false;
+
+                    $namadepan      = $kredit == 0 ? 'D' . $tipe : 'K' . $tipe;
+                    $namaFileBaru   = convertUploadedImageToWebp($tmp, $ekstensiGambar, '../image/bukti_manajemen/', $namadepan . uniqid());
                 }
 
-                $namadepan      = $kredit == 0 ? 'D' . $tipe : 'K' . $tipe;
-                $namaFileBaru   = convertUploadedImageToWebp($tmp, $ekstensiGambar, '../image/bukti_manajemen/', $namadepan . uniqid());
+                $koneksi->begin_transaction();
+                try {
+                    $stmtSelect = $koneksi->prepare("SELECT tipe, kredit, debit FROM rekeningkoran WHERE idrk = ? AND deleted_at IS NULL FOR UPDATE");
+                    $stmtSelect->bind_param('i', $idrk);
+                    $stmtSelect->execute();
+                    $rowRk = $stmtSelect->get_result()->fetch_assoc();
+                    $stmtSelect->close();
 
-                if ($namaFileBaru) {
-                    $sql = $koneksi->query("UPDATE rekeningkoran SET tanggal='$tanggal', waktu='$waktu', keterangan='$keterangan', kredit='$kredit', debit='$debit', buktitf='$namaFileBaru' WHERE idrk='$idrk'");
-                }
-                if ($sql) {
+                    if (!$rowRk) {
+                        throw new Exception('Transaksi tidak ditemukan atau sudah dihapus');
+                    }
+
+                    if ($namaFileBaru) {
+                        $stmtUpdate = $koneksi->prepare("UPDATE rekeningkoran SET tanggal = ?, waktu = ?, keterangan = ?, kredit = ?, debit = ?, kategori_id = ?, buktitf = ? WHERE idrk = ?");
+                        $stmtUpdate->bind_param('sssddssi', $tanggal, $waktu, $keterangan, $kredit, $debit, $kategori, $namaFileBaru, $idrk);
+                    } else {
+                        $stmtUpdate = $koneksi->prepare("UPDATE rekeningkoran SET tanggal = ?, waktu = ?, keterangan = ?, kredit = ?, debit = ?, kategori_id = ? WHERE idrk = ?");
+                        $stmtUpdate->bind_param('sssddsi', $tanggal, $waktu, $keterangan, $kredit, $debit, $kategori, $idrk);
+                    }
+                    $stmtUpdate->execute();
+                    $stmtUpdate->close();
+
+                    $deltaKredit = $kredit - $rowRk['kredit'];
+                    $deltaDebit  = $debit - $rowRk['debit'];
+                    if ($deltaKredit != 0 || $deltaDebit != 0) {
+                        $stmtSaldo = $koneksi->prepare("UPDATE saldo_per_tipe SET total_kredit = total_kredit + ?, total_debit = total_debit + ?, sisasaldo = sisasaldo + ? - ?, updated_at = NOW() WHERE tipe = ?");
+                        $stmtSaldo->bind_param('dddds', $deltaKredit, $deltaDebit, $deltaKredit, $deltaDebit, $rowRk['tipe']);
+                        $stmtSaldo->execute();
+                        $stmtSaldo->close();
+                    }
+
+                    $koneksi->commit();
                     echo "<script>alert('Transaksi ($keterangan) berhasil diubah');</script>";
                     echo "<script>location='finance.php?tipe=$tipe'</script>";
-                } else {
+                } catch (Exception $e) {
+                    $koneksi->rollback();
                     echo "<script>alert('Transaksi ($keterangan) gagal diubah');</script>";
                     echo "<script>location='finance.php?tipe=$tipe'</script>";
                 }
