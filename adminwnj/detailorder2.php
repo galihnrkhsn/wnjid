@@ -18,7 +18,7 @@
 
     // Hanya admin tertentu yang boleh mengubah isi order (sama seperti pembatasan lama).
     $namaAdmin = $_SESSION["administrator"]["nama"] ?? null;
-    $bisaEdit  = in_array($namaAdmin, ['Delita', 'Master', 'Administrator Wanoja'], true);
+    $bisaEdit  = in_array($namaAdmin, ['Delita', 'Master'], true);
 
     $statusBisaEdit = ['Pending', 'Proses', 'Tunggu Confirm Admin', 'Tunggu Confrim Admin'];
 

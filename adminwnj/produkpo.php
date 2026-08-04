@@ -61,14 +61,15 @@ if(!isset($_SESSION["administrator"])){
                             <th>
                             Nama PO
                           </th>
+                          <th style="width:100px"></th>
                         </tr>
                       </thead>
                       <tbody>
-                          <?php 
+                          <?php
                           include "koneksi.php";
                           $datapo=$koneksi->query("SELECT * from poproduk order by idpoproduk desc");
                             $no=1;
-                           
+
                         while($tampilkan=$datapo->fetch_assoc()){
                          ?>
                         <tr>
@@ -76,7 +77,12 @@ if(!isset($_SESSION["administrator"])){
                           </td>
                           <td>
                             <a href="produkpo_kategori.php?id=<?= $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-                            
+
+                          </td>
+                          <td>
+                            <a href="inputpo2.php?copy_from=<?= $tampilkan['idpoproduk']; ?>" class="btn btn-sm btn-outline-secondary" title="Copy PO ini ke form Tambah PO">
+                                <i class="fas fa-copy"></i> Copy
+                            </a>
                           </td>
                         </tr>
                         <?php } ?>
