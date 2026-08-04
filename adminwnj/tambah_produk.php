@@ -4,9 +4,10 @@
     error_reporting(E_ALL);
     session_start();
 
-    include 'koneksi.php'; 
+    include 'koneksi.php';
     require_once 'helpers/compress_img.php';
     require_once 'helpers/slugify.php';
+    require_once '../includes/access_helper.php';
 
     if(!isset($_SESSION["administrator"])){
         echo "<script>alert('anda harus login terlebih dahulu');</script>";
@@ -108,6 +109,31 @@
                             <small class="text-muted">Produk dengan kode artikel yang sama boleh digabung dalam 1x checkout promo B1G1.</small>
                         </div>
                     </div>
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <label class="d-flex align-items-center">Akses Mitra <span class="text-muted small ml-1">(kosongkan = semua mitra bisa akses)</span></label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="access[]" value="<?= ACCESS_DISTRIBUTOR ?>" id="accessDistributor">
+                                <label class="form-check-label" for="accessDistributor">Distributor</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="access[]" value="<?= ACCESS_AGEN ?>" id="accessAgen">
+                                <label class="form-check-label" for="accessAgen">Agen</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="access[]" value="<?= ACCESS_RESELLER ?>" id="accessReseller">
+                                <label class="form-check-label" for="accessReseller">Reseller</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="access[]" value="<?= ACCESS_MARKETER ?>" id="accessMarketer">
+                                <label class="form-check-label" for="accessMarketer">Marketer</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="access[]" value="<?= ACCESS_KONSUMEN ?>" id="accessKonsumen">
+                                <label class="form-check-label" for="accessKonsumen">Konsumen</label>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="col-sm-12">
                         <button class="btn btn-primary btn-sm" type="submit" name="insert-produk">Tambah Produk</button>
@@ -125,6 +151,12 @@
                     $kategori     = $_POST['kategori'];
                     $kodeArtikel  = trim($_POST['kode_artikel'] ?? '');
                     $kodeArtikel  = $kodeArtikel !== '' ? $kodeArtikel : null;
+
+                    $access = 0;
+                    foreach ($_POST['access'] ?? [] as $bit) {
+                        $access |= (int) $bit;
+                    }
+
                     $slug = strtolower($produk); // jadi huruf kecil
                     $slug = preg_replace('/[\s-]+/', '-', $slug); // ganti spasi / double dash jadi 1 dash
                     $slug = trim($slug, '-'); // hapus dash di awal/akhir
@@ -142,8 +174,8 @@
                     $stmtCheck->close();
 
                     // Insert produk baru
-                    $stmtInsert = $koneksi->prepare("INSERT INTO products (namaproduk, idpkategori, idkategori, kode_artikel, created_at, updated_at, slug, access) VALUES (?, ?, ?, ?, now(), now(), ?, 0)");
-                    $stmtInsert->bind_param("siiss", $produk, $pkategori, $kategori, $kodeArtikel, $slug);
+                    $stmtInsert = $koneksi->prepare("INSERT INTO products (namaproduk, idpkategori, idkategori, kode_artikel, created_at, updated_at, slug, access) VALUES (?, ?, ?, ?, now(), now(), ?, ?)");
+                    $stmtInsert->bind_param("siissi", $produk, $pkategori, $kategori, $kodeArtikel, $slug, $access);
 
                     if ($stmtInsert->execute()) {
                         echo "<script>alert('Data berhasil disimpan.'); window.location.href = 'tambah_produk.php';</script>";
@@ -172,6 +204,18 @@
                         }
                         ?>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Jenis <span class="text-muted small">(opsional, contoh: flash, b1g1, GB, Bundling 3 - kosongkan untuk produk reguler)</span></label>
+                    <input list="jenis_list" type="text" class="form-control form-control-sm" name="jenis" placeholder="Kosongkan jika produk reguler">
+                    <datalist id="jenis_list">
+                        <?php
+                            $jenisList = $koneksi->query("SELECT nama_jenis FROM master_jenis_products ORDER BY nama_jenis ASC");
+                            while ($jn = $jenisList->fetch_assoc()) {
+                        ?>
+                            <option value="<?= htmlspecialchars($jn['nama_jenis']) ?>">
+                        <?php } ?>
+                    </datalist>
                 </div>
                 <hr />
                 <h5>Daftar Ukuran / Harga</h5>
@@ -265,7 +309,7 @@
                                     </datalist>
                                 </td>
                                 <td>
-                                    <input type="hidden" name="foto_nama[]" class="foto-nama">
+                                    <input type="hidden" name="foto_id[]" class="foto-id">
 
                                     <input type="file" name="foto_file[]" class="foto-file d-none">
 
@@ -318,10 +362,33 @@
                         $fotos        = $_FILES['foto_file'];
                         $size_ids     = [];
 
-                        $folder = $koneksi->query("SELECT namaproduk, idkategori FROM products WHERE id = '$produk'")->fetch_assoc();
+                        $stmtProduk = $koneksi->prepare("SELECT namaproduk FROM products WHERE id = ?");
+                        $stmtProduk->bind_param("i", $produk);
+                        $stmtProduk->execute();
+                        $produkRow = $stmtProduk->get_result()->fetch_assoc();
+                        $stmtProduk->close();
 
-                        $folderName     = trim($folder['namaproduk']);
-                        $jenis          = ($folder['idkategori'] == 2) ? 'GB' : '';
+                        if (!$produkRow) {
+                            throw new Exception("Produk tidak ditemukan");
+                        }
+
+                        $jenisInput = trim($_POST['jenis'] ?? '');
+                        $jenis      = $jenisInput !== '' ? $jenisInput : null;
+
+                        if ($jenis !== null) {
+                            $stmtJenis = $koneksi->prepare("SELECT id FROM master_jenis_products WHERE nama_jenis = ?");
+                            $stmtJenis->bind_param("s", $jenis);
+                            $stmtJenis->execute();
+                            if ($stmtJenis->get_result()->num_rows === 0) {
+                                $insertJenis = $koneksi->prepare("INSERT INTO master_jenis_products (nama_jenis) VALUES (?)");
+                                $insertJenis->bind_param("s", $jenis);
+                                $insertJenis->execute();
+                                $insertJenis->close();
+                            }
+                            $stmtJenis->close();
+                        }
+
+                        $folderName     = trim($produkRow['namaproduk']);
                         $f              = slugify($folderName);
                         $folderPath     = "../image/produk/" . $f;
 
@@ -347,6 +414,12 @@
                         }
                         $stmtFold->close();
 
+                        $stmtUrutan = $koneksi->prepare("SELECT COALESCE(MAX(urutan), -1) + 1 AS next_urutan FROM foto_produk WHERE idproduk = ?");
+                        $stmtUrutan->bind_param("i", $produk);
+                        $stmtUrutan->execute();
+                        $nextUrutan = (int) $stmtUrutan->get_result()->fetch_assoc()['next_urutan'];
+                        $stmtUrutan->close();
+
                         foreach ($sizes as $s) {
                             $s          = trim(strtoupper($s));
                             $stmtSize   = $koneksi->prepare("SELECT id FROM master_size WHERE nama_size = ?");
@@ -368,37 +441,46 @@
                             $stmtSize->close();
                         }
 
-                        $stmt = $koneksi->prepare("INSERT INTO variants 
-                                (idproducts, variant, size, size_id, berat, harga, hargaCoret, folder, foto, status, tgl, updated_at, jenis)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)");
+                        $stmt = $koneksi->prepare("INSERT INTO variants
+                                (idproducts, variant, size, size_id, berat, harga, hargaCoret, foto, status, tgl, updated_at, jenis)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)");
                         if (!$stmt) {
                             throw new Exception("Prepare gagal: " . $koneksi->error);
                         }
 
+                        $stmtFotoInsert = $koneksi->prepare("INSERT INTO foto_produk (idproduk, folder, foto, urutan, created_at) VALUES (?, ?, ?, ?, NOW())");
+
                         foreach ($variants as $i => $variant) {
                             $variant        = trim($variant);
-                            $fotoNama       = $_POST['foto_nama'][$i] ?? null;
-                            $fotoNamaNew    = $fotos['name'][$i];
-                            $fotoTmp        = $fotos['tmp_name'][$i];
+                            $fotoIdPosted   = $_POST['foto_id'][$i] ?? '';
+                            $fotoNamaNew    = $fotos['name'][$i] ?? '';
+                            $fotoTmp        = $fotos['tmp_name'][$i] ?? '';
                             $ext            = strtolower(pathinfo($fotoNamaNew, PATHINFO_EXTENSION));
 
                             if (!empty($fotoNamaNew)) {
                                 if (!in_array($ext, ['jpg','jpeg','png','webp'])) {
                                     throw new Exception("Format gambar tidak didukung untuk variant: $variant");
                                 }
-    
+
                                 $namaFileBaru = slugify($f . '-' . $variant);
                                 $namaFileBaru = $namaFileBaru . '.webp';
-    
+
                                 $uploadPath = "../image/produk/" . $f . '/' . $namaFileBaru;
-    
+
                                 $compressed = compressResizeImage($fotoTmp, $uploadPath, 75, 1200);
-    
+
                                 if (!$compressed) {
                                     throw new Exception("Compress gambar gagal untuk variant: $variant");
                                 }
+
+                                $stmtFotoInsert->bind_param("iisi", $produk, $folder_id, $namaFileBaru, $nextUrutan);
+                                $stmtFotoInsert->execute();
+                                $fotoId = $koneksi->insert_id;
+                                $nextUrutan++;
+                            } elseif (!empty($fotoIdPosted)) {
+                                $fotoId = (int) $fotoIdPosted;
                             } else {
-                                $namaFileBaru = $fotoNama;
+                                $fotoId = null;
                             }
 
                             foreach ($sizes as $j => $size) {
@@ -418,7 +500,7 @@
 
                                 if ($checkStmt->num_rows == 0) {
                                     $stmt->bind_param(
-                                        "issiidissis",
+                                        "issidiiiis",
                                         $produk,
                                         $variant,
                                         $size,
@@ -426,8 +508,7 @@
                                         $berat,
                                         $harga,
                                         $hargaCoret,
-                                        $folder_id,
-                                        $namaFileBaru,
+                                        $fotoId,
                                         $status,
                                         $jenis
                                     );
@@ -533,10 +614,12 @@ $(document).on("click",".pilih-foto",function(){
 
 $(document).on("click",".foto-item",function(){
 
+    let id   = $(this).data("id");
     let nama = $(this).data("nama");
 
-    currentInput.find(".foto-nama").val(nama);
+    currentInput.find(".foto-id").val(id);
     currentInput.find(".foto-preview").val(nama);
+    currentInput.find(".foto-file").val("");
 
     $("#modalFoto").modal("hide");
 

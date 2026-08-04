@@ -3,43 +3,32 @@
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
     require 'koneksi.php';
-    $product_id = $_GET['product_id'];
-    
-    $q = $koneksi->query("
-        SELECT mf.name
-        FROM products p
-        JOIN master_folder mf 
-            ON mf.name = p.slug
-        WHERE p.id = '$product_id'
-    ");
-   
-    $d = $q->fetch_assoc();
+    require_once '../includes/foto_helper.php';
 
-    if(!$d || empty($d['name'])){
+    $product_id = (int) $_GET['product_id'];
+
+    $stmt = $koneksi->prepare("SELECT fp.id, fp.foto, mf.name AS nama_folder
+                                FROM foto_produk fp
+                                LEFT JOIN master_folder mf ON fp.folder = mf.id
+                                WHERE fp.idproduk = ?
+                                ORDER BY fp.urutan ASC, fp.id ASC");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    if (!$rows) {
         echo "Tidak ada foto";
         exit;
     }
 
-    $folder = $d['name'];
-    $path   = "../image/produk/".$folder."/";
-    
-    if(!is_dir($path)){
-        echo "Tidak ada foto";
-        exit;
-    }
+    foreach ($rows as $row) {
+        $src = fotoProdukSrc($row['nama_folder'] ?? null, $row['foto'] ?? null);
 
-    $files  = glob($path."*.{jpg,jpeg,png,webp}",GLOB_BRACE);
-
-    if(!$files){
-        echo "Tidak ada foto";
-        exit;
-    }
-    foreach($files as $file){
-        $nama = basename($file);
-
-        echo "<img 
-            src='../image/produk/$folder/$nama'
+        echo "<img
+            src='" . htmlspecialchars($src) . "'
             class='foto-item'
-            data-nama='$nama'
+            data-id='" . (int) $row['id'] . "'
+            data-nama='" . htmlspecialchars($row['foto']) . "'
         >";
     }

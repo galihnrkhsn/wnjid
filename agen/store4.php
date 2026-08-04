@@ -9,6 +9,7 @@
     include 'assets/components/Sessions/sesAgen.php';
     include '../includes/foto_helper.php';
     include '../includes/promo_badge_helper.php';
+    include '../includes/access_helper.php';
 
     // ---- Input & pagination ----
     $namaproduk = isset($_GET['namaproduk']) ? trim($_GET['namaproduk']) : '';
@@ -19,8 +20,9 @@
     $limit_start = ($page - 1) * $limit;
 
     // ---- Build WHERE clause shared by count & data queries ----
-    // products.access <> 1 : produk yang ditandai khusus distributor, disembunyikan dari agen
-    $whereSql = "v.status <> 1 AND v.stock > 0 AND p.access <> 1";
+    // products.access adalah bitmask mitra yang boleh akses (lihat includes/access_helper.php).
+    // access = 0 berarti tidak ada pembatasan (semua mitra bisa akses).
+    $whereSql = "v.status <> 1 AND v.stock > 0 AND (p.access = 0 OR (p.access & " . ACCESS_AGEN . ") <> 0)";
     $params   = [];
     $types    = '';
 
