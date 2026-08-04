@@ -1,6 +1,7 @@
 <?php
     session_start();
     include 'koneksi.php';
+    include '../includes/discount_rules.php';
 
     if (!isset($_SESSION["administrator"])) {
         echo "<script>alert('anda harus login terlebih dahulu');</script>";
@@ -20,7 +21,7 @@
     $namaAdmin = $_SESSION["administrator"]["nama"] ?? null;
     $bisaEdit  = in_array($namaAdmin, ['Delita', 'Master'], true);
 
-    $statusBisaEdit = ['Pending', 'Proses', 'Tunggu Confirm Admin', 'Tunggu Confrim Admin'];
+    $statusBisaEdit = ['Pending', 'Tunggu Confirm Admin', 'Tunggu Confrim Admin'];
 
     if (isset($_POST["done"])) {
         $koneksi->query("update ordermitra set status='Sedang DiKirim' where invoice='$invoice';");
@@ -165,96 +166,46 @@
         $totalb += $gb['subtotal'];
     }
 
-    $kategoriDiskonTier = [5 => 0, 10 => 0, 15 => 0, 17 => 0, 20 => 0, 25 => 0];
-    foreach (array_keys($kategoriDiskonTier) as $idkategoriTier) {
+    // Tier diskon tambahan per-kategori (D5/D10/.../D25) - dari includes/discount_rules.php,
+    // sama seperti yang dipakai distributor/detailorderb2.php (satu sumber aturan diskon).
+    $totalPerCategory = [];
+    foreach ($categoryDiscountRules as $idkategoriRule => $persenRule) {
+        $totalPerCategory[$idkategoriRule] = 0;
         $sql   = "SELECT * FROM ordermitra
                     INNER JOIN variants on variants.id = ordermitra.idproduk
                     INNER JOIN products on products.id = variants.idproducts
                     WHERE ordermitra.invoice = '$invoice'
                     AND ordermitra.jumlah > 0
-                    AND products.idkategori = $idkategoriTier";
+                    AND products.idkategori = $idkategoriRule";
         $query = $koneksi->query($sql);
         while ($row = $query->fetch_assoc()) {
-            $kategoriDiskonTier[$idkategoriTier] += $row['subtotal'];
+            $totalPerCategory[$idkategoriRule] += $row['subtotal'];
         }
     }
-    $totald5  = $kategoriDiskonTier[5];
-    $totald10 = $kategoriDiskonTier[10];
-    $totald15 = $kategoriDiskonTier[15];
-    $totald17 = $kategoriDiskonTier[17];
-    $totald20 = $kategoriDiskonTier[20];
-    $totald25 = $kategoriDiskonTier[25];
 
     $apaja    = $pengiriman['dropship'];
     $dropship = $pengiriman['berat'];
 
-    if ($dropship <= 5000 && $dropship >= 0 && $apaja == 'ya') {
-        $biayad = 3000;
-    } elseif ($dropship <= 10000 && $dropship >= 6000 && $apaja == 'ya') {
-        $biayad = 5000;
-    } elseif ($dropship <= 20000 && $dropship >= 11000 && $apaja == 'ya') {
-        $biayad = 10000;
-    } elseif ($dropship <= 30000 && $dropship >= 21000 && $apaja == 'ya') {
-        $biayad = 15000;
-    } elseif ($dropship <= 40000 && $dropship >= 31000 && $apaja == 'ya') {
-        $biayad = 20000;
-    } elseif ($dropship <= 50000 && $dropship >= 41000 && $apaja == 'ya') {
-        $biayad = 25000;
-    } elseif ($dropship <= 60000 && $dropship >= 51000 && $apaja == 'ya') {
-        $biayad = 30000;
-    } elseif ($dropship <= 70000 && $dropship >= 61000 && $apaja == 'ya') {
-        $biayad = 35000;
-    } elseif ($dropship <= 80000 && $dropship >= 71000 && $apaja == 'ya') {
-        $biayad = 40000;
-    } elseif ($dropship <= 90000 && $dropship >= 81000 && $apaja == 'ya') {
-        $biayad = 45000;
-    } elseif ($dropship <= 100000 && $dropship >= 91000 && $apaja == 'ya') {
-        $biayad = 50000;
-    } elseif ($dropship <= 110000 && $dropship >= 101000 && $apaja == 'ya') {
-        $biayad = 55000;
-    } elseif ($dropship <= 120000 && $dropship >= 111000 && $apaja == 'ya') {
-        $biayad = 60000;
-    } elseif ($dropship <= 130000 && $dropship >= 121000 && $apaja == 'ya') {
-        $biayad = 65000;
-    } elseif ($dropship <= 140000 && $dropship >= 131000 && $apaja == 'ya') {
-        $biayad = 70000;
-    } elseif ($dropship <= 150000 && $dropship >= 141000 && $apaja == 'ya') {
-        $biayad = 75000;
-    } elseif ($dropship <= 160000 && $dropship >= 151000 && $apaja == 'ya') {
-        $biayad = 80000;
-    } elseif ($dropship <= 170000 && $dropship >= 161000 && $apaja == 'ya') {
-        $biayad = 85000;
-    } elseif ($dropship <= 180000 && $dropship >= 171000 && $apaja == 'ya') {
-        $biayad = 90000;
-    } elseif ($dropship <= 190000 && $dropship >= 181000 && $apaja == 'ya') {
-        $biayad = 95000;
-    } elseif ($dropship <= 200000 && $dropship >= 191000 && $apaja == 'ya') {
-        $biayad = 100000;
-    } elseif ($apaja == 'tidak') {
-        $biayad = 0;
-    } else {
-        $biayad = 0;
+    // Tangga biaya dropship per-band berat - dari includes/discount_rules.php.
+    $biayad = 0;
+    if ($apaja == 'ya') {
+        foreach ($dropshipFeeTiers as [$beratMin, $beratMax, $biayaTier]) {
+            if ($dropship >= $beratMin && $dropship <= $beratMax) {
+                $biayad = $biayaTier;
+                break;
+            }
+        }
     }
 
     $ongkir         = $pengiriman['ongkir'];
     $kurir          = $pengiriman['ekspedisi'];
     $diskonramadhan = $pengiriman['diskonramadhan'];
 
-    $diskona  = $totala * 35 / 100;
-    $diskonb  = $totalb * 55 / 100;
-    $diskon5  = $totald5 * 5 / 100;
-    $diskon10 = $totald10 * 10 / 100;
-    $diskon15 = $totald15 * 15 / 100;
-    $diskon17 = $totald17 * 17 / 100;
-    $diskon20 = $totald20 * 20 / 100;
-    $diskon25 = $totald25 * 25 / 100;
+    $diskona = $totala * 35 / 100;
+    $diskonb = $totalb * 55 / 100;
 
     $diskonTambahan = (isset($disc) && $disc > 0) ? $totala * $disc / 100 : 0;
     $diskonFlash    = ($jenis == 'Flash') ? $totala * 20 / 100 : 0;
-
-    $grandtotal = ($totala + $totalb + $ongkir + $biayad)
-                - ($diskona + $diskonTambahan + $diskonFlash + $diskonb + $diskon5 + $diskon10 + $diskon15 + $diskon17 + $diskon20 + $diskon25);
-    $total      = $totala + $totalb;
 
     // Baris diskon yang benar-benar kepakai saja yang ditampilkan (bukan baris 0/kosong).
     $diskonLines = [];
@@ -262,12 +213,19 @@
     if ($diskonTambahan > 0) $diskonLines[] = ["Diskon Tambahan {$disc}%", $diskonTambahan];
     if ($diskonFlash > 0)    $diskonLines[] = ['Diskon Flash 20%', $diskonFlash];
     if ($diskonb > 0)        $diskonLines[] = ['Diskon Grade B 55%', $diskonb];
-    if ($diskon5 > 0)        $diskonLines[] = ['Diskon 5%', $diskon5];
-    if ($diskon10 > 0)       $diskonLines[] = ['Diskon 10%', $diskon10];
-    if ($diskon15 > 0)       $diskonLines[] = ['Diskon 15%', $diskon15];
-    if ($diskon17 > 0)       $diskonLines[] = ['Diskon 17%', $diskon17];
-    if ($diskon20 > 0)       $diskonLines[] = ['Diskon 20%', $diskon20];
-    if ($diskon25 > 0)       $diskonLines[] = ['Diskon 25%', $diskon25];
+
+    $diskonKategoriTotal = 0;
+    foreach ($categoryDiscountRules as $idkategoriRule => $persenRule) {
+        $jumlahDiskon = $totalPerCategory[$idkategoriRule] * $persenRule / 100;
+        $diskonKategoriTotal += $jumlahDiskon;
+        if ($jumlahDiskon > 0) {
+            $diskonLines[] = ["Diskon {$persenRule}%", $jumlahDiskon];
+        }
+    }
+
+    $grandtotal = ($totala + $totalb + $ongkir + $biayad)
+                - ($diskona + $diskonTambahan + $diskonFlash + $diskonb + $diskonKategoriTotal);
+    $total      = $totala + $totalb;
 
     $totalDiskon = array_sum(array_column($diskonLines, 1));
 
