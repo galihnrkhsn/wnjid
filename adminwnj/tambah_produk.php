@@ -207,15 +207,15 @@
                 </div>
                 <div class="form-group">
                     <label>Jenis <span class="text-muted small">(opsional, contoh: flash, b1g1, GB, Bundling 3 - kosongkan untuk produk reguler)</span></label>
-                    <input list="jenis_list" type="text" class="form-control form-control-sm" name="jenis" placeholder="Kosongkan jika produk reguler">
-                    <datalist id="jenis_list">
+                    <select class="form-control form-control-sm" name="jenis">
+                        <option value="" selected disabled>Pilih Jenis</option>
                         <?php
                             $jenisList = $koneksi->query("SELECT nama_jenis FROM master_jenis_products ORDER BY nama_jenis ASC");
                             while ($jn = $jenisList->fetch_assoc()) {
                         ?>
-                            <option value="<?= htmlspecialchars($jn['nama_jenis']) ?>">
+                        <option value="<?= htmlspecialchars($jn['nama_jenis']) ?>"><?= $jn['nama_jenis'] ?>
                         <?php } ?>
-                    </datalist>
+                    </select>
                 </div>
                 <hr />
                 <h5>Daftar Ukuran / Harga</h5>
