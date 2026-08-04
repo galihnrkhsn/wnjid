@@ -225,7 +225,6 @@
                             <th>Size</th>
                             <th>Berat</th>
                             <th>Harga</th>
-                            <th>Harga Coret</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -271,7 +270,6 @@
                                     ?>
                                 </datalist>
                             </td>
-                            <td><input type="number" name="hargaCoret[]" class="form-control"></td>
                             <td>
                                 <select name="status[]" class="form-control">
                                     <option value="1">UNPUBLISH</option>

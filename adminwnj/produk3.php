@@ -217,7 +217,7 @@
                 ajax: "api/data_produk.php",
                 order: [[ 0, "desc" ]],
                 columnDefs: [
-                    { orderable: false, targets: [1,12] } // kolom yang tidak bisa sort
+                    { orderable: false, targets: [1,13] } // kolom yang tidak bisa sort
                 ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

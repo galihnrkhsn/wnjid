@@ -68,6 +68,9 @@ $filteredQuery = $koneksi->query("
 ");
 $totalFiltered = $filteredQuery->fetch_assoc()['total'];
 
+// length = -1 artinya "All" dipilih di lengthMenu, jadi tanpa LIMIT.
+$limitSql = ($length == -1) ? "" : "LIMIT $start, $length";
+
 // Ambil data utama
 $query = $koneksi->query("
     SELECT v.id, v.size, v.variant, v.berat, v.harga, v.hargacoret, v.stock, v.foto, v.status,
@@ -79,8 +82,16 @@ $query = $koneksi->query("
     INNER JOIN pkategori pk ON p.idpkategori = pk.idpkategori
     $where
     ORDER BY $orderColumn $orderDir
-    LIMIT $start, $length
+    $limitSql
 ");
+
+// Opsi dropdown kategori diskon sama untuk semua baris, jadi diambil sekali saja
+// di luar loop (dulu di-query ulang tiap baris - sangat lambat untuk data besar/"All").
+$kategoriOptions = "";
+$ambil = $koneksi->query("SELECT * FROM kategori ORDER BY idkategori ASC");
+while ($opt = $ambil->fetch_assoc()) {
+    $kategoriOptions .= "<option value='{$opt['idkategori']}'>{$opt['namakategori']}</option>";
+}
 
 $data = [];
 $no = $start + 1;
@@ -98,13 +109,7 @@ while ($row = $query->fetch_assoc()) {
     $inputDisc      = "<input type='number' class='form-control' value='{$row['disc']}' name='diskon[{$row['id']}]' size='1'>";
     $inputSize      = "<input type='text' class='form-control' value='{$row['size']}' name='size[{$row['id']}]' size='25'>";
     $inputBerat     = "<input type='number' class='form-control' value='{$row['berat']}' name='berat[{$row['id']}]' size='1'>";
-    $idproducts     = $row['idproducts'] . '-' . $row['id']; 
-    // Dropdown kategori diskon
-    $kategoriOptions = "";
-    $ambil = $koneksi->query("SELECT * FROM kategori ORDER BY idkategori ASC");
-    while ($opt = $ambil->fetch_assoc()) {
-        $kategoriOptions .= "<option value='{$opt['idkategori']}'>{$opt['namakategori']}</option>";
-    }
+    $idproducts     = $row['idproducts'] . '-' . $row['id'];
     $selectKategori = "<select class='form-control' name='idkategori[{$row['id']}]'>$kategoriOptions</select>";
 
     // Action
