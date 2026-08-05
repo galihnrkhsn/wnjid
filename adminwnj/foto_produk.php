@@ -46,10 +46,20 @@
         width: 130px;
         border: 2px solid transparent;
         border-radius: 6px;
-        cursor: pointer;
+        cursor: grab;
         overflow: hidden;
         background: #fff;
         transition: border-color .15s ease;
+    }
+
+    .foto-card.dragging {
+        opacity: 0.4;
+    }
+
+    tr.variant-row-dragover td {
+        background-color: #eef1fb !important;
+        outline: 2px dashed #4e73df;
+        outline-offset: -2px;
     }
 
     .foto-card img {
@@ -241,7 +251,7 @@
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
                                 <h6 class="m-0 font-weight-bold text-primary">Galeri Foto</h6>
-                                <small class="text-muted">Klik foto untuk memilihnya, lalu terapkan ke variant di sebelah kanan. Klik &times; untuk menghapus.</small>
+                                <small class="text-muted">Seret (drag) foto langsung ke baris variant untuk link cepat 1 foto - atau klik foto untuk memilihnya lalu centang beberapa variant &amp; klik Terapkan kalau mau sekaligus. Klik &times; untuk menghapus.</small>
                             </div>
                             <div class="card-body">
                                 <div id="galleryLoading" class="text-muted small">Pilih produk dulu...</div>
@@ -402,7 +412,7 @@
                 : '';
 
             const card = $(`
-                <div class="foto-card" data-id="${item.id}" data-url="${item.url}" data-nama="${item.nama}">
+                <div class="foto-card" draggable="true" data-id="${item.id}" data-url="${item.url}" data-nama="${item.nama}">
                     <img src="${item.url}" loading="lazy">
                     ${badge}
                     <button type="button" class="btn btn-danger btn-sm foto-hapus" title="Hapus foto">&times;</button>
@@ -523,6 +533,59 @@
         $('#selectedFotoImg').attr('src', $(this).data('url'));
         $('#selectedFotoNama').text($(this).data('nama'));
         $('#selectedFotoBar').css('display', 'flex');
+    });
+
+    // Drag & drop: seret foto dari galeri langsung ke baris variant utk link cepat
+    // ke 1 variant (alternatif lebih cepat dari alur pilih-foto + centang + klik
+    // Terapkan di atas - alur itu tetap ada, dan lebih cocok kalau mau terapkan
+    // 1 foto ke banyak variant sekaligus).
+    let draggedFotoId = null;
+
+    $(document).on('dragstart', '.foto-card', function (e) {
+        draggedFotoId = $(this).data('id');
+        $(this).addClass('dragging');
+        e.originalEvent.dataTransfer.effectAllowed = 'copy';
+        e.originalEvent.dataTransfer.setData('text/plain', String(draggedFotoId));
+    });
+
+    $(document).on('dragend', '.foto-card', function () {
+        $(this).removeClass('dragging');
+    });
+
+    $(document).on('dragover', '#variantBody tr[data-variant]', function (e) {
+        e.preventDefault();
+        e.originalEvent.dataTransfer.dropEffect = 'copy';
+        $(this).addClass('variant-row-dragover');
+    });
+
+    $(document).on('dragleave', '#variantBody tr[data-variant]', function () {
+        $(this).removeClass('variant-row-dragover');
+    });
+
+    $(document).on('drop', '#variantBody tr[data-variant]', function (e) {
+        e.preventDefault();
+        $(this).removeClass('variant-row-dragover');
+
+        if (!draggedFotoId) return;
+
+        const variantName = $(this).find('.variant-check').val();
+
+        $.post('api/foto_produk_link.php', {
+            product_id: currentProduct(),
+            foto_id: draggedFotoId,
+            variants: [variantName]
+        }, function (res) {
+            if (res.success) {
+                loadGallery();
+                loadVariants([variantName]);
+            } else {
+                alert('Gagal menerapkan: ' + (res.message || 'Terjadi kesalahan'));
+            }
+        }, 'json').fail(function () {
+            alert('Gagal menerapkan: tidak bisa terhubung ke server');
+        });
+
+        draggedFotoId = null;
     });
 
     // Hapus foto
