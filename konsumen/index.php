@@ -105,7 +105,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
-            background: #f5f6fa;
+            background: var(--wnj-bg);
         }
         .search-bar {
             background: #fff;
@@ -174,11 +174,11 @@
             min-height: 2.4em;
         }
         .price {
-            color: #2b2f42;
+            color: var(--wnj-text);
             font-weight: 700;
         }
         .price-old {
-            color: #adb5bd;
+            color: var(--wnj-text-tertiary);
             text-decoration: line-through;
             font-size: .8rem;
         }
@@ -188,7 +188,7 @@
         .empty-state {
             padding: 4rem 1rem;
             text-align: center;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
         }
         .empty-state i {
             font-size: 3rem;

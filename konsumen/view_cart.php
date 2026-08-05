@@ -178,7 +178,7 @@
     <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background: #f5f6fa; }
+        body { background: var(--wnj-bg); }
         .cart-item {
             background: #fff;
             border-radius: 12px;
@@ -200,7 +200,7 @@
             text-decoration: none;
         }
         .cart-item a.produk-link:hover {
-            color: #0d6efd;
+            color: var(--wnj-cta);
         }
         .item-promo-badge {
             display: inline-block;
@@ -218,10 +218,10 @@
             font-size: .85rem;
             text-transform: uppercase;
             letter-spacing: .03em;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
             margin: 1.25rem 0 .75rem;
             padding-bottom: .35rem;
-            border-bottom: 2px solid #eef1f5;
+            border-bottom: 2px solid var(--wnj-border);
         }
         .cart-section-heading.promo {
             color: #dc3545;
@@ -246,7 +246,7 @@
         .empty-state {
             padding: 4rem 1rem;
             text-align: center;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
         }
         .select-all-bar {
             background: #fff;

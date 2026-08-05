@@ -1,0 +1,105 @@
+/*
+ * konsumen/ - tema beige/terracotta di atas Bootstrap 4.1 bawaan.
+ * Warna dipusatkan di sini sebagai CSS variable, dipakai juga oleh
+ * navbar.php/footer.php dan style block masing-masing halaman
+ * (menggantikan hex yang tadinya hardcode putih/biru polosan).
+ */
+:root {
+    --wnj-bg: #FCFAF7;
+    --wnj-bg-soft: #F5EEE4;
+    --wnj-bg-accent-soft: #F5E4D6;
+    --wnj-primary: #D8C3A5;
+    --wnj-secondary: #8D7B68;
+    --wnj-cta: #C67C4E;
+    --wnj-cta-hover: #B86C40;
+    --wnj-success: #7A8C68;
+    --wnj-text: #2F2A27;
+    --wnj-text-secondary: #6E655D;
+    --wnj-text-tertiary: #A79E93;
+    --wnj-border: #E7DED3;
+}
+
+body {
+    background-color: var(--wnj-bg);
+    color: var(--wnj-text);
+}
+
+/* CTA / tombol utama */
+.btn-primary {
+    background-color: var(--wnj-cta);
+    border-color: var(--wnj-cta);
+    color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:not(:disabled):not(.disabled):active {
+    background-color: var(--wnj-cta-hover) !important;
+    border-color: var(--wnj-cta-hover) !important;
+}
+.btn-outline-primary {
+    color: var(--wnj-cta);
+    border-color: var(--wnj-cta);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:not(:disabled):not(.disabled):active {
+    background-color: var(--wnj-cta) !important;
+    border-color: var(--wnj-cta) !important;
+    color: #fff !important;
+}
+.btn-outline-secondary {
+    color: var(--wnj-secondary);
+    border-color: var(--wnj-border);
+}
+.btn-outline-secondary:hover {
+    background-color: var(--wnj-secondary);
+    border-color: var(--wnj-secondary);
+}
+.text-primary {
+    color: var(--wnj-cta) !important;
+}
+.badge-primary {
+    background-color: var(--wnj-primary);
+    color: var(--wnj-text);
+}
+.text-muted {
+    color: var(--wnj-text-secondary) !important;
+}
+
+/* Success */
+.btn-success {
+    background-color: var(--wnj-success);
+    border-color: var(--wnj-success);
+}
+.btn-success:hover,
+.btn-success:focus {
+    filter: brightness(0.92);
+}
+.text-success {
+    color: var(--wnj-success) !important;
+}
+.badge-success {
+    background-color: var(--wnj-success);
+}
+.alert-info {
+    background-color: var(--wnj-bg-accent-soft);
+    border-color: var(--wnj-border);
+    color: var(--wnj-text);
+}
+
+/* Border & surface */
+.card,
+.form-control,
+.custom-select,
+hr,
+.border,
+.border-top,
+.border-bottom,
+.border-left,
+.border-right {
+    border-color: var(--wnj-border) !important;
+}
+.form-control:focus {
+    border-color: var(--wnj-cta);
+    box-shadow: 0 0 0 0.2rem rgba(198, 124, 78, 0.15);
+}

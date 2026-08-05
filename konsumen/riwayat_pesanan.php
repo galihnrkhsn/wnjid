@@ -63,7 +63,7 @@
     <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background: #f5f6fa; }
+        body { background: var(--wnj-bg); }
         .panel {
             background: #fff;
             border-radius: 14px;
@@ -72,7 +72,7 @@
             margin-bottom: 1rem;
         }
         .order-card {
-            border: 1px solid #eef1f5;
+            border: 1px solid var(--wnj-border);
             border-radius: 10px;
             padding: 1rem;
             margin-bottom: .75rem;
@@ -81,7 +81,7 @@
             text-decoration: none;
         }
         .order-card:hover {
-            border-color: #0d6efd;
+            border-color: var(--wnj-cta);
             text-decoration: none;
             color: inherit;
         }
@@ -103,21 +103,21 @@
             padding: .45rem 1rem;
             border-radius: 999px;
             background: #fff;
-            color: #2b2f42;
+            color: var(--wnj-text);
             font-size: .85rem;
             font-weight: 600;
             text-decoration: none;
-            border: 1px solid #eef1f5;
+            border: 1px solid var(--wnj-border);
             white-space: nowrap;
         }
         .status-tabs a:hover {
             text-decoration: none;
-            border-color: #0d6efd;
+            border-color: var(--wnj-cta);
         }
         .status-tabs a.active {
-            background: #0d6efd;
+            background: var(--wnj-cta);
             color: #fff;
-            border-color: #0d6efd;
+            border-color: var(--wnj-cta);
         }
         .status-tabs a .count {
             opacity: .8;

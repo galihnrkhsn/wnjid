@@ -14,8 +14,8 @@
         left: 0;
         right: 0;
         z-index: 1030;
-        background: #fff;
-        border-top: 1px solid #eef1f5;
+        background: var(--wnj-bg);
+        border-top: 1px solid var(--wnj-border);
         box-shadow: 0 -2px 10px rgba(0,0,0,.05);
         display: flex;
     }
@@ -23,13 +23,13 @@
         flex: 1;
         text-align: center;
         padding: .5rem 0 .4rem;
-        color: #6c757d;
+        color: var(--wnj-text-secondary);
         text-decoration: none;
         font-size: .68rem;
         position: relative;
     }
     .konsumen-bottomnav a.active {
-        color: #0d6efd;
+        color: var(--wnj-cta);
     }
     .konsumen-bottomnav a i {
         display: block;

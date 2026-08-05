@@ -17,10 +17,11 @@
     }
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="assets/css/wnj-theme.css">
 <style>
     .konsumen-navbar {
-        background: #fff;
-        border-bottom: 1px solid #eef1f5;
+        background: var(--wnj-bg);
+        border-bottom: 1px solid var(--wnj-border);
         padding: .75rem 0;
         position: sticky;
         top: 0;
@@ -28,7 +29,7 @@
     }
     .konsumen-navbar .brand {
         font-weight: 700;
-        color: #2b2f42;
+        color: var(--wnj-text);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -39,7 +40,7 @@
     }
     .konsumen-navbar .cart-link {
         position: relative;
-        color: #2b2f42;
+        color: var(--wnj-text);
         font-size: 1.3rem;
     }
     .konsumen-navbar .cart-badge {

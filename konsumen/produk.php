@@ -61,10 +61,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
-            background: #f5f6fa;
+            background: var(--wnj-bg);
         }
         .back-link {
-            color: #2b2f42;
+            color: var(--wnj-text);
             font-weight: 600;
         }
         .produk-foto {
@@ -90,7 +90,7 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 1px 4px rgba(0,0,0,.15);
-            color: #2b2f42;
+            color: var(--wnj-text);
             font-size: 1.1rem;
         }
         .gallery-nav:hover {
@@ -118,7 +118,7 @@
             flex-shrink: 0;
         }
         .gallery-thumb.active {
-            border-color: #0d6efd;
+            border-color: var(--wnj-cta);
         }
         .deskripsi-accordion {
             background: #fff;
@@ -134,7 +134,7 @@
             padding: .75rem 1rem;
             font-size: .9rem;
             font-weight: 700;
-            color: #2b2f42;
+            color: var(--wnj-text);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -149,7 +149,7 @@
             display: none;
             padding: 0 1rem 1rem;
             font-size: .85rem;
-            color: #495057;
+            color: var(--wnj-text-secondary);
             white-space: pre-line;
         }
         .deskripsi-content.open {
@@ -168,14 +168,14 @@
             justify-content: space-between;
             gap: .5rem .75rem;
             padding: .75rem;
-            border: 1px solid #eef1f5;
+            border: 1px solid var(--wnj-border);
             border-radius: 10px;
             margin-bottom: .5rem;
             cursor: pointer;
         }
         .variant-option:hover {
-            border-color: #c7d2fe;
-            background: #f7f9ff;
+            border-color: var(--wnj-cta);
+            background: var(--wnj-bg-soft);
         }
         .variant-option.disabled {
             opacity: .5;
@@ -186,10 +186,10 @@
         }
         .variant-price {
             font-weight: 700;
-            color: #2b2f42;
+            color: var(--wnj-text);
         }
         .variant-price-old {
-            color: #adb5bd;
+            color: var(--wnj-text-tertiary);
             text-decoration: line-through;
             font-size: .8rem;
             margin-right: .5rem;
@@ -213,7 +213,7 @@
         .empty-state {
             padding: 3rem 1rem;
             text-align: center;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
         }
     </style>
 </head>

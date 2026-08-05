@@ -76,7 +76,7 @@
     <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background: #f5f6fa; }
+        body { background: var(--wnj-bg); }
         .panel {
             background: #fff;
             border-radius: 14px;
@@ -88,7 +88,7 @@
             display: flex;
             justify-content: space-between;
             padding: .6rem 0;
-            border-bottom: 1px solid #eef1f5;
+            border-bottom: 1px solid var(--wnj-border);
         }
         .item-row:last-child {
             border-bottom: none;
@@ -101,7 +101,7 @@
         .total-row.grand {
             font-weight: 700;
             font-size: 1.1rem;
-            border-top: 1px solid #eef1f5;
+            border-top: 1px solid var(--wnj-border);
             margin-top: .5rem;
             padding-top: .75rem;
         }
@@ -110,7 +110,7 @@
             gap: .75rem;
             padding-bottom: 1rem;
             margin-left: .25rem;
-            border-left: 2px solid #eef1f5;
+            border-left: 2px solid var(--wnj-border);
             padding-left: 1rem;
             position: relative;
         }
@@ -122,13 +122,13 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: #ced4da;
+            background: var(--wnj-border);
             position: absolute;
             left: -6px;
             top: 4px;
         }
         .tracking-event.terbaru .tracking-dot {
-            background: #0d6efd;
+            background: var(--wnj-cta);
         }
     </style>
 </head>
@@ -207,10 +207,10 @@
                         <i class="bi bi-credit-card"></i> Bayar Sekarang
                     </a>
                 <?php elseif ($order['status'] === 'Menunggu Konfirmasi Admin'): ?>
-                    <i class="bi bi-hourglass-split" style="font-size:2rem;color:#6c757d;"></i>
+                    <i class="bi bi-hourglass-split" style="font-size:2rem;color:var(--wnj-text-secondary);"></i>
                     <p class="text-muted mb-0 mt-2">Bukti pembayaran sudah diterima, menunggu konfirmasi admin.</p>
                 <?php elseif ($order['status'] === 'Diproses'): ?>
-                    <i class="bi bi-box-seam" style="font-size:2rem;color:#0d6efd;"></i>
+                    <i class="bi bi-box-seam" style="font-size:2rem;color:var(--wnj-cta);"></i>
                     <p class="text-muted mb-0 mt-2">Pesanan sedang diproses & disiapkan untuk dikirim.</p>
                 <?php elseif ($order['status'] === 'Menunggu Resi'): ?>
                     <i class="bi bi-box-seam" style="font-size:2rem;color:#fd7e14;"></i>
@@ -219,10 +219,10 @@
                     <i class="bi bi-truck" style="font-size:2rem;color:#0dcaf0;"></i>
                     <p class="text-muted mb-0 mt-2">Pesanan sedang dalam perjalanan menuju alamatmu.</p>
                 <?php elseif ($order['status'] === 'Terkirim'): ?>
-                    <i class="bi bi-check-circle" style="font-size:2rem;color:#198754;"></i>
+                    <i class="bi bi-check-circle" style="font-size:2rem;color:var(--wnj-success);"></i>
                     <p class="text-muted mb-0 mt-2">Pesanan sudah sampai. Terima kasih sudah berbelanja!</p>
                 <?php elseif ($order['status'] === 'Selesai'): ?>
-                    <i class="bi bi-check-circle" style="font-size:2rem;color:#198754;"></i>
+                    <i class="bi bi-check-circle" style="font-size:2rem;color:var(--wnj-success);"></i>
                     <p class="text-muted mb-0 mt-2">Pesanan selesai. Terima kasih sudah berbelanja!</p>
                 <?php elseif ($order['status'] === 'Dibatalkan'): ?>
                     <i class="bi bi-x-circle" style="font-size:2rem;color:#dc3545;"></i>

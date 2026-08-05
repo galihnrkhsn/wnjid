@@ -267,7 +267,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <style>
-        body { background: #f5f6fa; }
+        body { background: var(--wnj-bg); }
         .form-panel {
             background: #fff;
             border-radius: 14px;
@@ -278,10 +278,10 @@
         }
         .step-badge {
             font-size: .75rem;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
         }
         .alamat-pick-card {
-            border: 1px solid #eef1f5;
+            border: 1px solid var(--wnj-border);
             border-radius: 10px;
             padding: .75rem;
             margin-bottom: .5rem;

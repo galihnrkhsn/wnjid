@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background: #f5f6fa; }
+        body { background: var(--wnj-bg); }
         .profile-summary {
             background: #fff;
             border-radius: 14px;
@@ -52,7 +52,7 @@
             width: 52px;
             height: 52px;
             border-radius: 50%;
-            background: #0d6efd;
+            background: var(--wnj-cta);
             color: #fff;
             display: flex;
             align-items: center;
@@ -77,12 +77,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #0d6efd;
-            background: #f0f6ff;
+            color: var(--wnj-cta);
+            background: var(--wnj-bg-accent-soft);
             flex-shrink: 0;
         }
         .profile-summary .edit-link:hover {
-            background: #e2edff;
+            background: var(--wnj-bg-accent-soft);
             text-decoration: none;
         }
         .menu-card {
@@ -96,21 +96,21 @@
             display: flex;
             align-items: center;
             padding: 1rem 1.25rem;
-            color: #2b2f42;
+            color: var(--wnj-text);
             text-decoration: none;
-            border-bottom: 1px solid #f5f6fa;
+            border-bottom: 1px solid var(--wnj-border);
         }
         .menu-row:last-child {
             border-bottom: none;
         }
         .menu-row:hover {
-            background: #f8f9fb;
-            color: #2b2f42;
+            background: var(--wnj-bg-soft);
+            color: var(--wnj-text);
             text-decoration: none;
         }
         .menu-row i.bi-icon {
             font-size: 1.15rem;
-            color: #0d6efd;
+            color: var(--wnj-cta);
             width: 28px;
         }
         .menu-row .label {
@@ -119,11 +119,11 @@
         }
         .menu-row .count {
             font-size: .8rem;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
             margin-right: .5rem;
         }
         .menu-row .chevron {
-            color: #adb5bd;
+            color: var(--wnj-text-tertiary);
         }
     </style>
 </head>

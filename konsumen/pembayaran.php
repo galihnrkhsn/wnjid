@@ -98,7 +98,7 @@
     <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background: #f5f6fa; }
+        body { background: var(--wnj-bg); }
         .panel {
             background: #fff;
             border-radius: 14px;
@@ -111,13 +111,13 @@
             display: flex;
             justify-content: space-between;
             padding: .5rem 0;
-            border-bottom: 1px solid #eef1f5;
+            border-bottom: 1px solid var(--wnj-border);
         }
         .rekening-item:last-child {
             border-bottom: none;
         }
         .total-box {
-            background: #f0f6ff;
+            background: var(--wnj-bg-accent-soft);
             border-radius: 10px;
             padding: 1rem;
             text-align: center;
@@ -125,7 +125,7 @@
         }
         .step-badge {
             font-size: .75rem;
-            color: #6c757d;
+            color: var(--wnj-text-secondary);
         }
     </style>
 </head>
