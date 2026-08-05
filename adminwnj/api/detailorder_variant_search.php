@@ -3,6 +3,7 @@
     ini_set('display_errors', 1);
     header('Content-Type: application/json');
     session_start();
+    include __DIR__ . '/../access_guard.php';
     include '../../includes/db.php';
 
     if (!isset($_SESSION['administrator'])) {

@@ -1,0 +1,35 @@
+/*
+ * adminwnj/ - penyesuaian kecil di atas sb-admin-2 bawaan. Warna dikembalikan ke
+ * skema navy asli (bukan tema beige/terracotta yang sempat dicoba), cuma dipindah
+ * dari inline style yang tadinya berserakan di sidebar.php ke sini. Sidebar/navbar/
+ * footer perilakunya dikembalikan seperti semula (tidak fixed/sticky).
+ */
+:root {
+    --wnj-navy: #153448;
+    --wnj-navy-hover: #0f2636;
+}
+
+.btn-primary {
+    background-color: var(--wnj-navy);
+    border-color: var(--wnj-navy);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:not(:disabled):not(.disabled):active {
+    background-color: var(--wnj-navy-hover) !important;
+    border-color: var(--wnj-navy-hover) !important;
+}
+.text-primary {
+    color: var(--wnj-navy) !important;
+}
+
+#accordionSidebar.sidebar-dark {
+    background: var(--wnj-navy) !important;
+}
+.sidebar .nav-item .collapse .collapse-inner .collapse-header {
+    color: var(--wnj-navy) !important;
+}
+.topbar .dropdown-header {
+    background-color: var(--wnj-navy) !important;
+    color: #fff !important;
+}

@@ -1,11 +1,42 @@
 <?php
   include "koneksi.php";
 ?>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/wnj-theme.css">
+<?php
+  // Role 'creative' (tim editor foto) cuma boleh akses Foto Produk - tampilkan sidebar
+  // minimal saja, bukan menu admin lengkap yang isinya kebanyakan link tidak bisa diakses.
+  if (($_SESSION['administrator']['role'] ?? null) === 'creative') {
+?>
+<ul class="navbar-nav sidebar sidebar-dark accordion toggled" id="accordionSidebar">
+  <a class="sidebar-brand d-flex align-items-center justify-content-center" href="foto_produk.php">
+    <div class="sidebar-brand-icon rotate-n-15">
+      <i class="fas fa-laugh-wink"></i>
+    </div>
+    <div class="sidebar-brand-text mx-3">WNJ CORP</div>
+  </a>
+  <hr class="sidebar-divider my-0">
+  <li class="nav-item active">
+    <a class="nav-link" href="foto_produk.php">
+      <i class="fas fa-image"></i>
+      <span>Foto Produk</span>
+    </a>
+  </li>
+  <hr class="sidebar-divider">
+  <li class="nav-item">
+    <a class="nav-link" href="logout.php">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </a>
+  </li>
+</ul>
+<?php
+    return;
+  }
+?>
 
     <!-- Sidebar -->
-    <ul class="navbar-nav sidebar sidebar-dark accordion toggled" style="background-color: #153448;" id="accordionSidebar">
+    <ul class="navbar-nav sidebar sidebar-dark accordion toggled" id="accordionSidebar">
       <!-- Sidebar - Brand -->
       <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
         <div class="sidebar-brand-icon rotate-n-15">
@@ -43,12 +74,10 @@
         </a>
         <div id="collapseTwocs" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="cssales.php">CS Sales</a>
             <a class="collapse-item" href="input_cssales.php">Tambah CS Sales</a>
             <a class="collapse-item" href="update_cssales.php">Update CS Sales</a>
-            <!-- <a class="collapse-item" href="#">CS Relationship</a>
-            <a class="collapse-item" href="#">Tambah CSR</a> -->
           </div>
         </div>
       </li>
@@ -60,7 +89,7 @@
         </a>
         <div id="collapseTwocscs" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="catatan.php">Data Catatan</a>
             <a class="collapse-item" href="input_catatan.php">Input Catatan</a>
           </div>
@@ -89,7 +118,7 @@
         </a>
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="mitra.php">Data Distributor</a>
             <a class="collapse-item" href="input_mitra.php">Tambah DB</a>
             <a class="collapse-item" href="datapendaftaran.php">Daftar Calon Mitra</a>
@@ -107,7 +136,7 @@
         </a>
         <div id="collapsesub" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="subdb.php">Data Sub DB</a>
           </div>
         </div>
@@ -121,7 +150,7 @@
         </a>
         <div id="collapsetagihan" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="tagihan.php">Tagihan DB</a>
           </div>
         </div>
@@ -134,13 +163,10 @@
         </a>
         <div id="collapseThree" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="saldo.php">Data Saldo</a>
             <a class="collapse-item" href="input_saldo.php">Input Saldo</a>
             <a class="collapse-item" href="sisa_saldo.php">Sisa Saldo</a>
-            <!-- <a class="collapse-item" href="saldoagen.php">Saldo Agen</a>
-            <a class="collapse-item" href="input_saldoagen.php">Input Saldo Agen</a>
-             <a class="collapse-item" href="sisa_saldoagen.php">Sisa Saldo Agen</a> -->
           </div>
         </div>
       </li>
@@ -152,7 +178,7 @@
         </a>
         <div id="collapseVoucher" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="voucher.php">Data Voucher</a>
             <a class="collapse-item" href="input_voucher.php">Input Voucher</a>
           </div>
@@ -166,7 +192,7 @@
         </a>
         <div id="collapseAM" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="dataads.php">Data Ads Mitra</a>
           </div>
         </div>
@@ -179,7 +205,7 @@
         </a>
         <div id="collapseGN" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="pesan.php">Daftar Pesan</a>
             <a class="collapse-item" href="inputgoodnews.php">Input Pesan</a>
           </div>
@@ -205,18 +231,10 @@
         </a>
         <div id="collapseFive" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
              <a class="collapse-item" href="listpoartikel.php"> List PO Mitra Per Artikel</a>
             <a class="collapse-item" href="daftarpoproduk.php">List PO Per Invoice</a>
-            <!--<a class="collapse-item" href="listpokonin.php">List PO KONIN 2021</a>
-            <a class="collapse-item" href="listpokolibri.php">List PO KOLIBRI 2021 DB</a>
-            <a class="collapse-item" href="listpokolibri2.php">List PO KOLIBRI 2021 AGEN</a>
-            <a class="collapse-item" href="listpokolibri3.php">List PO KOLIBRI 2021 RESELLER</a>
-            <a class="collapse-item" href="listpokolibri4.php">List PO KOLIBRI 2021 MARKETER</a>
-            <a class="collapse-item" href="listpopembayaranklb.php"> List Payment KOLIBRI 2021</a>-->
-            <!-- <a class="collapse-item" href="listpomaximus.php">List PO Maximus</a> -->
             <a class="collapse-item" href="daftards.php">List PO Dropship</a>
-            <!-- <a class="collapse-item" href="list-po-mitra.php">List PO Per Data DB</a> -->
             <a class="collapse-item" href="listpopembayaran.php"> List Pembayaran DP PO</a>
               <a class="collapse-item" href="notepo.php">Note PO</a>
           </div>
@@ -232,17 +250,14 @@
         </a>
         <div id="collapseOrder" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="keranjang.php">Keranjang</a>
             <a class="collapse-item" href="ordermitra.php">Order Mitra</a>
             <a class="collapse-item" href="ordermitra_keep.php">Order Mitra Keep</a>
-            <!-- <a class="collapse-item" href="orderagen.php">Order Agen</a> -->
             <a class="collapse-item" href="pengiriman.php">Order Pengiriman</a>
              <a class="collapse-item" href="pengiriman_manual.php">Pengiriman (Ongkir Manual)</a>
-          <!-- <a class="collapse-item" href="ongkirmanual2.php">Pengiriman (Ongkir Manual Agen)</a> -->
             <a class="collapse-item" href="pembayaran.php">Order Pembayaran</a>
              <a class="collapse-item" href="suratjalan.php">Surat Jalan</a>
-            <!-- <a class="collapse-item" href="return.php">Return</a> -->
           </div>
         </div>
       </li>
@@ -254,7 +269,7 @@
         </a>
         <div id="collapseOrderKonsumen" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="orderkonsumen.php">Order Konsumen</a>
             <a class="collapse-item" href="orderkonsumen_ambilbarang.php">Ambil Barang Konsumen</a>
             <a class="collapse-item" href="orderkonsumen_pengiriman.php">Pengiriman Konsumen</a>
@@ -276,7 +291,7 @@
           </a>
             <div id="collapseInvoice" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+                    <h6 class="collapse-header">Pilihan:</h6>
                     <a class="collapse-item" href="ordermitra.php">Ready Stock</a>
                     <a class="collapse-item" href="formpo.php">Pre Order</a>
                 </div>
@@ -298,12 +313,10 @@
         </a>
       <div id="collapseFour" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="produkpo.php">Produk PO</a>
             <a class="collapse-item" href="distribusipo.php">Distribusi PO</a>
             <a class="collapse-item" href="inputpo2.php">Tambah PO</a>
-            <!-- <a class="collapse-item" href="inputpokategori.php">Tambah Kategori/Warna</a>
-            <a class="collapse-item" href="inputvariant.php">Tambah Variant</a> -->
             <a class="collapse-item" href="data_bukapo.php">Buka PO</a>
           </div>
         </div>
@@ -316,7 +329,7 @@
         </a>
         <div id="collapseKatalog" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="katalog.php">Data Katalog</a>
             <a class="collapse-item" href="inputkatalog.php">Tambah Katalog</a>
           </div>
@@ -330,7 +343,7 @@
         </a>
         <div id="collapseKP" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="kategori.php">Data Kategori Produk</a>
             <a class="collapse-item" href="inputkategori.php">Tambah Kategori</a>
           </div>
@@ -344,7 +357,7 @@
         </a>
         <div id="collapsePP" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="produk3.php">Produk Pusat</a>
             <a class="collapse-item" href="produkb2.php">Produk GB</a>
             <a class="collapse-item" href="requestproduk.php">Request Produk</a>
@@ -361,7 +374,7 @@
         </a>
         <div id="collapseSix" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="pricelist-artikel.php">Data Pricelist</a>
             <a class="collapse-item" href="input_pricelist.php">Tambah Pricelist</a>
           </div>
@@ -382,7 +395,7 @@
         </a>
         <div id="collapselearning" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="inputtutor.php">Tutorial WEB</a>
             <a class="collapse-item" href="">Belajar Ads</a>
             <a class="collapse-item" href="">Market Tools</a>
@@ -397,7 +410,7 @@
         </a>
         <div id="collapsecp" class="collapse" aria-labelledby="headingcp" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header" style="color: #153448;">Pilihan:</h6>
+            <h6 class="collapse-header">Pilihan:</h6>
             <a class="collapse-item" href="slider.php">Silder</a>
             <a class="collapse-item" href="banner.php">Banner</a>
           </div>
@@ -419,62 +432,29 @@
     <i class="fa fa-bars"></i>
   </button>
 
-  <!-- Topbar Search -->
-  <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-    <div class="input-group">
-      <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-      <div class="input-group-append">
-        <button class="btn btn-dark" style="background-color: #153448;" type="button">
-          <i class="fas fa-search fa-sm"></i>
-        </button>
-      </div>
-    </div>
-  </form>
   <!-- Topbar Navbar -->
   <ul class="navbar-nav ml-auto">
-    <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-    <li class="nav-item dropdown no-arrow d-sm-none">
-      <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-search fa-fw"></i>
-      </a>
-      <!-- Dropdown - Messages -->
-      <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
-        <form class="form-inline mr-auto w-100 navbar-search">
-          <div class="input-group">
-            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-            <div class="input-group-append">
-              <button class="btn btn-primary" type="button">
-                <i class="fas fa-search fa-sm"></i>
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </li>
-
     <li class="nav-item dropdown no-arrow mx-1">
-      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <p class="mb-0" style="font-size: 2rem; color: #153448">PO</p>
+      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdownPO" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <p class="mb-0 text-primary" style="font-size: 2rem;">PO</p>
           <!-- Counter - Alerts -->
           <?php
             $sql = $koneksi->query("SELECT
-                                        idpoproduk,
                                         COUNT(*) AS jumlah
                                       FROM
-                                        bukapo 
+                                        bukapo
                                       WHERE
                                         status = 'PUBLISH'
                                   ");
             $notifpo = $sql->fetch_assoc();
-            $idpoproduk = $notifpo['idpoproduk'];
           ?>
           <h4>
             <span class="badge badge-danger badge-counter"><?= $notifpo['jumlah']; ?></span>
           </h4>
       </a>
       <!-- Dropdown - Alerts -->
-      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
-        <h6 class="dropdown-header text-center mt-0" style="background-color: #153448;">
+      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdownPO">
+        <h6 class="dropdown-header text-center mt-0">
           Orderan Mitra PO
         </h6>
         <?php
@@ -516,8 +496,8 @@
     <div class="topbar-divider d-none d-sm-block"></div>
 
     <li class="nav-item dropdown no-arrow mx-1">
-      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fas fa-shopping-cart fa-fw fa-2x" style="color: #153448;"></i>
+      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdownCart" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-shopping-cart fa-fw fa-2x text-primary"></i>
           <!-- Counter - Alerts -->
           <?php
             $sql = $koneksi->query("SELECT 
@@ -536,8 +516,8 @@
           </h4>
       </a>
       <!-- Dropdown - Alerts -->
-      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
-        <h6 class="dropdown-header text-center mt-0" style="background-color: #153448;">
+      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdownCart">
+        <h6 class="dropdown-header text-center mt-0">
           Orderan Mitra Ready Stock
         </h6>
         <?php
@@ -581,7 +561,7 @@
     <!-- Nav Item - User Information -->
     <li class="nav-item dropdown no-arrow">
       <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span class="mr-2 d-none d-lg-inline text-gray-600 small">Hai <?php echo $_SESSION["administrator"]["nama"] ?></span>
+        <span class="mr-2 d-none d-lg-inline text-gray-600 small">Hai <?php echo $_SESSION["administrator"]["name"] ?></span>
         <img class="img-profile rounded-circle" src="img/logo+TEXTwanoja.jpg" >
       </a>
       <!-- Dropdown - User Information -->
@@ -590,14 +570,6 @@
           <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
           Profile
         </a>
-      <!--  <a class="dropdown-item" href="#">
-          <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-          Settings 
-        </a> 
-        <a class="dropdown-item" href="#">
-          <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-          Activity Log
-        </a>-->
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="logout.php">
           <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>

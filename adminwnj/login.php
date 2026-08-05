@@ -70,25 +70,31 @@ include 'koneksi.php';
             // echo "<script>alert('$pass ');</script>";
             $ambilUser = $koneksi->query("SELECT * FROM users WHERE email='$email'");
 						$userData = $ambilUser->fetch_assoc();
+
 						$verify = password_verify($pass, $userData['password']);
 
-						$ambil=$koneksi->query("SELECT * FROM administrator WHERE email='$email' ");
+						// $ambil=$koneksi->query("SELECT * FROM administrator WHERE email='$email' ");
             
-						$akunyangcocok=$ambil->num_rows;
+						// $akunyangcocok=$ambil->num_rows;
 
 						if($verify==1){
 							// anda sudah login
-							$akun=$ambil->fetch_assoc();
+							$akun = $userData;
+							// role dari tabel users dibawa ke session administrator - dipakai
+							// access_guard.php utk membatasi akses role 'creative' cuma ke Foto Produk.
 							//setelah di arraykan maka disimpan di sesson
 							$_SESSION["administrator"] = $akun;
 
 							echo "<div class='alert alert-info'>login sukses</div>";
-							//jika sudah ada sesion keranjang maka db akan dilarikan ke riwayat 
+							//jika sudah ada sesion keranjang maka db akan dilarikan ke riwayat
 							if(isset($_SESSION["keranjang"]) OR !empty($_SESSION["keranjang"])){
 							echo "<script>location='../store/riwayat.php';</script>";
 
+							}else if($akun['role'] === 'creative'){
+								echo "<script>location='foto_produk.php';</script>";
+
 							}else{
-							    
+
 								echo "<script>location='index.php';</script>";
 
 							}
@@ -98,53 +104,6 @@ include 'koneksi.php';
 							echo "<script>location='login.php';</script>";
 						}
 					}
-
-
-
-
-
-            // session_start();
-
-            // if (isset($_POST["login"])) {
-            //     $email = $_POST["email"];
-            //     $pass = $_POST["pass"];
-                
-            //     // Query untuk mengambil data user dari tabel users
-            //     $ambilUser = $koneksi->query("SELECT * FROM users WHERE email='$email'");
-            //     $userData = $ambilUser->fetch_assoc();
-                
-            //     // Verifikasi password
-            //     if (password_verify($pass, $userData['password'])) {
-            //         $userLevel = $userData['role'];
-            //         switch ($userLevel) {
-            //             case 'admin':
-            //                 $dashboardFile = "index.php";
-            //                 break;
-            //             // Tambahkan case lain jika diperlukan untuk role lainnya
-            //             default:
-            //                 echo "<div class='alert alert-danger'>Email atau Password salah</div>";
-            //                 exit();
-            //         }
-                    
-            //         // Set session user_id dan user_level
-            //         $_SESSION["user_id"] = $userData["id"];
-            //         $_SESSION["user_level"] = $userLevel;
-
-            //         if ($userLevel == 'admin') {
-            //             $queryAdministrator = $koneksi->query("SELECT id FROM administrator WHERE id=" . $userData["id"]);
-            //             $administratorData = $queryAdministrator->fetch_assoc();
-            //             $_SESSION["administrator"] = $administratorData["administrator"];
-            //         }
-                    
-            //         // Tampilkan pesan sukses dan arahkan ke dashboard yang sesuai
-            //         echo "<div class='alert alert-info'>Login sukses</div>";
-            //         echo "<script>location='$dashboardFile';</script>";
-            //     } else {
-            //         // Jika verifikasi password gagal, tampilkan pesan error
-            //         echo "<script>alert('Login gagal');</script>";
-            //         echo "<script>location='login2.php';</script>";
-            //     }
-            // }
           ?>
                   
                 

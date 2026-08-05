@@ -3,6 +3,7 @@
     ini_set('display_errors', 1);
     header('Content-Type: application/json');
     session_start();
+    include __DIR__ . '/../access_guard.php';
     include '../../includes/db.php';
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
