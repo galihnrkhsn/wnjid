@@ -218,16 +218,22 @@
 
             <div class="form-group" style="max-width: 480px;">
                 <label>Pilih Produk</label>
-                <select id="productSelect" class="form-control form-control-sm">
-                    <option value="">-- Pilih Produk --</option>
-                    <?php
-                        $query_produk = $koneksi->query("SELECT id, namaproduk FROM products ORDER BY namaproduk ASC");
-                        while ($data_produk = $query_produk->fetch_assoc()) {
-                            echo "<option value='{$data_produk['id']}'>{$data_produk['namaproduk']}</option>";
-                        }
-                    ?>
-                </select>
+                <div class="position-relative">
+                    <input type="text" id="productSearchInput" class="form-control form-control-sm" placeholder="Cari nama produk..." autocomplete="off">
+                    <input type="hidden" id="productSelect">
+                    <div id="productSearchResults" class="list-group shadow-sm" style="display:none; position:absolute; z-index:30; max-height:300px; overflow-y:auto; width:100%;"></div>
+                </div>
             </div>
+            <?php
+                // Data produk dikirim sekali ke JS, filter pencarian dilakukan di client
+                // (jumlah produk masih cukup kecil) - lebih responsif dibanding <select>
+                // dengan ratusan <option> yang berat di-render & lambat dicari manual.
+                $query_produk = $koneksi->query("SELECT id, namaproduk FROM products ORDER BY namaproduk ASC");
+                $allProducts  = $query_produk->fetch_all(MYSQLI_ASSOC);
+            ?>
+            <script>
+                const ALL_PRODUCTS = <?= json_encode($allProducts) ?>;
+            </script>
 
             <div id="fotoContent" style="display:none;">
                 <div class="row">
@@ -328,6 +334,44 @@
     function currentProduct() {
         return $('#productSelect').val();
     }
+
+    $('#productSearchInput').on('input', function () {
+        const q       = $(this).val().trim().toLowerCase();
+        const results = $('#productSearchResults');
+        results.empty();
+
+        if (q === '') {
+            results.hide();
+            $('#productSelect').val('').trigger('change');
+            return;
+        }
+
+        const matches = ALL_PRODUCTS.filter(p => p.namaproduk.toLowerCase().includes(q)).slice(0, 20);
+
+        if (matches.length === 0) {
+            results.html('<div class="list-group-item text-muted small">Produk tidak ditemukan</div>').show();
+            return;
+        }
+
+        matches.forEach(function (p) {
+            const item = $(`<button type="button" class="list-group-item list-group-item-action">${p.namaproduk}</button>`);
+            item.on('click', function () {
+                $('#productSelect').val(p.id).trigger('change');
+                $('#productSearchInput').val(p.namaproduk);
+                results.hide();
+            });
+            results.append(item);
+        });
+
+        results.show();
+    });
+
+    // Tutup daftar hasil kalau klik di luar kotak pencarian
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#productSearchInput, #productSearchResults').length) {
+            $('#productSearchResults').hide();
+        }
+    });
 
     function loadGallery() {
         const productId = currentProduct();
