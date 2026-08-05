@@ -39,6 +39,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
+        user-select: none; /* shift+klik checkbox jangan sampai ikut nge-select teks */
     }
 
     .foto-card {
@@ -76,6 +77,30 @@
     .foto-card.selected {
         border-color: #4e73df;
         box-shadow: 0 0 0 2px rgba(78,115,223,.25);
+    }
+
+    .foto-card.marked-delete {
+        border-color: #e74a3b;
+        box-shadow: 0 0 0 2px rgba(231,74,59,.25);
+    }
+
+    .foto-card.foto-card-loading {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    tr.variant-row-linking {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .foto-card .foto-check {
+        position: absolute;
+        bottom: 4px;
+        left: 4px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
     }
 
     .foto-card .foto-badge {
@@ -251,10 +276,15 @@
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
                                 <h6 class="m-0 font-weight-bold text-primary">Galeri Foto</h6>
-                                <small class="text-muted">Seret (drag) foto langsung ke baris variant untuk link cepat 1 foto - atau klik foto untuk memilihnya lalu centang beberapa variant &amp; klik Terapkan kalau mau sekaligus. Klik &times; untuk menghapus.</small>
+                                <small class="text-muted">Seret (drag) foto langsung ke baris variant untuk link cepat 1 foto - atau klik foto untuk memilihnya lalu centang beberapa variant &amp; klik Terapkan kalau mau sekaligus. Centang kotak di pojok kiri-bawah foto kalau mau hapus beberapa foto sekaligus (checklist ini khusus hapus, bukan untuk link).</small>
                             </div>
                             <div class="card-body">
                                 <div id="galleryLoading" class="text-muted small">Pilih produk dulu...</div>
+                                <div id="uploadStatus" class="small text-primary mb-2" style="display:none;"></div>
+                                <div id="bulkDeleteBar" class="mb-2" style="display:none;">
+                                    <button type="button" id="btnBulkDelete" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Hapus <span id="bulkDeleteCount">0</span> Foto Terpilih</button>
+                                    <button type="button" id="btnBulkDeleteCancel" class="btn btn-sm btn-outline-secondary">Batal Pilih</button>
+                                </div>
                                 <div id="fotoGrid" class="foto-grid"></div>
                             </div>
                         </div>
@@ -335,11 +365,29 @@
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
 
-    <input type="file" id="uploadInput" accept=".jpg,.jpeg,.png,.webp" class="d-none">
+    <input type="file" id="uploadInput" accept=".jpg,.jpeg,.png,.webp" multiple class="d-none">
 
     <script>
-    let currentProductId = null;
-    let selectedFotoId   = null;
+    let currentProductId  = null;
+    let selectedFotoId    = null;
+    let selectedForDelete = new Set();
+    let lastCheckedIndex  = null;
+
+    // Simpan isi tombol asli, ganti jadi spinner, dan kembalikan lagi setelah selesai.
+    function setBtnLoading(btn, loading, loadingHtml) {
+        if (loading) {
+            btn.data('html-asli', btn.html());
+            btn.prop('disabled', true).html(loadingHtml || '<i class="fas fa-spinner fa-spin"></i>');
+        } else {
+            btn.prop('disabled', false).html(btn.data('html-asli'));
+        }
+    }
+
+    function updateBulkDeleteBar() {
+        const count = selectedForDelete.size;
+        $('#bulkDeleteCount').text(count);
+        $('#bulkDeleteBar').toggle(count > 0);
+    }
 
     function currentProduct() {
         return $('#productSelect').val();
@@ -389,6 +437,9 @@
         $('#fotoGrid').empty();
         selectedFotoId = null;
         $('#selectedFotoBar').hide();
+        selectedForDelete.clear();
+        lastCheckedIndex = null;
+        updateBulkDeleteBar();
 
         $.getJSON('api/foto_produk_gallery.php', { product_id: productId }, function (res) {
             $('#galleryLoading').hide();
@@ -416,6 +467,7 @@
                     <img src="${item.url}" loading="lazy">
                     ${badge}
                     <button type="button" class="btn btn-danger btn-sm foto-hapus" title="Hapus foto">&times;</button>
+                    <input type="checkbox" class="foto-check" title="Pilih untuk hapus bersamaan">
                     <div class="foto-caption">${item.nama}</div>
                 </div>
             `);
@@ -523,7 +575,7 @@
         if (url) window.open(url, '_blank');
     });
 
-    // Pilih foto di galeri
+    // Pilih foto di galeri (utk link ke variant - selalu 1 foto)
     $(document).on('click', '.foto-card', function () {
         $('.foto-card').removeClass('selected');
         $(this).addClass('selected');
@@ -535,6 +587,100 @@
         $('#selectedFotoBar').css('display', 'flex');
     });
 
+    // Centang foto (khusus utk hapus bersamaan - terpisah dari pilih-utk-link di atas).
+    // Shift+klik = pilih rentang dari checkbox terakhir diklik sampai yang ini (kayak
+    // di Windows Explorer/Gmail).
+    function terapkanCentang(checkbox, checked) {
+        const card   = checkbox.closest('.foto-card');
+        const fotoId = card.data('id');
+
+        checkbox.prop('checked', checked);
+        if (checked) {
+            selectedForDelete.add(fotoId);
+        } else {
+            selectedForDelete.delete(fotoId);
+        }
+        card.toggleClass('marked-delete', checked);
+    }
+
+    $(document).on('click', '.foto-check', function (e) {
+        e.stopPropagation();
+
+        const allChecks    = $('.foto-check').toArray();
+        const currentIndex = allChecks.indexOf(this);
+        const checked       = $(this).is(':checked');
+
+        if (e.shiftKey && lastCheckedIndex !== null) {
+            const start = Math.min(lastCheckedIndex, currentIndex);
+            const end   = Math.max(lastCheckedIndex, currentIndex);
+            for (let i = start; i <= end; i++) {
+                terapkanCentang($(allChecks[i]), checked);
+            }
+        } else {
+            terapkanCentang($(this), checked);
+        }
+
+        lastCheckedIndex = currentIndex;
+        updateBulkDeleteBar();
+    });
+
+    $(document).on('click', '#btnBulkDeleteCancel', function () {
+        selectedForDelete.clear();
+        lastCheckedIndex = null;
+        $('.foto-check').prop('checked', false);
+        $('.foto-card').removeClass('marked-delete');
+        updateBulkDeleteBar();
+    });
+
+    async function bulkDeleteFoto(ids, btn) {
+        let sukses = 0;
+        const gagal = [];
+
+        setBtnLoading(btn, true);
+        $('#btnBulkDeleteCancel').prop('disabled', true);
+
+        for (let i = 0; i < ids.length; i++) {
+            btn.html(`<i class="fas fa-spinner fa-spin"></i> Menghapus ${i + 1}/${ids.length}...`);
+
+            try {
+                const res = await $.post('api/foto_produk_delete.php', { foto_id: ids[i] }, null, 'json');
+                if (res.success) {
+                    sukses++;
+                    if (selectedFotoId == ids[i]) {
+                        selectedFotoId = null;
+                        $('#selectedFotoBar').hide();
+                    }
+                } else {
+                    gagal.push(res.message || 'gagal');
+                }
+            } catch (e) {
+                gagal.push('tidak bisa terhubung ke server');
+            }
+        }
+
+        selectedForDelete.clear();
+        updateBulkDeleteBar();
+        setBtnLoading(btn, false);
+        $('#btnBulkDeleteCancel').prop('disabled', false);
+        loadGallery();
+        loadVariants();
+
+        if (gagal.length > 0) {
+            alert(`${sukses} foto berhasil dihapus, ${gagal.length} gagal.`);
+        }
+    }
+
+    $(document).on('click', '#btnBulkDelete', function () {
+        const ids = Array.from(selectedForDelete);
+        if (ids.length === 0) return;
+
+        if (!confirm(`Hapus ${ids.length} foto terpilih? Variant yang memakainya akan otomatis lepas ikatan.`)) {
+            return;
+        }
+
+        bulkDeleteFoto(ids, $(this));
+    });
+
     // Drag & drop: seret foto dari galeri langsung ke baris variant utk link cepat
     // ke 1 variant (alternatif lebih cepat dari alur pilih-foto + centang + klik
     // Terapkan di atas - alur itu tetap ada, dan lebih cocok kalau mau terapkan
@@ -542,6 +688,15 @@
     let draggedFotoId = null;
 
     $(document).on('dragstart', '.foto-card', function (e) {
+        // Checklist hapus-bersamaan cuma boleh dipakai buat hapus, bukan link - kalau
+        // lagi ada 2+ foto tercentang, tolak drag-nya supaya tidak ambigu foto mana yang
+        // dimaksud utk di-link.
+        if (selectedForDelete.size > 1) {
+            e.preventDefault();
+            alert('Untuk link foto ke variant harus 1 foto saja. Batalkan dulu pilihan hapus-bersamaan (sisakan maks 1 atau klik "Batal Pilih").');
+            return;
+        }
+
         draggedFotoId = $(this).data('id');
         $(this).addClass('dragging');
         e.originalEvent.dataTransfer.effectAllowed = 'copy';
@@ -564,15 +719,21 @@
 
     $(document).on('drop', '#variantBody tr[data-variant]', function (e) {
         e.preventDefault();
-        $(this).removeClass('variant-row-dragover');
+        const row = $(this);
+        row.removeClass('variant-row-dragover');
 
         if (!draggedFotoId) return;
 
-        const variantName = $(this).find('.variant-check').val();
+        const variantName = row.find('.variant-check').val();
+        const fotoId       = draggedFotoId;
+        draggedFotoId       = null;
+
+        row.addClass('variant-row-linking');
+        row.find('td').eq(1).append(' <i class="fas fa-spinner fa-spin text-primary linking-spinner"></i>');
 
         $.post('api/foto_produk_link.php', {
             product_id: currentProduct(),
-            foto_id: draggedFotoId,
+            foto_id: fotoId,
             variants: [variantName]
         }, function (res) {
             if (res.success) {
@@ -583,21 +744,26 @@
             }
         }, 'json').fail(function () {
             alert('Gagal menerapkan: tidak bisa terhubung ke server');
+        }).always(function () {
+            row.removeClass('variant-row-linking');
+            row.find('.linking-spinner').remove();
         });
-
-        draggedFotoId = null;
     });
 
     // Hapus foto
     $(document).on('click', '.foto-hapus', function (e) {
         e.stopPropagation();
-        const card   = $(this).closest('.foto-card');
+        const btn    = $(this);
+        const card   = btn.closest('.foto-card');
         const fotoId = card.data('id');
         const nama   = card.data('nama');
 
         if (!confirm(`Hapus foto "${nama}"? Variant yang memakai foto ini akan otomatis lepas ikatan.`)) {
             return;
         }
+
+        setBtnLoading(btn, true);
+        card.addClass('foto-card-loading');
 
         $.post('api/foto_produk_delete.php', { foto_id: fotoId }, function (res) {
             if (res.success) {
@@ -609,9 +775,13 @@
                 loadVariants();
             } else {
                 alert('Gagal hapus: ' + (res.message || 'Terjadi kesalahan'));
+                setBtnLoading(btn, false);
+                card.removeClass('foto-card-loading');
             }
         }, 'json').fail(function () {
             alert('Gagal hapus: tidak bisa terhubung ke server');
+            setBtnLoading(btn, false);
+            card.removeClass('foto-card-loading');
         });
     });
 
@@ -620,31 +790,55 @@
         $('#uploadInput').val('').trigger('click');
     });
 
-    // Upload foto baru
-    $(document).on('change', '#uploadInput', function () {
-        const file = this.files[0];
-        if (!file) return;
-
+    // Upload foto baru - bisa pilih banyak file sekaligus (dikirim satu-satu ke server
+    // supaya progress-nya jelas & kalau ada 1 file gagal, file lain tetap lanjut).
+    function uploadSatuFile(file) {
         const formData = new FormData();
         formData.append('product_id', currentProduct());
         formData.append('foto', file);
 
-        $.ajax({
+        return $.ajax({
             url: 'api/foto_produk_upload.php',
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
             dataType: 'json'
-        }).done(function (res) {
-            if (res.success) {
-                loadGallery();
-            } else {
-                alert('Gagal upload: ' + (res.message || 'Terjadi kesalahan'));
-            }
-        }).fail(function () {
-            alert('Gagal upload: tidak bisa terhubung ke server');
         });
+    }
+
+    async function uploadBanyakFile(files) {
+        const status = $('#uploadStatus');
+        let sukses = 0;
+        const gagal = [];
+
+        for (let i = 0; i < files.length; i++) {
+            status.text(`Mengupload foto ${i + 1} dari ${files.length}...`).show();
+
+            try {
+                const res = await uploadSatuFile(files[i]);
+                if (res.success) {
+                    sukses++;
+                } else {
+                    gagal.push(`${files[i].name}: ${res.message || 'gagal'}`);
+                }
+            } catch (e) {
+                gagal.push(`${files[i].name}: tidak bisa terhubung ke server`);
+            }
+        }
+
+        status.hide();
+        loadGallery();
+
+        if (gagal.length > 0) {
+            alert(`${sukses} foto berhasil diupload, ${gagal.length} gagal:\n` + gagal.join('\n'));
+        }
+    }
+
+    $(document).on('change', '#uploadInput', function () {
+        const files = Array.from(this.files);
+        if (files.length === 0) return;
+        uploadBanyakFile(files);
     });
 
     // Terapkan foto terpilih ke variant tercentang
@@ -663,6 +857,9 @@
             return;
         }
 
+        const btn = $(this);
+        setBtnLoading(btn, true, '<i class="fas fa-spinner fa-spin"></i> Menerapkan...');
+
         $.post('api/foto_produk_link.php', {
             product_id: currentProduct(),
             foto_id: selectedFotoId,
@@ -676,6 +873,8 @@
             }
         }, 'json').fail(function () {
             alert('Gagal menerapkan: tidak bisa terhubung ke server');
+        }).always(function () {
+            setBtnLoading(btn, false);
         });
     });
     </script>
