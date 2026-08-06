@@ -97,7 +97,28 @@
     <title>Pembayaran | Wanoja</title>
     <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
+        .payment-tabs .nav-link {
+            color: var(--wnj-text-secondary);
+        }
+        .payment-tabs .nav-link.active {
+            color: var(--wnj-cta);
+            font-weight: 600;
+            border-color: var(--wnj-border) var(--wnj-border) #fff;
+        }
+        #qrisCode {
+            display: flex;
+            justify-content: center;
+            padding: 1rem 0;
+        }
+        #qrisCountdown {
+            font-weight: 600;
+            color: var(--wnj-cta);
+        }
+        #qrisStatus.paid {
+            color: var(--wnj-success);
+        }
         body { background: var(--wnj-bg); }
         .panel {
             background: #fff;
@@ -152,35 +173,167 @@
                 <div class="h4 font-weight-bold mb-0">Rp <?= number_format($order['total']) ?></div>
             </div>
 
-            <h6 class="font-weight-bold">Transfer ke salah satu rekening berikut:</h6>
-            <?php foreach ($rekeningList as $rek): ?>
-                <div class="rekening-item">
-                    <span><?= htmlspecialchars($rek['namabank']) ?></span>
-                    <span class="font-weight-bold"><?= htmlspecialchars(trim($rek['norekening'])) ?></span>
-                </div>
-            <?php endforeach; ?>
+            <ul class="nav nav-tabs payment-tabs" id="paymentTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="tab-qris-btn" data-toggle="tab" href="#tab-qris" role="tab">
+                        <i class="bi bi-qr-code"></i> QRIS
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab-transfer-btn" data-toggle="tab" href="#tab-transfer" role="tab">
+                        <i class="bi bi-bank"></i> Transfer Bank
+                    </a>
+                </li>
+            </ul>
 
-            <form method="post" enctype="multipart/form-data" class="mt-4" autocomplete="off">
-                <div class="form-group">
-                    <label class="mb-1">Bank Pengirim</label>
-                    <input type="text" class="form-control" name="bank_pengirim" placeholder="Contoh: BCA" required>
+            <div class="tab-content pt-3">
+                <div class="tab-pane fade show active" id="tab-qris" role="tabpanel">
+                    <div id="qrisLoading" class="text-center text-muted py-4">
+                        <div class="spinner-border spinner-border-sm mr-2"></div> Menyiapkan kode QRIS...
+                    </div>
+                    <div id="qrisContent" style="display:none;">
+                        <div id="qrisCode"></div>
+                        <div class="text-center">
+                            <div class="h5 font-weight-bold mb-1">Rp <span id="qrisAmount">0</span></div>
+                            <small class="text-muted d-block mb-2">Nominal mengikuti kode unik, harus dibayar persis sesuai jumlah di atas.</small>
+                            <div id="qrisStatus" class="mb-1">Menunggu pembayaran &middot; <span id="qrisCountdown">--:--</span></div>
+                        </div>
+                    </div>
+                    <div id="qrisError" class="alert alert-danger" style="display:none;"></div>
                 </div>
-                <div class="form-group">
-                    <label class="mb-1">No. Rekening / Atas Nama Pengirim</label>
-                    <input type="text" class="form-control" name="rekening_pengirim" required>
+
+                <div class="tab-pane fade" id="tab-transfer" role="tabpanel">
+                    <h6 class="font-weight-bold">Transfer ke salah satu rekening berikut:</h6>
+                    <?php foreach ($rekeningList as $rek): ?>
+                        <div class="rekening-item">
+                            <span><?= htmlspecialchars($rek['namabank']) ?></span>
+                            <span class="font-weight-bold"><?= htmlspecialchars(trim($rek['norekening'])) ?></span>
+                        </div>
+                    <?php endforeach; ?>
+
+                    <form method="post" enctype="multipart/form-data" class="mt-4" autocomplete="off">
+                        <div class="form-group">
+                            <label class="mb-1">Bank Pengirim</label>
+                            <input type="text" class="form-control" name="bank_pengirim" placeholder="Contoh: BCA" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="mb-1">No. Rekening / Atas Nama Pengirim</label>
+                            <input type="text" class="form-control" name="rekening_pengirim" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="mb-1">Bukti Transfer</label>
+                            <input type="file" class="form-control-file" name="foto" accept="image/jpeg,image/png" required>
+                            <small class="text-muted">Format jpg/jpeg/png, maksimal 2MB.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-3">
+                            <i class="bi bi-upload"></i> Kirim Bukti Pembayaran
+                        </button>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label class="mb-1">Bukti Transfer</label>
-                    <input type="file" class="form-control-file" name="foto" accept="image/jpeg,image/png" required>
-                    <small class="text-muted">Format jpg/jpeg/png, maksimal 2MB.</small>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block mt-3">
-                    <i class="bi bi-upload"></i> Kirim Bukti Pembayaran
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 
     <?php include 'footer.php'; ?>
+
+    <script src="/home/assets/js/jquery.min.js"></script>
+    <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
+    <script>
+        var INVOICE = <?= json_encode($invoice) ?>;
+        var qrisTimer = null;
+        var pollTimer = null;
+        var currentExpiry = null;
+
+        function formatCountdown(seconds) {
+            if (seconds < 0) seconds = 0;
+            var m = Math.floor(seconds / 60);
+            var s = seconds % 60;
+            return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }
+
+        function startCountdown(expiryTime) {
+            clearInterval(qrisTimer);
+            var expiryMs = new Date(expiryTime.replace(' ', 'T')).getTime();
+            qrisTimer = setInterval(function () {
+                var sisa = Math.floor((expiryMs - Date.now()) / 1000);
+                if (sisa <= 0) {
+                    clearInterval(qrisTimer);
+                    $('#qrisCountdown').text('00:00');
+                    $('#qrisStatus').html('Kode kadaluarsa, <a href="#" id="qrisRegenerate">buat ulang</a>');
+                    clearInterval(pollTimer);
+                    $('#qrisRegenerate').on('click', function (e) {
+                        e.preventDefault();
+                        loadQris();
+                    });
+                    return;
+                }
+                $('#qrisCountdown').text(formatCountdown(sisa));
+            }, 1000);
+        }
+
+        function startPolling() {
+            clearInterval(pollTimer);
+            pollTimer = setInterval(function () {
+                $.post('qrisly_status.php', { invoice: INVOICE }, function (res) {
+                    if (!res.success) return;
+                    if (res.payment_status === 'paid') {
+                        clearInterval(pollTimer);
+                        clearInterval(qrisTimer);
+                        $('#qrisStatus').removeClass().addClass('paid').html('<i class="bi bi-check-circle-fill"></i> Pembayaran berhasil! Mengalihkan...');
+                        setTimeout(function () {
+                            window.location.href = 'detail.php?invoice=' + encodeURIComponent(INVOICE);
+                        }, 1200);
+                    } else if (res.expired) {
+                        clearInterval(pollTimer);
+                    }
+                }, 'json');
+            }, 5000);
+        }
+
+        function loadQris() {
+            $('#qrisLoading').show();
+            $('#qrisContent').hide();
+            $('#qrisError').hide();
+            $('#qrisCode').empty();
+
+            $.post('qrisly_generate.php', { invoice: INVOICE }, function (res) {
+                $('#qrisLoading').hide();
+                if (!res.success) {
+                    $('#qrisError').text(res.message || 'Gagal memuat QRIS').show();
+                    return;
+                }
+                new QRCode(document.getElementById('qrisCode'), {
+                    text: res.qris_string,
+                    width: 220,
+                    height: 220,
+                });
+                $('#qrisAmount').text(Number(res.amount).toLocaleString('id-ID'));
+                $('#qrisStatus').removeClass().html('Menunggu pembayaran &middot; <span id="qrisCountdown">--:--</span>');
+                $('#qrisContent').show();
+                currentExpiry = res.expiry_time;
+                startCountdown(currentExpiry);
+                startPolling();
+            }, 'json').fail(function () {
+                $('#qrisLoading').hide();
+                $('#qrisError').text('Gagal menghubungi server, silakan coba lagi').show();
+            });
+        }
+
+        $(function () {
+            loadQris();
+            $('#tab-transfer-btn').on('shown.bs.tab', function () {
+                clearInterval(pollTimer);
+                clearInterval(qrisTimer);
+            });
+            $('#tab-qris-btn').on('shown.bs.tab', function () {
+                if (currentExpiry) {
+                    startCountdown(currentExpiry);
+                    startPolling();
+                } else {
+                    loadQris();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

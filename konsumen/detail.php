@@ -200,7 +200,7 @@
             <?php endif; ?>
             <!-- <a href="alamat.php?invoice=<?= urlencode($order['invoice']) ?>" class="small">Ubah alamat</a> -->
         </div>
-        <?php if ($tracking['delivered'] === false) : ?>
+        <?php if (empty($tracking)) : ?>
             <div class="panel text-center">
                 <?php if ($order['status'] === 'Menunggu Pembayaran'): ?>
                     <a href="pembayaran.php?invoice=<?= urlencode($order['invoice']) ?>" class="btn btn-primary btn-block">

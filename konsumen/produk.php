@@ -23,7 +23,7 @@
     $stmtVariant = $koneksi->prepare("SELECT v.*
                                         FROM variants v
                                         WHERE v.idproducts = ? AND v.status <> 1
-                                        ORDER BY v.harga ASC, v.id ASC");
+                                        ORDER BY (v.stock > 0) DESC, v.variant ASC, v.size ASC");
     $stmtVariant->bind_param('i', $idproduk);
     $stmtVariant->execute();
     $variants = $stmtVariant->get_result()->fetch_all(MYSQLI_ASSOC);

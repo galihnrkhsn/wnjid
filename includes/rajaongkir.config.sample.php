@@ -11,4 +11,15 @@ return [
     ],
     // ID district (kecamatan) asal pengiriman di tb_ro_subdistricts, mis. gudang/kantor pusat
     'origin_district_id' => 0,
+
+    // Qrisly (pembayaran QRIS) - produk terpisah dari cek ongkir di atas, tapi
+    // masih satu akun RajaOngkir Collaborator. Ambil dari dashboard > API Settings > Developer.
+    'qrisly' => [
+        'api_key'         => '',
+        // Diisi otomatis oleh adminwnj/qrisly_setup.php setelah upload QRIS statis toko.
+        'qris_id'         => '',
+        // Opsional: kalau nanti Qrisly menyediakan secret khusus buat verifikasi webhook.
+        // Dikosongkan dulu, webhook tetap aman karena selalu re-verifikasi ke payment-status.
+        'callback_secret' => '',
+    ],
 ];
