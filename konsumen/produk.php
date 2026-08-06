@@ -63,21 +63,23 @@
     // produk (products.jenis), bukan diagregasi dari variants lagi.
     $promo = promoInfo($koneksi, $produk['jenis'] ?? null);
 
-    // Harga terendah (setelah diskon) di antara varian yang masih ada stok - ditampilkan
-    // di harga-card sebelum konsumen memilih varian+ukuran. Kalau semua stok habis,
-    // fallback ke harga terendah dari semua varian (tetap ada angka yang ditampilkan).
-    $hargaTerendah = null;
+    // Varian dengan harga TERMURAH (setelah diskon) di antara yang masih ada stok - dipakai
+    // sebagai harga default di harga-card, LENGKAP dengan coret harga asli & badge diskon-nya
+    // langsung tanpa perlu pilih varian dulu. Begitu konsumen pilih varian+ukuran, harga-card
+    // ikut update ke harga varian yang benar-benar dipilih (lihat updateHargaCard() di JS).
+    // Kalau semua stok habis, fallback ke harga terendah dari semua varian.
+    $hargaRef = null;
     foreach ([true, false] as $hanyaAdaStok) {
         foreach ($variants as $v) {
             if ($hanyaAdaStok && $v['stock'] <= 0) {
                 continue;
             }
             $hargaFinal = $v['disc'] > 0 ? hargaSetelahDisc((int) $v['harga'], (int) $v['disc']) : (int) $v['harga'];
-            if ($hargaTerendah === null || $hargaFinal < $hargaTerendah) {
-                $hargaTerendah = $hargaFinal;
+            if ($hargaRef === null || $hargaFinal < $hargaRef['final']) {
+                $hargaRef = ['harga' => (int) $v['harga'], 'disc' => (int) $v['disc'], 'hargacoret' => (int) $v['hargacoret'], 'final' => $hargaFinal];
             }
         }
-        if ($hargaTerendah !== null) {
+        if ($hargaRef !== null) {
             break;
         }
     }
@@ -459,11 +461,16 @@
                 <?php endif; ?>
 
                 <?php if (!empty($variants)): ?>
+                    <?php $adaDisc = $hargaRef['disc'] > 0; ?>
+                    <?php $adaCoret = !$adaDisc && $hargaRef['hargacoret'] > $hargaRef['harga']; ?>
                     <div class="harga-card">
                         <div>
-                            <span class="variant-price-old" id="hargaCoretValue" style="display:none;"></span>
-                            <span class="h4 font-weight-bold mb-0" id="hargaValue">Rp <?= number_format($hargaTerendah) ?></span>
-                            <span class="disc-badge-inline" id="hargaDiscBadge" style="display:none;"></span>
+                            <span class="variant-price-old" id="hargaCoretValue" style="<?= ($adaDisc || $adaCoret) ? '' : 'display:none;' ?>">
+                                Rp <?= number_format($adaDisc ? $hargaRef['harga'] : $hargaRef['hargacoret']) ?>
+                            </span>
+                            <span class="disc-badge-inline" id="hargaDiscBadge" style="<?= $adaDisc ? '' : 'display:none;' ?>">-<?= (int) $hargaRef['disc'] ?>%</span>
+                            <br>
+                            <span class="h4 font-weight-bold mb-0" id="hargaValue">Rp <?= number_format($hargaRef['final']) ?></span>
                         </div>
                         <?php if ($promo !== null && !empty($promo['deskripsi'])): ?>
                             <div class="promo-rule">
@@ -594,16 +601,16 @@
         }
 
         var VARIANT_GROUPS  = <?= json_encode($variantGroups) ?>;
-        var HARGA_TERENDAH  = <?= (int) ($hargaTerendah ?? 0) ?>;
+        var HARGA_REF       = <?= json_encode($hargaRef) ?>;
 
         function formatRupiah(n) {
             return 'Rp ' + Number(n).toLocaleString('id-ID');
         }
 
+        // Balik ke harga varian termurah (harga-card default) - dipakai HARGA_REF supaya
+        // hasilnya persis sama dengan yang di-render server pertama kali (koret+badge ikutan).
         function resetHargaCard() {
-            document.getElementById('hargaValue').textContent = formatRupiah(HARGA_TERENDAH);
-            document.getElementById('hargaCoretValue').style.display = 'none';
-            document.getElementById('hargaDiscBadge').style.display = 'none';
+            updateHargaCard(HARGA_REF);
         }
 
         function updateHargaCard(row) {
