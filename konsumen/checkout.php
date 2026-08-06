@@ -25,9 +25,10 @@
 
         // Kunci baris keranjang yang dipilih supaya tidak diutak-atik proses lain saat checkout berjalan
         $stmtItems = $koneksi->prepare("SELECT k.idkeranjang, k.idproduk AS idvariant, k.jmlh, k.harga, k.subtotal,
-                                            v.variant, v.size, v.berat, p.namaproduk
+                                            v.variant, ms.nama_size AS size, v.berat, p.namaproduk
                                         FROM keranjang k
                                         JOIN variants v ON k.idproduk = v.id
+                                        LEFT JOIN master_size ms ON ms.id = v.size_id
                                         LEFT JOIN products p ON v.idproducts = p.id
                                         WHERE k.idkonsumen = ? AND k.status = 'Active' AND k.idkeranjang IN ($placeholders)
                                         FOR UPDATE");

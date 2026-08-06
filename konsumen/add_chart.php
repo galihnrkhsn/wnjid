@@ -11,9 +11,14 @@
 
     $idvariant  = isset($_GET['id']) ? (int) $_GET['id'] : 0;
     $idproduk   = isset($_GET['pid']) ? (int) $_GET['pid'] : 0;
+    $qty        = isset($_GET['qty']) ? (int) $_GET['qty'] : 1;
     $idKonsumen = $_SESSION['idkonsumen'];
     $waktu      = date('H:i:s');
     $kembali    = $idproduk > 0 ? 'produk.php?id=' . $idproduk : 'index.php';
+
+    if ($qty < 1) {
+        $qty = 1;
+    }
 
     if ($idvariant <= 0) {
         $_SESSION['message'] = 'Produk tidak valid';
@@ -38,30 +43,33 @@
 
     // Harga SELALU diambil dari database, bukan dari query string, supaya tidak bisa dimanipulasi user.
     // Kalau variant ini punya disc, harga yang tersimpan di keranjang sudah harga setelah diskon.
-    $harga = hargaSetelahDisc((int) $stock['harga'], $stock['disc'] ?? null);
+    $harga    = hargaSetelahDisc((int) $stock['harga'], $stock['disc'] ?? null);
+    $subtotal = $harga * $qty;
 
-    if ($stock['stock'] > 0) {
+    if ($stock['stock'] >= $qty) {
         $stmtInsert = $koneksi->prepare("INSERT INTO keranjang (idkeranjang, idproduk, idmitra, idagen, idreseller, idmarketer, idkonsumen,
                                                 jmlh, harga, subtotal, tgl, waktu, status, variant)
-                                        VALUES (NULL, ?, '', '', '', '', ?, 1, ?, ?, NOW(), ?, 'Active', ?)");
-        $stmtInsert->bind_param('isddss', $idvariant, $idKonsumen, $harga, $harga, $waktu, $idvariant);
+                                        VALUES (NULL, ?, '', '', '', '', ?, ?, ?, ?, NOW(), ?, 'Active', ?)");
+        $stmtInsert->bind_param('isiddss', $idvariant, $idKonsumen, $qty, $harga, $subtotal, $waktu, $idvariant);
         $stmtInsert->execute();
 
-        $stmtUpdate = $koneksi->prepare("UPDATE variants SET stock = stock - 1 WHERE id = ? AND stock > 0");
-        $stmtUpdate->bind_param('i', $idvariant);
+        // qty ganda dipakai di WHERE juga - jaga-jaga stock berkurang antara SELECT ... FOR UPDATE
+        // di atas dan UPDATE ini (walau sudah dikunci, lebih aman eksplisit).
+        $stmtUpdate = $koneksi->prepare("UPDATE variants SET stock = stock - ? WHERE id = ? AND stock >= ?");
+        $stmtUpdate->bind_param('iii', $qty, $idvariant, $qty);
         $stmtUpdate->execute();
 
         if ($stmtUpdate->affected_rows === 0) {
-            // Stock habis tepat saat transaksi ini berjalan (kekalahan race condition)
+            // Stock habis/berkurang tepat saat transaksi ini berjalan (kekalahan race condition)
             $koneksi->rollback();
-            $_SESSION['message'] = 'Produk Telah Habis';
+            $_SESSION['message'] = 'Stok tidak mencukupi';
         } else {
             $koneksi->commit();
             $_SESSION['message'] = 'Produk Telah di Masukan ke Keranjang';
         }
     } else {
         $koneksi->rollback();
-        $_SESSION['message'] = 'Produk Telah Habis';
+        $_SESSION['message'] = 'Stok tidak mencukupi';
     }
 
     header('Location: ' . $kembali);

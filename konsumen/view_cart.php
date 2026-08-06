@@ -91,10 +91,11 @@
     }
 
     $stmt = $koneksi->prepare("SELECT k.idkeranjang, k.jmlh, k.harga, k.subtotal,
-                                    v.variant, v.size, v.stock AS sisa_stock, v.jenis, v.disc,
+                                    v.variant, ms.nama_size AS size, v.stock AS sisa_stock, v.jenis, v.disc,
                                     p.id AS idproduk, p.namaproduk, fp.foto AS foto_file, mf.name AS nama_folder
                                 FROM keranjang k
                                 JOIN variants v ON k.idproduk = v.id
+                                LEFT JOIN master_size ms ON ms.id = v.size_id
                                 LEFT JOIN products p ON v.idproducts = p.id
                                 LEFT JOIN foto_produk fp ON fp.id = v.foto
                                 LEFT JOIN master_folder mf ON fp.folder = mf.id
