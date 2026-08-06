@@ -10,7 +10,7 @@
 
     $idproduk = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-    $stmtProduk = $koneksi->prepare("SELECT id, namaproduk, idkategori, spek, deskripsi FROM products WHERE id = ?");
+    $stmtProduk = $koneksi->prepare("SELECT id, namaproduk, idkategori, spek, deskripsi, jenis FROM products WHERE id = ?");
     $stmtProduk->bind_param('i', $idproduk);
     $stmtProduk->execute();
     $produk = $stmtProduk->get_result()->fetch_assoc();
@@ -59,10 +59,9 @@
         return $habisA <=> $habisB;
     });
 
-    // Badge jenis promo (B1G1/Bundling/Flash Sale/dst) - diagregasi dari semua varian produk ini,
-    // sama pola dengan index.php (promoBadgeLabelFromList dari jenis_list).
-    $jenisList  = implode(',', array_unique(array_filter(array_column($variants, 'jenis'))));
-    $promoBadge = promoBadgeLabelFromList($jenisList);
+    // Badge jenis promo (B1G1/Bundling/Flash Sale/dst) - sekarang atribut produk (products.jenis),
+    // bukan diagregasi dari variants lagi.
+    $promoBadge = promoBadgeLabel($produk['jenis'] ?? null);
 
     // Harga terendah (setelah diskon) di antara varian yang masih ada stok - ditampilkan
     // di harga-card sebelum konsumen memilih varian+ukuran. Kalau semua stok habis,

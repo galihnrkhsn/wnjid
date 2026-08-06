@@ -370,6 +370,8 @@
             <a class="collapse-item" href="requestproduk.php">Request Produk</a>
             <a class="collapse-item" href="list-keep-produk-mitra.php">Keep Produk</a>
              <a class="collapse-item" href="slider.php">Image Slider</a>
+            <a class="collapse-item" href="tambah_produk.php">Tambah Produk</a>
+            <a class="collapse-item" href="maintenance_produk.php">Maintenance Produk</a>
           </div>
         </div>
       </li>

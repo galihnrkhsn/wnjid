@@ -386,6 +386,13 @@
                             $stmtJenis->close();
                         }
 
+                        // products.jenis jadi sumber utama (dipakai konsumen/), variants.jenis TETAP diisi
+                        // sama karena masih dipakai langsung oleh distributor/agen/mitra lain.
+                        $stmtProdukJenis = $koneksi->prepare("UPDATE products SET jenis = ? WHERE id = ?");
+                        $stmtProdukJenis->bind_param("si", $jenis, $produk);
+                        $stmtProdukJenis->execute();
+                        $stmtProdukJenis->close();
+
                         $folderName     = trim($produkRow['namaproduk']);
                         $f              = slugify($folderName);
                         $folderPath     = "../image/produk/" . $f;

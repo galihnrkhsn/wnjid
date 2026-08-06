@@ -48,8 +48,8 @@
     // Satu baris per produk: harga termurah/tertinggi, total stok, jumlah variant.
     // Foto wakil kartu diambil langsung dari foto_produk (foto pertama produk itu),
     // satu-satunya jalan untuk ambil foto produk sekarang.
-    $dataStmt = $koneksi->prepare("SELECT p.id, p.namaproduk, p.idkategori,
-                                        agg.harga_min, agg.harga_max, agg.hargacoret_max, agg.total_stock, agg.jumlah_variant, agg.jenis_list, agg.disc_max,
+    $dataStmt = $koneksi->prepare("SELECT p.id, p.namaproduk, p.idkategori, p.jenis,
+                                        agg.harga_min, agg.harga_max, agg.hargacoret_max, agg.total_stock, agg.jumlah_variant, agg.disc_max,
                                         fp.foto AS foto_file, mf.name AS nama_folder
                                     FROM products p
                                     INNER JOIN (
@@ -60,7 +60,6 @@
                                             SUM(v.stock)      AS total_stock,
                                             COUNT(v.id)       AS jumlah_variant,
                                             MAX(v.updated_at) AS terakhir_update,
-                                            GROUP_CONCAT(DISTINCT v.jenis SEPARATOR ',') AS jenis_list,
                                             MAX(v.disc)       AS disc_max
                                         FROM variants v
                                         INNER JOIN products p ON v.idproducts = p.id
@@ -236,7 +235,7 @@
                 <?php while ($data = $result->fetch_assoc()): ?>
                     <div class="col-6 col-md-4 col-lg-3 mb-4">
                         <a class="product-card" href="produk.php?id=<?= (int) $data['id'] ?>">
-                            <?php $badge = promoBadgeLabelFromList($data['jenis_list'] ?? null); ?>
+                            <?php $badge = promoBadgeLabel($data['jenis'] ?? null); ?>
                             <?php if ($badge !== null): ?>
                                 <span class="promo-badge"><?= htmlspecialchars($badge) ?></span>
                             <?php endif; ?>
