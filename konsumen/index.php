@@ -235,9 +235,9 @@
                 <?php while ($data = $result->fetch_assoc()): ?>
                     <div class="col-6 col-md-4 col-lg-3 mb-4">
                         <a class="product-card" href="produk.php?id=<?= (int) $data['id'] ?>">
-                            <?php $badge = promoBadgeLabel($data['jenis'] ?? null); ?>
-                            <?php if ($badge !== null): ?>
-                                <span class="promo-badge"><?= htmlspecialchars($badge) ?></span>
+                            <?php $promo = promoInfo($koneksi, $data['jenis'] ?? null); ?>
+                            <?php if ($promo !== null): ?>
+                                <span class="promo-badge" title="<?= htmlspecialchars($promo['deskripsi'] ?? '') ?>"><?= htmlspecialchars($promo['nama']) ?></span>
                             <?php endif; ?>
                             <?php $discBadge = discBadgeLabel($data['disc_max'] ?? null); ?>
                             <?php if ($discBadge !== null): ?>

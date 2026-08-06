@@ -28,6 +28,26 @@ function promoBadgeLabel(?string $jenis): ?string
     return null;
 }
 
+// Versi baru (berbasis master_jenis_products.nama + deskripsi) - dipakai konsumen/ supaya
+// nama badge & aturan promo bisa diatur admin (adminwnj/master_jenis.php), bukan hardcode
+// stripos() seperti promoBadgeLabel() di atas (yang TETAP dipertahankan apa adanya karena
+// masih dipakai langsung oleh distributor/agen/mitra lain).
+function promoInfo(mysqli $koneksi, ?string $jenis): ?array
+{
+    if ($jenis === null || $jenis === '') {
+        return null;
+    }
+    $stmt = $koneksi->prepare("SELECT nama, deskripsi FROM master_jenis_products WHERE nama_jenis = ?");
+    $stmt->bind_param('s', $jenis);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    if (!$row || $row['nama'] === null || $row['nama'] === '') {
+        return null;
+    }
+    return $row;
+}
+
 // Untuk baris yang mewakili beberapa variant sekaligus (mis. 1 produk di listing konsumen) -
 // $jenisList adalah string hasil GROUP_CONCAT(DISTINCT jenis), ambil badge pertama yang cocok.
 function promoBadgeLabelFromList(?string $jenisList): ?string

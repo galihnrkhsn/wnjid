@@ -115,7 +115,7 @@
     $itemsPromo = [];
     $itemsBiasa = [];
     foreach ($items as $item) {
-        $isPromo = promoBadgeLabel($item['jenis'] ?? null) !== null || (int) ($item['disc'] ?? 0) > 0;
+        $isPromo = promoInfo($koneksi, $item['jenis'] ?? null) !== null || (int) ($item['disc'] ?? 0) > 0;
         if ($isPromo) {
             $itemsPromo[] = $item;
         } else {
@@ -123,9 +123,9 @@
         }
     }
 
-    function renderCartItem(array $item): void
+    function renderCartItem(array $item, mysqli $koneksi): void
     {
-        $badgeJenis = promoBadgeLabel($item['jenis'] ?? null);
+        $promo      = promoInfo($koneksi, $item['jenis'] ?? null);
         $badgeDisc  = discBadgeLabel($item['disc'] ?? null);
     ?>
         <div class="cart-item">
@@ -139,8 +139,8 @@
                 <a href="produk.php?id=<?= (int) $item['idproduk'] ?>" class="produk-link">
                     <div class="font-weight-bold">
                         <?= htmlspecialchars($item['namaproduk'] ?? '') ?>
-                        <?php if ($badgeJenis !== null): ?>
-                            <span class="item-promo-badge"><?= htmlspecialchars($badgeJenis) ?></span>
+                        <?php if ($promo !== null): ?>
+                            <span class="item-promo-badge" title="<?= htmlspecialchars($promo['deskripsi'] ?? '') ?>"><?= htmlspecialchars($promo['nama']) ?></span>
                         <?php endif; ?>
                         <?php if ($badgeDisc !== null): ?>
                             <span class="item-promo-badge"><?= htmlspecialchars($badgeDisc) ?></span>
@@ -303,7 +303,7 @@
             <?php if (!empty($itemsPromo)): ?>
                 <div class="cart-section-heading promo">🏷️ Item Promo</div>
                 <?php foreach ($itemsPromo as $item): ?>
-                    <?php renderCartItem($item); ?>
+                    <?php renderCartItem($item, $koneksi); ?>
                 <?php endforeach; ?>
             <?php endif; ?>
 
@@ -312,7 +312,7 @@
                     <div class="cart-section-heading">Item Lainnya</div>
                 <?php endif; ?>
                 <?php foreach ($itemsBiasa as $item): ?>
-                    <?php renderCartItem($item); ?>
+                    <?php renderCartItem($item, $koneksi); ?>
                 <?php endforeach; ?>
             <?php endif; ?>
 

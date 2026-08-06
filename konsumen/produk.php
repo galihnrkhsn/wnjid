@@ -59,9 +59,9 @@
         return $habisA <=> $habisB;
     });
 
-    // Badge jenis promo (B1G1/Bundling/Flash Sale/dst) - sekarang atribut produk (products.jenis),
-    // bukan diagregasi dari variants lagi.
-    $promoBadge = promoBadgeLabel($produk['jenis'] ?? null);
+    // Badge + aturan promo (dikelola admin lewat adminwnj/master_jenis.php) - sekarang atribut
+    // produk (products.jenis), bukan diagregasi dari variants lagi.
+    $promo = promoInfo($koneksi, $produk['jenis'] ?? null);
 
     // Harga terendah (setelah diskon) di antara varian yang masih ada stok - ditampilkan
     // di harga-card sebelum konsumen memilih varian+ukuran. Kalau semua stok habis,
@@ -319,6 +319,13 @@
             padding: 1rem 1.25rem;
             margin-top: .75rem;
         }
+        .promo-rule {
+            margin-top: .5rem;
+            padding-top: .5rem;
+            border-top: 1px solid var(--wnj-border);
+            font-size: .8rem;
+            color: var(--wnj-text-secondary);
+        }
         .pilihan-group {
             display: flex;
             flex-wrap: wrap;
@@ -430,8 +437,8 @@
             <div class="col-md-5 mb-3">
                 <div class="gallery-main-wrap">
                     <img id="galleryMain" class="produk-foto" src="<?= htmlspecialchars($fotoList[0]) ?>" alt="<?= htmlspecialchars($produk['namaproduk']) ?>" data-toggle="modal" data-target="#previewModal">
-                    <?php if ($promoBadge !== null): ?>
-                        <span class="promo-badge"><?= htmlspecialchars($promoBadge) ?></span>
+                    <?php if ($promo !== null): ?>
+                        <span class="promo-badge"><?= htmlspecialchars($promo['nama']) ?></span>
                     <?php endif; ?>
                     <span class="gallery-zoom-hint"><i class="bi bi-zoom-in"></i></span>
                     <?php if (count($fotoList) > 1): ?>
@@ -458,6 +465,11 @@
                             <span class="h4 font-weight-bold mb-0" id="hargaValue">Rp <?= number_format($hargaTerendah) ?></span>
                             <span class="disc-badge-inline" id="hargaDiscBadge" style="display:none;"></span>
                         </div>
+                        <?php if ($promo !== null && !empty($promo['deskripsi'])): ?>
+                            <div class="promo-rule">
+                                <i class="bi bi-info-circle"></i> <?= htmlspecialchars($promo['deskripsi']) ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
