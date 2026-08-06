@@ -59,6 +59,11 @@
         return $habisA <=> $habisB;
     });
 
+    // Badge jenis promo (B1G1/Bundling/Flash Sale/dst) - diagregasi dari semua varian produk ini,
+    // sama pola dengan index.php (promoBadgeLabelFromList dari jenis_list).
+    $jenisList  = implode(',', array_unique(array_filter(array_column($variants, 'jenis'))));
+    $promoBadge = promoBadgeLabelFromList($jenisList);
+
     // Harga terendah (setelah diskon) di antara varian yang masih ada stok - ditampilkan
     // di harga-card sebelum konsumen memilih varian+ukuran. Kalau semua stok habis,
     // fallback ke harga terendah dari semua varian (tetap ada angka yang ditampilkan).
@@ -142,6 +147,18 @@
             justify-content: center;
             font-size: .9rem;
             pointer-events: none;
+        }
+        .promo-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            background: #dc3545;
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 4px;
         }
         #previewModal .modal-dialog {
             width: 90vw;
@@ -414,6 +431,9 @@
             <div class="col-md-5 mb-3">
                 <div class="gallery-main-wrap">
                     <img id="galleryMain" class="produk-foto" src="<?= htmlspecialchars($fotoList[0]) ?>" alt="<?= htmlspecialchars($produk['namaproduk']) ?>" data-toggle="modal" data-target="#previewModal">
+                    <?php if ($promoBadge !== null): ?>
+                        <span class="promo-badge"><?= htmlspecialchars($promoBadge) ?></span>
+                    <?php endif; ?>
                     <span class="gallery-zoom-hint"><i class="bi bi-zoom-in"></i></span>
                     <?php if (count($fotoList) > 1): ?>
                         <button type="button" class="gallery-nav gallery-prev" onclick="galleryMove(-1)" aria-label="Sebelumnya">
@@ -442,15 +462,6 @@
                     </div>
                 <?php endif; ?>
 
-                <?php if (!empty($produk['deskripsi'])): ?>
-                    <div class="deskripsi-accordion">
-                        <button type="button" class="deskripsi-toggle" onclick="toggleDeskripsi(this)">
-                            <span>Deskripsi Produk</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
-                        <div class="deskripsi-content"><?= htmlspecialchars($produk['deskripsi']) ?></div>
-                    </div>
-                <?php endif; ?>
             </div>
             <div class="col-md-7">
                 <div class="produk-panel">
@@ -512,6 +523,20 @@
                 </div>
             </div>
         </div>
+
+        <?php if (!empty($produk['deskripsi'])): ?>
+            <div class="row">
+                <div class="col-12">
+                    <div class="deskripsi-accordion">
+                        <button type="button" class="deskripsi-toggle" onclick="toggleDeskripsi(this)">
+                            <span>Deskripsi Produk</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="deskripsi-content"><?= htmlspecialchars($produk['deskripsi']) ?></div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div class="modal fade" id="previewModal" tabindex="-1" role="dialog">
