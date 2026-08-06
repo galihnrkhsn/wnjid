@@ -28,6 +28,32 @@
     $stmtVariant->execute();
     $variants = $stmtVariant->get_result()->fetch_all(MYSQLI_ASSOC);
 
+    // Kelompokkan per nama varian (warna/style) - dipakai buat tombol "Pilih Varian" step 1,
+    // tombol "Pilih Ukuran" step 2 render dari grup yang sesuai (lihat JS di bawah).
+    $variantGroups = [];
+    foreach ($variants as $v) {
+        $variantGroups[$v['variant']][] = $v;
+    }
+
+    // Harga terendah (setelah diskon) di antara varian yang masih ada stok - ditampilkan
+    // di harga-card sebelum konsumen memilih varian+ukuran. Kalau semua stok habis,
+    // fallback ke harga terendah dari semua varian (tetap ada angka yang ditampilkan).
+    $hargaTerendah = null;
+    foreach ([true, false] as $hanyaAdaStok) {
+        foreach ($variants as $v) {
+            if ($hanyaAdaStok && $v['stock'] <= 0) {
+                continue;
+            }
+            $hargaFinal = $v['disc'] > 0 ? hargaSetelahDisc((int) $v['harga'], (int) $v['disc']) : (int) $v['harga'];
+            if ($hargaTerendah === null || $hargaFinal < $hargaTerendah) {
+                $hargaTerendah = $hargaFinal;
+            }
+        }
+        if ($hargaTerendah !== null) {
+            break;
+        }
+    }
+
     // Galeri foto produk: satu-satunya jalan untuk ambil foto sekarang lewat foto_produk,
     // tidak lagi turun ke tabel variants.
     $stmtFoto = $koneksi->prepare("SELECT fp.foto, mf.name AS nama_folder
@@ -246,32 +272,43 @@
             box-shadow: 0 2px 10px rgba(0,0,0,.06);
             padding: 1.25rem;
         }
-        .variant-option {
+        .harga-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            padding: 1rem 1.25rem;
+            margin-top: .75rem;
+        }
+        .pilihan-group {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: .5rem .75rem;
-            padding: .75rem;
+            gap: .5rem;
+        }
+        .pilihan-btn {
             border: 1px solid var(--wnj-border);
-            border-radius: 10px;
-            margin-bottom: .5rem;
+            background: #fff;
+            color: var(--wnj-text);
+            border-radius: 8px;
+            padding: .45rem 1rem;
+            font-size: .85rem;
             cursor: pointer;
         }
-        .variant-option:hover {
+        .pilihan-btn:hover {
             border-color: var(--wnj-cta);
-            background: var(--wnj-bg-soft);
         }
-        .variant-option.disabled {
-            opacity: .5;
+        .pilihan-btn.active {
+            border-color: var(--wnj-cta);
+            background: var(--wnj-cta);
+            color: #fff;
+            font-weight: 600;
+        }
+        .pilihan-btn.disabled {
+            opacity: .4;
             cursor: not-allowed;
+            text-decoration: line-through;
         }
-        .variant-option input[type="radio"] {
-            margin-right: .5rem;
-        }
-        .variant-price {
-            font-weight: 700;
-            color: var(--wnj-text);
+        .pilihan-btn.disabled:hover {
+            border-color: var(--wnj-border);
         }
         .variant-price-old {
             color: var(--wnj-text-tertiary);
@@ -330,6 +367,16 @@
                     </div>
                 <?php endif; ?>
 
+                <?php if (!empty($variants)): ?>
+                    <div class="harga-card">
+                        <div>
+                            <span class="variant-price-old" id="hargaCoretValue" style="display:none;"></span>
+                            <span class="h4 font-weight-bold mb-0" id="hargaValue">Rp <?= number_format($hargaTerendah) ?></span>
+                            <span class="disc-badge-inline" id="hargaDiscBadge" style="display:none;"></span>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <?php if (!empty($produk['deskripsi'])): ?>
                     <div class="deskripsi-accordion">
                         <button type="button" class="deskripsi-toggle" onclick="toggleDeskripsi(this)">
@@ -351,36 +398,37 @@
                     <?php elseif ($produk['idkategori'] >= 51): ?>
                         <p class="text-muted">Hubungi kami untuk informasi harga &amp; ketersediaan produk ini.</p>
                     <?php else: ?>
-                        <form method="get" action="add_chart.php">
+                        <form method="get" action="add_chart.php" id="variantForm">
                             <input type="hidden" name="pid" value="<?= (int) $produk['id'] ?>">
+                            <input type="hidden" name="id" id="selectedVariantId" value="">
+
                             <label class="mb-2 font-weight-bold">Pilih Varian</label>
+                            <div class="pilihan-group mb-3" id="variantButtons">
+                                <?php foreach ($variantGroups as $namaVarian => $sizes): ?>
+                                    <?php
+                                        $groupHabis = true;
+                                        foreach ($sizes as $s) {
+                                            if ($s['stock'] > 0) {
+                                                $groupHabis = false;
+                                                break;
+                                            }
+                                        }
+                                    ?>
+                                    <button type="button"
+                                            class="pilihan-btn<?= $groupHabis ? ' disabled' : '' ?>"
+                                            data-variant="<?= htmlspecialchars($namaVarian) ?>"
+                                            <?= $groupHabis ? 'disabled' : '' ?>>
+                                        <?= htmlspecialchars($namaVarian) ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
 
-                            <?php foreach ($variants as $v): ?>
-                                <?php $habis = $v['stock'] <= 0; ?>
-                                <label class="variant-option<?= $habis ? ' disabled' : '' ?>">
-                                    <div class="d-flex align-items-center">
-                                        <input type="radio" name="id" value="<?= (int) $v['id'] ?>" <?= $habis ? 'disabled' : '' ?> required>
-                                        <div>
-                                            <div><?= htmlspecialchars($v['variant']) ?> <?= htmlspecialchars($v['size'] ?? '') ?></div>
-                                            <div class="text-muted small"><?= $habis ? 'Stok habis' : 'Stok ' . (int) $v['stock'] ?></div>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <?php if ($v['disc'] > 0): ?>
-                                            <span class="variant-price-old">Rp <?= number_format($v['harga']) ?></span>
-                                            <span class="variant-price">Rp <?= number_format(hargaSetelahDisc((int) $v['harga'], (int) $v['disc'])) ?></span>
-                                            <span class="disc-badge-inline"><?= htmlspecialchars(discBadgeLabel((int) $v['disc'])) ?></span>
-                                        <?php else: ?>
-                                            <?php if ($v['hargacoret'] > 0): ?>
-                                                <span class="variant-price-old">Rp <?= number_format($v['hargacoret']) ?></span>
-                                            <?php endif; ?>
-                                            <span class="variant-price">Rp <?= number_format($v['harga']) ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                </label>
-                            <?php endforeach; ?>
+                            <div id="sizeSection" style="display:none;">
+                                <label class="mb-2 font-weight-bold">Pilih Ukuran</label>
+                                <div class="pilihan-group mb-3" id="sizeButtons"></div>
+                            </div>
 
-                            <button type="submit" class="btn btn-primary btn-block btn-tambah mt-3">
+                            <button type="submit" class="btn btn-primary btn-block btn-tambah mt-3" id="btnTambah" disabled>
                                 <i class="bi bi-cart-plus"></i> Tambah ke Keranjang
                             </button>
                         </form>
@@ -432,6 +480,88 @@
             var isOpen  = content.classList.toggle('open');
             btn.classList.toggle('open', isOpen);
         }
+
+        var VARIANT_GROUPS  = <?= json_encode($variantGroups) ?>;
+        var HARGA_TERENDAH  = <?= (int) ($hargaTerendah ?? 0) ?>;
+
+        function formatRupiah(n) {
+            return 'Rp ' + Number(n).toLocaleString('id-ID');
+        }
+
+        function resetHargaCard() {
+            document.getElementById('hargaValue').textContent = formatRupiah(HARGA_TERENDAH);
+            document.getElementById('hargaCoretValue').style.display = 'none';
+            document.getElementById('hargaDiscBadge').style.display = 'none';
+        }
+
+        function updateHargaCard(row) {
+            var hargaCoret = document.getElementById('hargaCoretValue');
+            var discBadge  = document.getElementById('hargaDiscBadge');
+
+            if (row.disc > 0) {
+                var hargaFinal = Math.round(row.harga * (1 - row.disc / 100));
+                document.getElementById('hargaValue').textContent = formatRupiah(hargaFinal);
+                hargaCoret.textContent = formatRupiah(row.harga);
+                hargaCoret.style.display = '';
+                discBadge.textContent = '-' + row.disc + '%';
+                discBadge.style.display = '';
+            } else {
+                document.getElementById('hargaValue').textContent = formatRupiah(row.harga);
+                discBadge.style.display = 'none';
+                if (row.hargacoret > 0) {
+                    hargaCoret.textContent = formatRupiah(row.hargacoret);
+                    hargaCoret.style.display = '';
+                } else {
+                    hargaCoret.style.display = 'none';
+                }
+            }
+        }
+
+        function pilihUkuran(row, btn) {
+            document.querySelectorAll('#sizeButtons .pilihan-btn').forEach(function (el) {
+                el.classList.remove('active');
+            });
+            btn.classList.add('active');
+
+            document.getElementById('selectedVariantId').value = row.id;
+            document.getElementById('btnTambah').disabled = false;
+            updateHargaCard(row);
+        }
+
+        function pilihVarian(namaVarian, btn) {
+            document.querySelectorAll('#variantButtons .pilihan-btn').forEach(function (el) {
+                el.classList.remove('active');
+            });
+            btn.classList.add('active');
+
+            document.getElementById('selectedVariantId').value = '';
+            document.getElementById('btnTambah').disabled = true;
+            resetHargaCard();
+
+            var sizeButtons = document.getElementById('sizeButtons');
+            sizeButtons.innerHTML = '';
+            VARIANT_GROUPS[namaVarian].forEach(function (row) {
+                var habis = row.stock <= 0;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'pilihan-btn' + (habis ? ' disabled' : '');
+                b.textContent = row.size;
+                if (habis) {
+                    b.disabled = true;
+                } else {
+                    b.addEventListener('click', function () { pilihUkuran(row, b); });
+                }
+                sizeButtons.appendChild(b);
+            });
+
+            document.getElementById('sizeSection').style.display = '';
+        }
+
+        document.querySelectorAll('#variantButtons .pilihan-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                pilihVarian(btn.dataset.variant, btn);
+            });
+        });
     </script>
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
