@@ -11,6 +11,7 @@
     // ---- Input & pagination ----
     $namaproduk = isset($_GET['namaproduk']) ? trim($_GET['namaproduk']) : '';
     $isSearch   = isset($_GET['cari']) && $namaproduk !== '';
+    $jenisAktif = isset($_GET['promo']) ? trim($_GET['promo']) : '';
 
     $limit       = 20;
     $page        = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
@@ -26,6 +27,21 @@
         $params[]  = '%' . $namaproduk . '%';
         $types    .= 's';
     }
+
+    if ($jenisAktif !== '') {
+        $whereSql .= " AND p.jenis = ?";
+        $params[]  = $jenisAktif;
+        $types    .= 's';
+    }
+
+    // Chip filter promo - cuma tampilkan jenis yang beneran ada produk aktif+stok-nya sekarang,
+    // supaya tidak ada chip yang diklik lalu hasilnya kosong.
+    $promoChips = $koneksi->query("SELECT DISTINCT p.jenis, mjp.nama
+                                    FROM products p
+                                    INNER JOIN variants v ON v.idproducts = p.id
+                                    INNER JOIN master_jenis_products mjp ON mjp.nama_jenis = p.jenis
+                                    WHERE v.status <> 1 AND v.stock > 0 AND mjp.nama IS NOT NULL AND mjp.nama != ''
+                                    ORDER BY mjp.nama ASC")->fetch_all(MYSQLI_ASSOC);
 
     // Jumlah PRODUK (bukan variant) yang punya minimal satu variant aktif & stok
     $countStmt = $koneksi->prepare("SELECT COUNT(DISTINCT p.id) AS jumlah
@@ -82,13 +98,16 @@
     $dataStmt->execute();
     $result = $dataStmt->get_result();
 
-    // Preserve search state across pagination links
-    function buildPageUrl(int $targetPage, bool $isSearch, string $namaproduk): string
+    // Preserve search & promo filter state across pagination links
+    function buildPageUrl(int $targetPage, bool $isSearch, string $namaproduk, string $jenisAktif = ''): string
     {
         $query = ['page' => $targetPage];
         if ($isSearch) {
             $query['cari']       = 1;
             $query['namaproduk'] = $namaproduk;
+        }
+        if ($jenisAktif !== '') {
+            $query['promo'] = $jenisAktif;
         }
         return '?' . http_build_query($query);
     }
@@ -118,6 +137,57 @@
         }
         .search-bar input:focus {
             box-shadow: none;
+        }
+        .promo-chips {
+            display: flex;
+            gap: .5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: .5rem;
+            margin-bottom: .75rem;
+            scrollbar-width: none;
+        }
+        .promo-chips::-webkit-scrollbar {
+            display: none;
+        }
+        .promo-chip {
+            flex: 0 0 auto;
+            display: inline-block;
+            background: #fff;
+            border: 1px solid var(--wnj-border);
+            color: var(--wnj-text);
+            border-radius: 999px;
+            padding: .4rem 1rem;
+            font-size: .8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .promo-chip:hover {
+            border-color: var(--wnj-cta);
+            color: var(--wnj-text);
+            text-decoration: none;
+        }
+        .promo-chip.active {
+            background: var(--wnj-cta);
+            border-color: var(--wnj-cta);
+            color: #fff;
+        }
+        .pagination .page-link {
+            color: var(--wnj-text);
+            border-color: var(--wnj-border);
+        }
+        .pagination .page-link:hover {
+            color: var(--wnj-cta);
+        }
+        .pagination .page-item.active .page-link {
+            background: var(--wnj-cta);
+            border-color: var(--wnj-cta);
+            color: #fff;
+        }
+        .pagination .page-item.disabled .page-link {
+            color: var(--wnj-text-tertiary);
+            border-color: var(--wnj-border);
         }
         .product-card {
             position: relative;
@@ -214,11 +284,25 @@
         <form method="get" class="search-bar d-flex align-items-center">
             <i class="bi bi-search text-muted mx-2"></i>
             <input type="text" class="form-control" name="namaproduk" placeholder="Cari produk..." value="<?= htmlspecialchars($namaproduk) ?>">
+            <?php if ($jenisAktif !== ''): ?>
+                <input type="hidden" name="promo" value="<?= htmlspecialchars($jenisAktif) ?>">
+            <?php endif; ?>
             <button class="btn btn-primary ml-2" name="cari" value="1" type="submit">Cari</button>
             <?php if ($isSearch): ?>
                 <a href="index.php" class="btn btn-outline-secondary ml-2">Reset</a>
             <?php endif; ?>
         </form>
+
+        <?php if (!empty($promoChips)): ?>
+            <div class="promo-chips">
+                <a href="<?= buildPageUrl(1, $isSearch, $namaproduk, '') ?>" class="promo-chip<?= $jenisAktif === '' ? ' active' : '' ?>">Semua</a>
+                <?php foreach ($promoChips as $chip): ?>
+                    <a href="<?= buildPageUrl(1, $isSearch, $namaproduk, $chip['jenis']) ?>" class="promo-chip<?= $jenisAktif === $chip['jenis'] ? ' active' : '' ?>">
+                        <?= htmlspecialchars($chip['nama']) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <?php if ($totalRows === 0): ?>
             <div class="empty-state">
@@ -278,8 +362,8 @@
                 <?php else:
                     $link_prev = ($page > 1) ? $page - 1 : 1;
                 ?>
-                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl(1, $isSearch, $namaproduk) ?>">First</a></li>
-                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($link_prev, $isSearch, $namaproduk) ?>">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl(1, $isSearch, $namaproduk, $jenisAktif) ?>">First</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($link_prev, $isSearch, $namaproduk, $jenisAktif) ?>">&laquo;</a></li>
                 <?php endif; ?>
                 <?php
                     $jumlah_number = 3;
@@ -289,7 +373,7 @@
                     for ($i = $start_number; $i <= $end_number; $i++):
                         $link_active = ($page == $i) ? ' active' : '';
                 ?>
-                    <li class="page-item<?= $link_active ?>"><a class="page-link" href="<?= buildPageUrl($i, $isSearch, $namaproduk) ?>"><?= $i ?></a></li>
+                    <li class="page-item<?= $link_active ?>"><a class="page-link" href="<?= buildPageUrl($i, $isSearch, $namaproduk, $jenisAktif) ?>"><?= $i ?></a></li>
                 <?php endfor; ?>
                 <?php if ($page == $jumlah_page): ?>
                     <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
@@ -297,8 +381,8 @@
                 <?php else:
                     $link_next = ($page < $jumlah_page) ? $page + 1 : $jumlah_page;
                 ?>
-                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($link_next, $isSearch, $namaproduk) ?>">&raquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($jumlah_page, $isSearch, $namaproduk) ?>">Last</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($link_next, $isSearch, $namaproduk, $jenisAktif) ?>">&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="<?= buildPageUrl($jumlah_page, $isSearch, $namaproduk, $jenisAktif) ?>">Last</a></li>
                 <?php endif; ?>
             </ul>
         </nav>
