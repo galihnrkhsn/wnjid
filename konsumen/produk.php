@@ -261,6 +261,14 @@
             margin-top: .6rem;
             overflow-x: auto;
         }
+        @media (min-width: 768px) {
+            .gallery-thumbs {
+                scrollbar-width: none;
+            }
+            .gallery-thumbs::-webkit-scrollbar {
+                display: none;
+            }
+        }
         .gallery-thumb {
             width: 60px;
             height: 60px;
