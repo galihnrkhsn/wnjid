@@ -349,7 +349,14 @@
           </div>
         </div>
       </li>
-      
+
+      <li class="nav-item">
+        <a href="master_size.php" class="nav-link">
+          <i class="fas fa-ruler"></i>
+          <span>Master Size</span>
+        </a>
+      </li>
+
             <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePP" aria-expanded="true" aria-controls="collapseTwo">
           <i class="fas fa-fw fa-database"></i>
