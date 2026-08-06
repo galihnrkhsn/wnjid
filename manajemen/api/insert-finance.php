@@ -6,6 +6,7 @@
     date_default_timezone_set('Asia/Jakarta');
     require_once '../../includes/db.php';
     require_once '../../includes/image_upload_helper.php';
+    require_once '../../includes/saldo_helper.php';
 
     $waktu          = date('H:i:s');
     $keterangan     = addslashes(htmlspecialchars($_POST['keterangan'] ?? ''));
@@ -33,13 +34,8 @@
         exit;
     }
 
-    // Saldo berjalan per tipe (tipe adalah PRIMARY KEY - dipakai juga oleh saldo tagihan vendor
-    // di manajemen/manajemen/bill.php, jadi update di bawah HARUS tetap di-scope per $tipe).
-    $stmtSaldo = $koneksi->prepare("SELECT sisasaldo FROM saldo_per_tipe WHERE tipe = ?");
-    $stmtSaldo->bind_param('s', $tipe);
-    $stmtSaldo->execute();
-    $saldoRow  = $stmtSaldo->get_result()->fetch_assoc();
-    $sisaAwal  = $saldoRow ? (float) $saldoRow['sisasaldo'] : 0.0;
+    // Saldo berjalan per tipe dihitung live dari rekeningkoran (lihat includes/saldo_helper.php).
+    $sisaAwal  = hitungSaldoTipe($koneksi, $tipe);
     $sisaBaru  = ($jenis === 'kredit') ? ($sisaAwal + $jumlah) : ($sisaAwal - $jumlah);
 
     // "Pindah Bank": kategori yang berarti transaksi ini juga harus tercatat sebagai transaksi
@@ -95,39 +91,16 @@
         $stmtInsert->bind_param('isssdddssss', $iduser, $tanggal, $waktu, $keterangan, $kredit, $debit, $sisaBaru, $namaFileBaru, $tipe, $kategori, $bank);
         $stmtInsert->execute();
 
-        $stmtSaldoUpsert = $koneksi->prepare("INSERT INTO saldo_per_tipe (tipe, total_kredit, total_debit, sisasaldo, updated_at)
-                                                VALUES (?, ?, ?, ?, NOW())
-                                                ON DUPLICATE KEY UPDATE
-                                                    total_kredit = total_kredit + VALUES(total_kredit),
-                                                    total_debit  = total_debit + VALUES(total_debit),
-                                                    sisasaldo    = VALUES(sisasaldo),
-                                                    updated_at   = NOW()");
-        $stmtSaldoUpsert->bind_param('sddd', $tipe, $kredit, $debit, $sisaBaru);
-        $stmtSaldoUpsert->execute();
-
         if ($isPindahBank) {
             // Mirror: transaksi yang sama ikut tercatat sebagai kredit di tipe tujuan
             // (persis logic lama di manajemen/produksi/input_kredit.php & input_debit.php).
-            $stmtSaldoTujuan = $koneksi->prepare("SELECT sisasaldo FROM saldo_per_tipe WHERE tipe = ?");
-            $stmtSaldoTujuan->bind_param('s', $pindahBank);
-            $stmtSaldoTujuan->execute();
-            $saldoTujuanRow  = $stmtSaldoTujuan->get_result()->fetch_assoc();
-            $sisaTujuanBaru  = ($saldoTujuanRow ? (float) $saldoTujuanRow['sisasaldo'] : 0.0) + $jumlah;
+            $sisaTujuanBaru  = hitungSaldoTipe($koneksi, $pindahBank) + $jumlah;
 
             $stmtInsertMirror = $koneksi->prepare("INSERT INTO rekeningkoran
                                                     (idrk, iduser, tanggal, waktu, keterangan, kredit, debit, sisasaldo, buktitf, tipe, kategori_id, bank)
                                                     VALUES (NULL, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)");
             $stmtInsertMirror->bind_param('isssddssss', $iduser, $tanggal, $waktu, $keterangan, $jumlah, $sisaTujuanBaru, $namaFileBaru, $pindahBank, $kategori, $bank);
             $stmtInsertMirror->execute();
-
-            $stmtSaldoTujuanUpsert = $koneksi->prepare("INSERT INTO saldo_per_tipe (tipe, total_kredit, total_debit, sisasaldo, updated_at)
-                                                            VALUES (?, ?, 0, ?, NOW())
-                                                            ON DUPLICATE KEY UPDATE
-                                                                total_kredit = total_kredit + VALUES(total_kredit),
-                                                                sisasaldo    = VALUES(sisasaldo),
-                                                                updated_at   = NOW()");
-            $stmtSaldoTujuanUpsert->bind_param('sdd', $pindahBank, $jumlah, $sisaTujuanBaru);
-            $stmtSaldoTujuanUpsert->execute();
         }
 
         $koneksi->commit();

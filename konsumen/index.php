@@ -257,11 +257,7 @@
                                         <div class="price-old">Rp <?= number_format($data['hargacoret_max']) ?></div>
                                     <?php endif; ?>
                                     <div class="price">
-                                        <?php if ($data['harga_min'] == $data['harga_max']): ?>
-                                            Rp <?= number_format($data['harga_min']) ?>
-                                        <?php else: ?>
-                                            Rp <?= number_format($data['harga_min']) ?> &ndash; <?= number_format($data['harga_max']) ?>
-                                        <?php endif; ?>
+                                        Rp <?= number_format($data['harga_min']) ?>
                                     </div>
                                 <?php endif; ?>
                                 <div class="text-muted variant-count mt-1">

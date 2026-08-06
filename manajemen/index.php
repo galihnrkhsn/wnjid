@@ -1,6 +1,7 @@
 <?php 
     session_start();
     include 'koneksi.php';
+    include '../includes/saldo_helper.php';
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
         echo "
             <script>alert('Anda harus login terlebih dahulu!');</script>
@@ -11,31 +12,12 @@
     }
     $id             = $_SESSION['user_id'];
     $role           = $_SESSION['user_level'];
-    $datapm         = 0;
-
-    $getSisa        = $koneksi->query("SELECT sisasaldo, tipe FROM saldo_per_tipe"); 
-    while($dataSisa = $getSisa->fetch_assoc()){
-        switch ($dataSisa['tipe']) {
-            case 'P':
-                $datap = $dataSisa['sisasaldo'];
-                break;
-            case 'AF':
-                $dataaf = $dataSisa['sisasaldo'];
-                break;
-            case 'M':
-                $datam = $dataSisa['sisasaldo'];
-                break;
-            case 'PM':
-                $datapm = $dataSisa['sisasaldo'];
-                break;
-            case 'O':
-                $dataO = $dataSisa['sisasaldo'];
-                break;
-            case 'F';
-                $dataMF = $dataSisa['sisasaldo'];
-                break;
-        }
-    }
+    $datap          = hitungSaldoTipe($koneksi, 'P');
+    $dataaf         = hitungSaldoTipe($koneksi, 'AF');
+    $datam          = hitungSaldoTipe($koneksi, 'M');
+    $datapm         = hitungSaldoTipe($koneksi, 'PM');
+    $dataO          = hitungSaldoTipe($koneksi, 'O');
+    $dataMF         = hitungSaldoTipe($koneksi, 'MF');
 
     date_default_timezone_set('Asia/Jakarta');
     $dateNow        = date("Y-m-d");

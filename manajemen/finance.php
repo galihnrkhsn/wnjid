@@ -2,6 +2,7 @@
     session_start();
     include 'koneksi.php';
     include '../includes/image_upload_helper.php';
+    include '../includes/saldo_helper.php';
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
         echo "
@@ -48,8 +49,7 @@
         <!-- SALDO -->
         <div class="row">
             <?php
-                $ambil2         = $koneksi->query("SELECT sisasaldo as sisa FROM saldo_per_tipe WHERE tipe = '$tipe'"); 
-                $distributor2   = $ambil2->fetch_assoc();
+                $distributor2   = ['sisa' => hitungSaldoTipe($koneksi, $tipe)];
             ?>
             <div class="text-center text-dark bg-warning mt-3 rounded border border-dark">
                 <p class="pt-5">Saldo Akhir</p>
@@ -131,10 +131,10 @@
                                                             AND deleted_at IS NULL 
                                                             ORDER BY idrk DESC LIMIT 200");
                             } else {
-                                $ambil = $koneksi->query("SELECT * FROM rekeningkoran 
-                                                            INNER JOIN kategori_manajemen ON kategori_manajemen.idkategori = rekeningkoran.kategori_id 
-                                                            WHERE rekeningkoran.tipe = '$tipe' 
-                                                            AND tanggal > '2024-12-30'
+                                $ambil = $koneksi->query("SELECT * FROM rekeningkoran
+                                                            INNER JOIN kategori_manajemen ON kategori_manajemen.idkategori = rekeningkoran.kategori_id
+                                                            WHERE rekeningkoran.tipe = '$tipe'
+                                                            AND tanggal >= '" . SALDO_MULAI_TANGGAL . "'
                                                             AND deleted_at IS NULL
                                                             ORDER BY idrk DESC LIMIT 200");
                             }
@@ -304,11 +304,6 @@
                                         $stmtDelete->bind_param('i', $idrk);
                                         $stmtDelete->execute();
                                         $stmtDelete->close();
-
-                                        $stmtSaldo = $koneksi->prepare("UPDATE saldo_per_tipe SET total_kredit = total_kredit - ?, total_debit = total_debit - ?, sisasaldo = sisasaldo - ? + ?, updated_at = NOW() WHERE tipe = ?");
-                                        $stmtSaldo->bind_param('dddds', $rowRk['kredit'], $rowRk['debit'], $rowRk['kredit'], $rowRk['debit'], $rowRk['tipe']);
-                                        $stmtSaldo->execute();
-                                        $stmtSaldo->close();
                                     }
                                     $koneksi->commit();
                                     echo "<script>alert('Transaksi ($idrk) telah berhasil dihapus');</script>";
@@ -527,15 +522,6 @@
                     }
                     $stmtUpdate->execute();
                     $stmtUpdate->close();
-
-                    $deltaKredit = $kredit - $rowRk['kredit'];
-                    $deltaDebit  = $debit - $rowRk['debit'];
-                    if ($deltaKredit != 0 || $deltaDebit != 0) {
-                        $stmtSaldo = $koneksi->prepare("UPDATE saldo_per_tipe SET total_kredit = total_kredit + ?, total_debit = total_debit + ?, sisasaldo = sisasaldo + ? - ?, updated_at = NOW() WHERE tipe = ?");
-                        $stmtSaldo->bind_param('dddds', $deltaKredit, $deltaDebit, $deltaKredit, $deltaDebit, $rowRk['tipe']);
-                        $stmtSaldo->execute();
-                        $stmtSaldo->close();
-                    }
 
                     $koneksi->commit();
                     echo "<script>alert('Transaksi ($keterangan) berhasil diubah');</script>";

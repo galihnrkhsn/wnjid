@@ -1,7 +1,8 @@
 <?php 
     session_start();
-    include '../koneksi.php'; 
+    include '../koneksi.php';
     include '../assets/components/Sessions/sesManage.php';
+    include '../../includes/saldo_helper.php';
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) {
         echo "
             <script>alert('Anda harus login terlebih dahulu!');</script>
@@ -62,10 +63,12 @@
                     </thead>
                     <tbody>
                         <?php
-                            $data   = $koneksi->query("SELECT 
-                                                            * 
+                            $data   = $koneksi->query("SELECT
+                                                            vb.*,
+                                                            COALESCE(SUM(b.tagihan), 0) - COALESCE(SUM(b.bayar), 0) AS sisasaldo
                                                         FROM vendor_bill vb
-                                                        LEFT JOIN saldo_per_tipe spt ON spt.tipe = vb.idvendor
+                                                        LEFT JOIN bill b ON b.vendor = vb.idvendor AND b.deleted_at IS NULL
+                                                        GROUP BY vb.idvendor
                                                     ");
                             $no     = 1;
                             while($row = $data->fetch_assoc()) {
@@ -109,10 +112,9 @@
                     <div class="text-center text-dark bg-warning rounded border border-dark">
                         <p class="pt-3">Sisa Tagihan</p>
                         <?php
-                            $querySaldo = $koneksi->query("SELECT sisasaldo FROM saldo_per_tipe WHERE tipe = '$vendor'");
-                            $rowSaldo   = $querySaldo->fetch_assoc();
+                            $sisaTagihanVendor = hitungSisaTagihanVendor($koneksi, $vendor);
                         ?>
-                        <h2 class="pb-3" id="saldoValue">Rp. <?= number_format($rowSaldo['sisasaldo']) ?></h2>
+                        <h2 class="pb-3" id="saldoValue">Rp. <?= number_format($sisaTagihanVendor) ?></h2>
                     </div>
                 </div>
                 <div class="container mt-3">
