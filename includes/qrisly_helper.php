@@ -3,7 +3,10 @@
 // includes/rajaongkir.config.php (bagian 'qrisly'), sama pola dengan rajaongkir_helper.php.
 // Dokumentasi: https://rajaongkir.com/docs/qrisly/getting-started/getting-started
 
-const QRISLY_BASE_URL = 'https://api-sandbox.collaborator.komerce.id/user/api/v1/qrisly/';
+// Default sandbox - dokumentasi Qrisly tidak menyebut URL production sama sekali,
+// kemungkinan baru dikasih terpisah (dashboard/support) setelah sandbox lolos test.
+// Override lewat 'base_url' di config kalau/setelah dapat URL production-nya.
+const QRISLY_BASE_URL_SANDBOX = 'https://api-sandbox.collaborator.komerce.id/user/api/v1/qrisly/';
 
 if (!function_exists('qrislyConfig')) {
     function qrislyConfig(): array
@@ -30,11 +33,13 @@ if (!function_exists('qrislyRequest')) {
             return [0, null];
         }
 
+        $baseUrl = qrislyConfig()['base_url'] ?? QRISLY_BASE_URL_SANDBOX;
+
         $curl = curl_init();
         $headers = array_merge(['x-api-key: ' . $apiKey], $extraHeaders);
 
         $opts = [
-            CURLOPT_URL            => QRISLY_BASE_URL . ltrim($path, '/'),
+            CURLOPT_URL            => rtrim($baseUrl, '/') . '/' . ltrim($path, '/'),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING       => '',
             CURLOPT_MAXREDIRS      => 10,

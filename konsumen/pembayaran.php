@@ -176,12 +176,12 @@
             <ul class="nav nav-tabs payment-tabs" id="paymentTab" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" id="tab-qris-btn" data-toggle="tab" href="#tab-qris" role="tab">
-                        <i class="bi bi-qr-code"></i> QRIS
+                        QRIS
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="tab-transfer-btn" data-toggle="tab" href="#tab-transfer" role="tab">
-                        <i class="bi bi-bank"></i> Transfer Bank
+                        Transfer Bank
                     </a>
                 </li>
             </ul>

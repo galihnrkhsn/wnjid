@@ -21,5 +21,8 @@ return [
         // Opsional: kalau nanti Qrisly menyediakan secret khusus buat verifikasi webhook.
         // Dikosongkan dulu, webhook tetap aman karena selalu re-verifikasi ke payment-status.
         'callback_secret' => '',
+        // Opsional: kosongkan = pakai sandbox (default). Isi kalau sudah dapat URL
+        // production dari RajaOngkir (belum ada di dokumentasi publik saat ini).
+        'base_url'        => '',
     ],
 ];

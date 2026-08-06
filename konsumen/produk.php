@@ -73,9 +73,94 @@
             object-fit: cover;
             border-radius: 14px;
             box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            cursor: zoom-in;
         }
         .gallery-main-wrap {
             position: relative;
+        }
+        .gallery-zoom-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,.45);
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .9rem;
+            pointer-events: none;
+        }
+        #previewModal .modal-dialog {
+            width: 90vw;
+            /* max-width: 92vw; */
+            height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5vh auto;
+        }
+        #previewModal .modal-content {
+            background: transparent;
+            border: none;
+            /* width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center; */
+        }
+        #previewModal img {
+            max-width: 100%;
+            max-height: 90vh;
+            /* width: auto;
+            height: auto;
+            object-fit: contain; */
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+        #previewModal .close {
+            position: absolute;
+            top: -2.5rem;
+            right: 0;
+            color: #fff;
+            opacity: .9;
+            text-shadow: none;
+            font-size: 2rem;
+        }
+        #previewModal .preview-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,.85);
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,.25);
+            color: var(--wnj-text);
+            font-size: 1.2rem;
+        }
+        #previewModal .preview-nav:hover {
+            background: #fff;
+        }
+        #previewModal .preview-prev {
+            left: -1rem;
+        }
+        #previewModal .preview-next {
+            right: -1rem;
+        }
+        #previewModal .preview-counter {
+            position: absolute;
+            bottom: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: .85rem;
         }
         .gallery-nav {
             position: absolute;
@@ -226,7 +311,8 @@
         <div class="row mt-3">
             <div class="col-md-5 mb-3">
                 <div class="gallery-main-wrap">
-                    <img id="galleryMain" class="produk-foto" src="<?= htmlspecialchars($fotoList[0]) ?>" alt="<?= htmlspecialchars($produk['namaproduk']) ?>">
+                    <img id="galleryMain" class="produk-foto" src="<?= htmlspecialchars($fotoList[0]) ?>" alt="<?= htmlspecialchars($produk['namaproduk']) ?>" data-toggle="modal" data-target="#previewModal">
+                    <span class="gallery-zoom-hint"><i class="bi bi-zoom-in"></i></span>
                     <?php if (count($fotoList) > 1): ?>
                         <button type="button" class="gallery-nav gallery-prev" onclick="galleryMove(-1)" aria-label="Sebelumnya">
                             <i class="bi bi-chevron-left"></i>
@@ -304,6 +390,24 @@
         </div>
     </div>
 
+    <div class="modal fade" id="previewModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+                <img id="previewImage" src="" alt="<?= htmlspecialchars($produk['namaproduk']) ?>">
+                <?php if (count($fotoList) > 1): ?>
+                    <button type="button" class="preview-nav preview-prev" onclick="previewMove(-1)" aria-label="Sebelumnya">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="preview-nav preview-next" onclick="previewMove(1)" aria-label="Selanjutnya">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <div class="preview-counter"><span id="previewCounter">1</span> / <?= count($fotoList) ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <?php include 'footer.php'; ?>
 
     <script>
@@ -331,5 +435,25 @@
     </script>
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updatePreviewImage() {
+            document.getElementById('previewImage').src = galleryFotos[galleryIndex];
+            var counter = document.getElementById('previewCounter');
+            if (counter) counter.textContent = galleryIndex + 1;
+        }
+
+        function previewMove(delta) {
+            galleryMove(delta);
+            updatePreviewImage();
+        }
+
+        $('#previewModal').on('show.bs.modal', updatePreviewImage);
+
+        $(document).on('keydown', function (e) {
+            if (!$('#previewModal').hasClass('show')) return;
+            if (e.key === 'ArrowLeft') previewMove(-1);
+            if (e.key === 'ArrowRight') previewMove(1);
+        });
+    </script>
 </body>
 </html>
