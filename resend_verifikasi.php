@@ -64,9 +64,35 @@
             box-shadow: 0 4px 20px rgba(0,0,0,.08);
             padding: 2rem;
          }
+         .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,.35) 0%, rgba(0,0,0,.8) 100%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+         }
+         .loading-overlay.show {
+            display: flex;
+         }
+         .loading-spinner {
+            width: 56px;
+            height: 56px;
+            border: 5px solid rgba(255,255,255,.25);
+            border-top-color: #C67C4E;
+            border-radius: 50%;
+            animation: loading-spin .8s linear infinite;
+         }
+         @keyframes loading-spin {
+            to { transform: rotate(360deg); }
+         }
       </style>
    </head>
    <body>
+      <div class="loading-overlay" id="loadingOverlay">
+         <div class="loading-spinner"></div>
+      </div>
       <div class="wrap">
          <div class="card-box">
             <h5 class="font-weight-bold mb-3">Kirim Ulang Email Verifikasi</h5>
@@ -87,5 +113,15 @@
             </form>
          </div>
       </div>
+
+      <script>
+         document.querySelector('form').addEventListener('submit', function () {
+            document.getElementById('loadingOverlay').classList.add('show');
+            var btn = document.querySelector('button[type="submit"]');
+            if (btn) {
+               btn.disabled = true;
+            }
+         });
+      </script>
    </body>
 </html>
