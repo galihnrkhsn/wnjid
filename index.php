@@ -17,7 +17,10 @@
       $stmtUser->execute();
       $data = $stmtUser->get_result()->fetch_assoc();
 
-      if ($data && password_verify($pass, $data['password'])) {
+      if ($data && password_verify($pass, $data['password']) && empty($data['email_verified_at'])) {
+         $loginError         = 'Email belum diverifikasi. Cek inbox kamu, atau kirim ulang link verifikasi.';
+         $loginErrorRedirect = 'resend_verifikasi.php';
+      } elseif ($data && password_verify($pass, $data['password'])) {
          session_regenerate_id(true);
 
          $role = $data['role'];
@@ -227,9 +230,9 @@
                         <div class="text-center mt-3">
                            <button class="btn btn-primary" name="login">Login</button>
                         </div>
-                        <!-- <p class="text-center mt-3 mb-0">
+                        <p class="text-center mt-3 mb-0">
                            Belum punya akun? <a href="register.php" style="color: red;">Daftar di sini</a>
-                        </p> -->
+                        </p>
                      </form>
                   </div>
                </div>

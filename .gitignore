@@ -3,6 +3,7 @@ image/
 manajemen/oldfile/
 includes/db.config.php
 includes/rajaongkir.config.php
+includes/mail.config.php
 mysql-8.4/
 
 # Composer-managed packages inside /vendor (regenerated via `composer install`).
@@ -19,6 +20,7 @@ mysql-8.4/
 /vendor/maennchen/
 /vendor/markbaker/
 /vendor/myclabs/
+/vendor/phpmailer/
 /vendor/phpoffice/
 /vendor/psr/
 /vendor/symfony/

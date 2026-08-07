@@ -26,6 +26,10 @@
             $stmtUpdate->bind_param('i', $order['idorder']);
             $stmtUpdate->execute();
             $pesan = 'Pembayaran berhasil dikonfirmasi, order masuk status Diproses.';
+
+            kirimEmailStatusOrder($koneksi, $order['idorder'], 'Pembayaran Dikonfirmasi - ' . $invoice,
+                '<p>Pembayaran untuk pesanan <strong>' . htmlspecialchars($invoice) . '</strong> sudah kami konfirmasi.</p>'
+                . '<p>Pesananmu sekarang sedang diproses & disiapkan untuk dikirim.</p>');
         }
     }
 

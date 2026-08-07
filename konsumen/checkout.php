@@ -7,6 +7,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
     include '../includes/invoice_helper.php';
+    include '../includes/order_status_helper.php';
 
     $idKonsumen   = $_SESSION['idkonsumen'];
     $idsKeranjang = array_filter(array_map('intval', $_POST['idkeranjang'] ?? []));
@@ -85,6 +86,18 @@
         }
 
         $koneksi->commit();
+
+        $daftarBarang = '<ul style="padding-left:18px; margin:0 0 12px;">';
+        foreach ($items as $item) {
+            $daftarBarang .= '<li>' . htmlspecialchars($item['namaproduk'] ?? '') . ' ' . htmlspecialchars($item['variant'] ?? '') . ' ' . htmlspecialchars($item['size'] ?? '')
+                . ' &times; ' . (int) $item['jmlh'] . '</li>';
+        }
+        $daftarBarang .= '</ul>';
+        $isiEmail = '<p>Terima kasih, pesanan kamu dengan invoice <strong>' . htmlspecialchars($invoice) . '</strong> sudah kami terima.</p>'
+            . $daftarBarang
+            . '<p>Subtotal: Rp ' . number_format($subtotal) . '</p>'
+            . '<p>Silakan lanjutkan lengkapi alamat pengiriman & pembayaran untuk memproses pesananmu.</p>';
+        kirimEmailStatusOrder($koneksi, $idorder, 'Pesanan Diterima - ' . $invoice, $isiEmail);
 
         header('Location: alamat.php?invoice=' . urlencode($invoice));
         exit;

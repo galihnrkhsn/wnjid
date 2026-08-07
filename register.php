@@ -2,6 +2,7 @@
     session_start();
     require 'vendor/autoload.php';
     include 'includes/db.php';
+    include 'includes/mail_helper.php';
 
     use Gregwar\Captcha\PhraseBuilder;
 
@@ -57,9 +58,11 @@
             mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
             $koneksi->begin_transaction();
             try {
-                $stmtUser = $koneksi->prepare("INSERT INTO users (id, name, email, password, role, created_at, updated_at)
-                                                VALUES (NULL, ?, ?, ?, 'konsumen', NOW(), NOW())");
-                $stmtUser->bind_param('sss', $name, $email, $passwordHash);
+                $tokenVerifikasi = bin2hex(random_bytes(32));
+
+                $stmtUser = $koneksi->prepare("INSERT INTO users (id, name, email, password, role, email_verified_at, verification_token, created_at, updated_at)
+                                                VALUES (NULL, ?, ?, ?, 'konsumen', NULL, ?, NOW(), NOW())");
+                $stmtUser->bind_param('ssss', $name, $email, $passwordHash, $tokenVerifikasi);
                 $stmtUser->execute();
                 $iduser = $stmtUser->insert_id;
 
@@ -73,7 +76,16 @@
 
                 unset($_SESSION['captcha_phrase']);
 
-                echo "<script>alert('Registrasi berhasil! Silakan login.');</script>";
+                $linkVerifikasi = 'https://wnj.id/verify_email.php?token=' . $tokenVerifikasi;
+                kirimEmailNotifikasi($email, $name, 'Verifikasi Email Akun Wanoja', emailTemplate('Verifikasi Email Kamu',
+                    '<p>Halo ' . htmlspecialchars($name) . ',</p>'
+                    . '<p>Terima kasih sudah mendaftar di Wanoja. Klik tombol di bawah untuk verifikasi email dan aktifkan akun kamu.</p>'
+                    . '<p style="text-align:center; margin:20px 0;">'
+                    . '<a href="' . htmlspecialchars($linkVerifikasi) . '" style="background:#C67C4E; color:#fff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:600;">Verifikasi Email</a>'
+                    . '</p>'
+                    . '<p style="font-size:12px; color:#6E655D;">Atau salin link berikut: ' . htmlspecialchars($linkVerifikasi) . '</p>'));
+
+                echo "<script>alert('Registrasi berhasil! Silakan cek email kamu untuk verifikasi akun sebelum login.');</script>";
                 echo "<script>location='index.php';</script>";
                 exit;
             } catch (Exception $e) {

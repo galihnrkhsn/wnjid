@@ -225,6 +225,13 @@
                 $stmt = $koneksi->prepare("UPDATE orderkonsumen SET status = 'Terkirim' WHERE idorder = ? AND status NOT IN ('Terkirim', 'Selesai', 'Dibatalkan')");
                 $stmt->bind_param('i', $idorder);
                 $stmt->execute();
+
+                if ($stmt->affected_rows > 0) {
+                    include_once __DIR__ . '/order_status_helper.php';
+                    kirimEmailStatusOrder($koneksi, $idorder, 'Pesanan Sudah Sampai',
+                        '<p>Kabar baik! Pesananmu sudah sampai di tujuan.</p>'
+                        . '<p>Terima kasih sudah berbelanja di Wanoja.</p>');
+                }
             }
 
             return $tracking;

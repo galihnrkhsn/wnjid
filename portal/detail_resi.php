@@ -323,6 +323,20 @@
                                                     $stmtSyncKonsumen = $koneksi->prepare("UPDATE orderkonsumen SET status = 'Sedang dalam perjalanan' WHERE invoice = ? AND status = 'Menunggu Resi'");
                                                     $stmtSyncKonsumen->bind_param('s', $invoiceVal);
                                                     $stmtSyncKonsumen->execute();
+
+                                                    if ($stmtSyncKonsumen->affected_rows > 0) {
+                                                        include_once __DIR__ . '/../includes/order_status_helper.php';
+                                                        $stmtIdorder = $koneksi->prepare("SELECT idorder FROM orderkonsumen WHERE invoice = ?");
+                                                        $stmtIdorder->bind_param('s', $invoiceVal);
+                                                        $stmtIdorder->execute();
+                                                        $idorderVal = $stmtIdorder->get_result()->fetch_assoc()['idorder'] ?? null;
+
+                                                        if ($idorderVal) {
+                                                            kirimEmailStatusOrder($koneksi, (int) $idorderVal, 'Pesanan Sedang Dikirim - ' . $invoiceVal,
+                                                                '<p>Pesanan <strong>' . htmlspecialchars($invoiceVal) . '</strong> sudah diserahkan ke kurir dan sedang dalam perjalanan.</p>'
+                                                                . '<p><strong>Ekspedisi:</strong> ' . htmlspecialchars($ekspedisiVal ?? '') . '<br><strong>No. Resi:</strong> ' . htmlspecialchars($noresiVal) . '</p>');
+                                                        }
+                                                    }
                                                 }
 
                                                 if ($jenis_mitraVal === 'WNJ') {

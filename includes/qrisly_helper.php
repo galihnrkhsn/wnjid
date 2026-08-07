@@ -172,6 +172,18 @@ if (!function_exists('qrislyMarkOrderPaid')) {
         $stmtUpdateOrder->bind_param('i', $row['idorder']);
         $stmtUpdateOrder->execute();
 
+        if ($stmtUpdateOrder->affected_rows > 0) {
+            include_once __DIR__ . '/order_status_helper.php';
+            $stmtInvoice = $koneksi->prepare("SELECT invoice FROM orderkonsumen WHERE idorder = ?");
+            $stmtInvoice->bind_param('i', $row['idorder']);
+            $stmtInvoice->execute();
+            $invoice = $stmtInvoice->get_result()->fetch_assoc()['invoice'] ?? '';
+
+            kirimEmailStatusOrder($koneksi, (int) $row['idorder'], 'Pembayaran Dikonfirmasi - ' . $invoice,
+                '<p>Pembayaran QRIS untuk pesanan <strong>' . htmlspecialchars($invoice) . '</strong> sudah kami terima.</p>'
+                . '<p>Pesananmu sekarang sedang diproses & disiapkan untuk dikirim.</p>');
+        }
+
         return true;
     }
 }
