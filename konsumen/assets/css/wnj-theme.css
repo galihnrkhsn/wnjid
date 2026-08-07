@@ -24,6 +24,13 @@ body {
     color: var(--wnj-text);
 }
 
+/* Matikan double-tap-to-zoom di mobile (single tap tetap langsung respon, pinch-zoom
+   2 jari tetap jalan normal - beda sama trik lama "user-scalable=no" yang matikan
+   zoom sepenuhnya dan buruk buat aksesibilitas). */
+html {
+    touch-action: manipulation;
+}
+
 /* CTA / tombol utama */
 .btn-primary {
     background-color: var(--wnj-cta);

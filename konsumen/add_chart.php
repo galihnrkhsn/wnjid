@@ -47,15 +47,31 @@
 
     // Harga SELALU diambil dari database, bukan dari query string, supaya tidak bisa dimanipulasi user.
     // Kalau variant ini punya disc, harga yang tersimpan di keranjang sudah harga setelah diskon.
-    $harga    = hargaSetelahDisc((int) $stock['harga'], $stock['disc'] ?? null);
-    $subtotal = $harga * $qty;
+    $harga = hargaSetelahDisc((int) $stock['harga'], $stock['disc'] ?? null);
+
+    // Kalau variant yang sama sudah ada di keranjang aktif konsumen ini, gabung ke baris itu
+    // (tambah jmlh) - jangan bikin baris baru buat produk yang sama persis.
+    $stmtExisting = $koneksi->prepare("SELECT idkeranjang, jmlh FROM keranjang WHERE idkonsumen = ? AND idproduk = ? AND status = 'Active' FOR UPDATE");
+    $stmtExisting->bind_param('si', $idKonsumen, $idvariant);
+    $stmtExisting->execute();
+    $existing = $stmtExisting->get_result()->fetch_assoc();
 
     if ($stock['stock'] >= $qty) {
-        $stmtInsert = $koneksi->prepare("INSERT INTO keranjang (idkeranjang, idproduk, idmitra, idagen, idreseller, idmarketer, idkonsumen,
-                                                jmlh, harga, subtotal, tgl, waktu, status, variant)
-                                        VALUES (NULL, ?, '', '', '', '', ?, ?, ?, ?, NOW(), ?, 'Active', ?)");
-        $stmtInsert->bind_param('isiddss', $idvariant, $idKonsumen, $qty, $harga, $subtotal, $waktu, $idvariant);
-        $stmtInsert->execute();
+        if ($existing) {
+            $jmlhBaru    = (int) $existing['jmlh'] + $qty;
+            $subtotalBaru = $harga * $jmlhBaru;
+
+            $stmtMerge = $koneksi->prepare("UPDATE keranjang SET jmlh = ?, harga = ?, subtotal = ?, tgl = NOW(), waktu = ? WHERE idkeranjang = ?");
+            $stmtMerge->bind_param('iddsi', $jmlhBaru, $harga, $subtotalBaru, $waktu, $existing['idkeranjang']);
+            $stmtMerge->execute();
+        } else {
+            $subtotal = $harga * $qty;
+            $stmtInsert = $koneksi->prepare("INSERT INTO keranjang (idkeranjang, idproduk, idmitra, idagen, idreseller, idmarketer, idkonsumen,
+                                                    jmlh, harga, subtotal, tgl, waktu, status, variant)
+                                            VALUES (NULL, ?, '', '', '', '', ?, ?, ?, ?, NOW(), ?, 'Active', ?)");
+            $stmtInsert->bind_param('isiddss', $idvariant, $idKonsumen, $qty, $harga, $subtotal, $waktu, $idvariant);
+            $stmtInsert->execute();
+        }
 
         // qty ganda dipakai di WHERE juga - jaga-jaga stock berkurang antara SELECT ... FOR UPDATE
         // di atas dan UPDATE ini (walau sudah dikunci, lebih aman eksplisit).
