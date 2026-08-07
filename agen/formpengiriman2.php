@@ -19,7 +19,7 @@
   
 <html lang="en">
 <head>
-	<title>Mitra <?= $dataAgen['namaagen']; ?>| Wanoja</title>
+	<title>Mitra <?= $dataAgen['namaagen']; ?>| WNJ.ID</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>

@@ -43,7 +43,7 @@ $idmitraagen=$_SESSION["mitraagen"]["idmitraagen"];
 	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-<title>Mitra <?php echo $_SESSION['mitraagen']['namamitra']; ?>| Wanoja </title>
+<title>Mitra <?php echo $_SESSION['mitraagen']['namamitra']; ?>| WNJ.ID </title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">

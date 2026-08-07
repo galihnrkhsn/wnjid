@@ -51,7 +51,7 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>    
-    <title>Distributor | Wanoja</title>
+    <title>Distributor | WNJ.ID</title>
 </head> 
 <body>
     <div class="container mt-3" id="invoice-content">

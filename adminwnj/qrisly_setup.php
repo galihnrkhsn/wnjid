@@ -51,7 +51,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Setup QRIS | Wanoja</title>
+    <title>Setup QRIS | WNJ.ID</title>
     <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <link href="css/wnj-theme.css" rel="stylesheet">

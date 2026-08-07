@@ -69,7 +69,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
       <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
-    <title>Distributor | Wanoja</title>
+    <title>Distributor | WNJ.ID</title>
 </head> 
 <body>
     <!-- NAVBAR -->

@@ -22,7 +22,7 @@
     <meta name="author" content="">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     
-    <title>Reseller | Wanoja</title>
+    <title>Reseller | WNJ.ID</title>
 </head> 
 <body>
     <!-- NAVBAR -->

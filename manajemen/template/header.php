@@ -1,4 +1,4 @@
-        <title> Admin Pusat | Wanoja </title>
+        <title> WNJ.ID </title>
         <!--**********************************
             Nav header start
         ***********************************-->

@@ -22,7 +22,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Admin Pusat | Wanoja</title>
+  <title>WNJ.ID</title>
 
   <!-- Custom fonts for this template-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">

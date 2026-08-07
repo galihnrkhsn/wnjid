@@ -20,7 +20,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Print Surat Jalan Wanoja</title>
+    <title>Print Surat Jalan WNJ.ID</title>
     <style>
         body {
             font-family: Arial, sans-serif;

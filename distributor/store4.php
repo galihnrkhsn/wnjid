@@ -79,7 +79,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="DESCription" content="">
     <meta name="author" content="">
-    <title>Distributor | Wanoja</title>
+    <title>Distributor | WNJ.ID</title>
     <style>
         .fixed-size-img {
             width: 100%;

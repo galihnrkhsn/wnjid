@@ -22,7 +22,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List Pre Order | Wanoja</title>
+    <title>List Pre Order | WNJ.ID</title>
 
     <!-- Custom fonts for this template-->
     <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">

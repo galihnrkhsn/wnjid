@@ -69,7 +69,7 @@ if ($idmitramarketer=="") {
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <title>Admin Pusat | Wanoja</title>
+  <title>WNJ.ID</title>
 
   <!-- Custom fonts for this template-->
   <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -266,7 +266,7 @@ if ($sql) {
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
-            <span>Copyright &copy; Wanoja Development 2020</span>
+            <span>Copyright &copy; WNJ.ID Development 2020</span>
           </div>
         </div>
       </footer>

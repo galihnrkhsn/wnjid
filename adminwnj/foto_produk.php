@@ -24,7 +24,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Admin Pusat | Wanoja</title>
+  <title>WNJ.ID</title>
 
   <!-- Custom fonts for this template-->
   <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -340,7 +340,7 @@
         <footer class="sticky-footer bg-white">
             <div class="container my-auto">
                 <div class="copyright text-center my-auto">
-                    <span>Copyright &copy; Wanoja</span>
+                    <span>Copyright &copy; WNJ.ID</span>
                 </div>
             </div>
         </footer>

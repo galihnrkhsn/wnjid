@@ -12,7 +12,7 @@ session_start();
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="">
         <meta name="author" content="">
-        <title>Reseller | Wanoja</title>
+        <title>Reseller | WNJ.ID</title>
     </head>
 <body>
     <!-- NAVBAR -->

@@ -23,7 +23,7 @@
                 $stmtToken->execute();
 
                 $linkVerifikasi = 'https://wnj.id/verify_email.php?token=' . $tokenBaru;
-                kirimEmailNotifikasi($email, $user['name'], 'Verifikasi Email Akun Wanoja', emailTemplate('Verifikasi Email Kamu',
+                kirimEmailNotifikasi($email, $user['name'], 'Verifikasi Email Akun WNJ.ID', emailTemplate('Verifikasi Email Kamu',
                     '<p>Halo ' . htmlspecialchars($user['name']) . ',</p>'
                     . '<p>Klik tombol di bawah untuk verifikasi email dan aktifkan akun kamu.</p>'
                     . '<p style="text-align:center; margin:20px 0;">'
@@ -44,7 +44,7 @@
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-      <title>Kirim Ulang Verifikasi | Wanoja App</title>
+      <title>Kirim Ulang Verifikasi | WNJ.ID</title>
       <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
       <link rel="icon" href="/home/assets/images/fevicon.png" type="image/gif" />
       <style>

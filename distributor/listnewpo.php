@@ -33,7 +33,7 @@
             color: #6c757d;
         }
     </style>
-<title>Pre Order | Wanoja</title>
+<title>Pre Order | WNJ.ID</title>
     <!-- Load File bootstrap.min.css yang ada difolder css -->
   </head>
   <body>

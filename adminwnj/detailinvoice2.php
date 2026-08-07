@@ -81,7 +81,7 @@ $idpoproduk=$_GET["idpoproduk"];
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Admin Pusat | Wanoja</title>
+  <title>WNJ.ID</title>
 
   <!-- Custom fonts for this template-->
   <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">

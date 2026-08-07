@@ -16,7 +16,7 @@ $id=$_GET['idproduk'];
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Mitra <?php echo $_SESSION['admin_mitra']['namamitra']; ?>| Wanoja </title>
+<title>Mitra <?php echo $_SESSION['admin_mitra']['namamitra']; ?>| WNJ.ID </title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script type="text/javascript" src="assets/DataTables/media/js/jquery.js"></script>

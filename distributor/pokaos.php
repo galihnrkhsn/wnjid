@@ -12,7 +12,7 @@ if(!isset($_SESSION["admin_mitra"])){
 }
 
   ?> 
- <title>Mitra <?php echo $_SESSION['admin_mitra']['namamitra']; ?>| Wanoja </title>
+ <title>Mitra <?php echo $_SESSION['admin_mitra']['namamitra']; ?>| WNJ.ID </title>
 <html lang="en">
 <head>
   <meta charset="utf-8">

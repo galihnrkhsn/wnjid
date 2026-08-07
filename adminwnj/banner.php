@@ -14,7 +14,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Admin Pusat | Wanoja</title>
+    <title>WNJ.ID</title>
 
     <!-- Custom fonts & styles -->
     <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -120,7 +120,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>&copy; Wanoja <?= date('Y'); ?></span>
+                        <span>&copy; WNJ.ID <?= date('Y'); ?></span>
                     </div>
                 </div>
             </footer>

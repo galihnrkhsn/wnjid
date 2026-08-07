@@ -53,7 +53,7 @@ if (!$data || $data['jumlah'] == 0) {
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-<title>Mitra <?= htmlspecialchars($_SESSION['admin_mitra']['namamitra']) ?>| Wanoja </title>
+<title>Mitra <?= htmlspecialchars($_SESSION['admin_mitra']['namamitra']) ?>| WNJ.ID </title>
 
 </head>
 <body>

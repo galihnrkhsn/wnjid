@@ -35,7 +35,7 @@ $invoice = $_GET['id'];
  
   ?> 
   
- <title>Mitra <?php echo $_SESSION['mitraagen']['namaagen']; ?>| Wanoja </title>
+ <title>Mitra <?php echo $_SESSION['mitraagen']['namaagen']; ?>| WNJ.ID </title>
 <html lang="en">
 <head>
   <meta charset="utf-8">

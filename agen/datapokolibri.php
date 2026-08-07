@@ -65,7 +65,7 @@ if(!isset($_SESSION["mitraagen"])){
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
- <title>Mitra <?php echo $_SESSION['mitraagen']['namaagen']; ?>| Wanoja </title>
+ <title>Mitra <?php echo $_SESSION['mitraagen']['namaagen']; ?>| WNJ.ID </title>
 
 		<!-- Load File bootstrap.min.css yang ada difolder css -->
 <link href="css/bootstrap.min.css" rel="stylesheet">

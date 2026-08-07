@@ -14,7 +14,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Agen | Wanoja</title>
+    <title>Agen | WNJ.ID</title>
 </head> 
 <body>
 <?php include "assets/components/Navbar/navbar2.php"; ?>

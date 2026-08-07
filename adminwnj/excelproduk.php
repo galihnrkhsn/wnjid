@@ -23,7 +23,7 @@ if(!isset($_SESSION["administrator"])){
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Admin Pusat | Wanoja</title>
+  <title>WNJ.ID</title>
 
 <?php
     header("Content-type: application/vnd-ms-excel");

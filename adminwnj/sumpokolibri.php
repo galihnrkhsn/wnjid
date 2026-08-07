@@ -25,7 +25,7 @@ $id=28;
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Admin Pusat | Wanoja</title>
+  <title>WNJ.ID</title>
 
   <!-- Custom fonts for this template-->
   <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -100,7 +100,7 @@ include "sidebar.php";
             <!-- Nav Item - User Information -->
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin Wanoja</span>
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin WNJ.ID</span>
                 <img class="img-profile rounded-circle" src="https://source.unsplash.com/QAB-WJcbgJk/60x60">
               </a>
               <!-- Dropdown - User Information -->
@@ -279,7 +279,7 @@ include "sidebar.php";
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
-            <span>Copyright &copy; Wanoja 2020</span>
+            <span>Copyright &copy; WNJ.ID 2020 - <?= date('Y') ?></span>
           </div>
         </div>
       </footer>

@@ -14,7 +14,7 @@ if(!isset($_SESSION["mitraagen"])){
 
 <html lang="en">
 <head>
-    <title>Mitra <?php echo $_SESSION['mitraagen']['namaagen']; ?>| Wanoja </title>
+    <title>Mitra <?php echo $_SESSION['mitraagen']['namaagen']; ?>| WNJ.ID </title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -32,7 +32,7 @@ if(!isset($_SESSION["mitraagen"])){
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 
-<title>Mitra <?php echo $_SESSION['mitraagen']['namamitra']; ?>| Wanoja </title>
+<title>Mitra <?php echo $_SESSION['mitraagen']['namamitra']; ?>| WNJ.ID </title>
 
 
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">

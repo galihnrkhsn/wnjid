@@ -77,9 +77,9 @@
                 unset($_SESSION['captcha_phrase']);
 
                 $linkVerifikasi = 'https://wnj.id/verify_email.php?token=' . $tokenVerifikasi;
-                kirimEmailNotifikasi($email, $name, 'Verifikasi Email Akun Wanoja', emailTemplate('Verifikasi Email Kamu',
+                kirimEmailNotifikasi($email, $name, 'Verifikasi Email Akun WNJ.ID', emailTemplate('Verifikasi Email Kamu',
                     '<p>Halo ' . htmlspecialchars($name) . ',</p>'
-                    . '<p>Terima kasih sudah mendaftar di Wanoja. Klik tombol di bawah untuk verifikasi email dan aktifkan akun kamu.</p>'
+                    . '<p>Terima kasih sudah mendaftar di WNJ.ID. Klik tombol di bawah untuk verifikasi email dan aktifkan akun kamu.</p>'
                     . '<p style="text-align:center; margin:20px 0;">'
                     . '<a href="' . htmlspecialchars($linkVerifikasi) . '" style="background:#C67C4E; color:#fff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:600;">Verifikasi Email</a>'
                     . '</p>'
@@ -102,7 +102,7 @@
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-      <title>Daftar Akun | Wanoja App</title>
+      <title>Daftar Akun | WNJ.id</title>
       <meta name="description" content="">
       <meta name="author" content="">
       <link rel="stylesheet" href="/home/assets/css/bootstrap.min.css">
@@ -171,7 +171,7 @@
       <div class="register-wrap">
          <div class="register-card">
             <div class="logo">
-               <a href="index.php"><img src="/home/assets/images/Logo.png" alt="Wanoja"></a>
+               <a href="index.php"><img src="/home/assets/images/Logo.png" alt="WNJ.ID"></a>
             </div>
             <h4 class="text-center font-weight-bold mb-4">Daftar Akun Baru</h4>
 
@@ -195,8 +195,8 @@
                   <input type="email" class="form-control" id="email" name="email" placeholder="nama@email.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
                </div>
                <div class="form-group mb-3">
-                  <label for="whatsapp" class="mb-1">No. WhatsApp <span class="text-muted">(opsional)</span></label>
-                  <input type="text" class="form-control" id="whatsapp" name="whatsapp" placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($_POST['whatsapp'] ?? '') ?>">
+                  <label for="whatsapp" class="mb-1">No. Telepon <span class="text-muted"></span></label>
+                  <input type="text" class="form-control" id="whatsapp" name="whatsapp" placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($_POST['whatsapp'] ?? '') ?>" required>
                </div>
                <div class="form-group mb-3">
                   <label for="password" class="mb-1">Password</label>

@@ -44,7 +44,7 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 
-    <title>Distributor | Wanoja</title>
+    <title>Distributor | WNJ.ID</title>
 </head> 
 <body>
 <!--================ NAVBARU  =================-->

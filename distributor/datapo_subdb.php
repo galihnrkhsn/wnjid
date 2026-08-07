@@ -21,7 +21,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distributor | Wanoja</title>
+    <title>Distributor | WNJ.ID</title>
 </head>
 <body>
     <?php include "assets/components/Navbar/navbar.php"; ?>

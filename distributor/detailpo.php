@@ -46,7 +46,7 @@
         }
     </style>
 
-    <title>Distributor | Wanoja</title>
+    <title>Distributor | WNJ.ID</title>
 </head>
 <body>
     <!-- NAVBAR -->

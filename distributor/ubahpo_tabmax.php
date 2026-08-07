@@ -31,7 +31,7 @@ if (!$data || $data['jumlah'] == 0) {
 }
 ?>
 
-<title>Mitra <?= htmlspecialchars($_SESSION['admin_mitra']['namamitra']) ?>| Wanoja </title>
+<title>Mitra <?= htmlspecialchars($_SESSION['admin_mitra']['namamitra']) ?>| WNJ.ID </title>
 <html lang="en">
 <head>
   <meta charset="utf-8">

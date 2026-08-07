@@ -58,14 +58,14 @@
                 <div style="font-family: Arial, Helvetica, sans-serif; background:#FCFAF7; padding:24px;">
                     <div style="max-width:520px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.06);">
                         <div style="background:#C67C4E; padding:20px 24px;">
-                            <span style="color:#ffffff; font-size:20px; font-weight:700;">Wanoja</span>
+                            <span style="color:#ffffff; font-size:20px; font-weight:700;">WNJ.ID</span>
                         </div>
                         <div style="padding:24px; color:#2F2A27;">
                             <h2 style="margin:0 0 12px; font-size:18px; color:#2F2A27;">' . htmlspecialchars($judul) . '</h2>
                             ' . $isiHtml . '
                         </div>
                         <div style="padding:16px 24px; background:#F5EEE4; color:#6E655D; font-size:12px; text-align:center;">
-                            Email otomatis dari Wanoja - mohon tidak membalas email ini.
+                            Email otomatis dari WNJ.ID - mohon tidak membalas email ini.
                         </div>
                     </div>
                 </div>';

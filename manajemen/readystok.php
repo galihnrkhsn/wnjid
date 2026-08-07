@@ -14,7 +14,7 @@
     $role           = $_SESSION['user_level'];
     $idpoproduk     = $_GET['id'];
 ?>
-    <title>Ready Stok | Wanoja</title>
+    <title>Ready Stok | WNJ.ID</title>
     <?php include 'assets/components/Navbar/navbar.php'; ?>
     <div class="container mt-4">
         <div class="d-sm-flex align-items-center justify-content-between mb-4">

@@ -43,7 +43,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-    <title>Data Ongkir | Wanoja</title>
+    <title>Data Ongkir | WNJ.ID</title>
 
     <!-- Custom fonts for this template-->
     <link href="../vendor/adminwnj/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">

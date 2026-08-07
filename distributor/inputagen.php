@@ -6,7 +6,7 @@ include 'koneksi.php';
 
 <html lang="en">
 <head>
-	<title>Mitra <?php echo $_SESSION['namamitra']; ?>| Wanoja </title>
+	<title>Mitra <?php echo $_SESSION['namamitra']; ?>| WNJ.ID </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">

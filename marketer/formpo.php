@@ -38,7 +38,7 @@ if(!isset($_SESSION["mitraagen"])){
         <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
 	    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 	
-        <title>Mitra <?php echo $_SESSION['mitraagen']['namamitra']; ?>| Wanoja </title>
+        <title>Mitra <?php echo $_SESSION['mitraagen']['namamitra']; ?>| WNJ.ID </title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
