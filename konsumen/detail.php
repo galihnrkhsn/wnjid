@@ -38,23 +38,11 @@
     $stmtResi->execute();
     $noResi = $stmtResi->get_result()->fetch_assoc()['resi_pengiriman'] ?? '';
 
-    // Nama ekspedisi disimpan sebagai label tampilan (mis. "JNE"), API tracking butuh kode kurir huruf kecil
-    $kodeKurirTracking = [
-        'JNE'            => 'jne',
-        'TIKI'           => 'tiki',
-        'POS INDONESIA'  => 'pos',
-        'WAHANA'         => 'wahana',
-        'SICEPAT'        => 'sicepat',
-        'J&T'            => 'jnt',
-        'LION'           => 'lion',
-        'ANTERAJA'       => 'anteraja',
-        'ID EXPRESS'     => 'ide',
-    ];
-    $kurirKode = $kodeKurirTracking[strtoupper(trim($order['ekspedisi'] ?? ''))] ?? '';
+    $kurirKode = kodeKurirDariEkspedisi($order['ekspedisi'] ?? '');
 
     $tracking = [];
     if ($noResi !== '' && $kurirKode !== '') {
-        $tracking = lacakResiKomerce($noResi, $kurirKode);
+        $tracking = cekDanTandaiTerkirim($koneksi, $order['idorder'], $order['status'], $noResi, $kurirKode);
 
         if (!empty($tracking['manifest'])) {
             usort($tracking['manifest'], function ($a, $b) {
@@ -62,6 +50,11 @@
                 $tglB = strtotime(trim($b['date'] . ' ' . $b['time']));
                 return $tglB <=> $tglA; // descending: terbaru dulu
             });
+        }
+
+        $sudahDelivered = ($tracking['delivered'] ?? false) === true || strtoupper($tracking['status'] ?? '') === 'DELIVERED';
+        if ($sudahDelivered && !in_array($order['status'], ['Terkirim', 'Selesai', 'Dibatalkan'], true)) {
+            $order['status'] = 'Terkirim'; // reflect the just-applied update immediately on this page load
         }
     }
 

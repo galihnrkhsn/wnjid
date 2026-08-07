@@ -179,3 +179,54 @@
             ];
         }
     }
+
+    // Nama ekspedisi disimpan sebagai label tampilan di orderkonsumen (mis. "JNE"),
+    // API tracking butuh kode kurir huruf kecil. Dipakai bareng oleh konsumen/detail.php
+    // & cron pengecekan resi supaya mapping-nya cuma ada di satu tempat.
+    if (!function_exists('kodeKurirDariEkspedisi')) {
+        function kodeKurirDariEkspedisi(string $namaEkspedisi): string
+        {
+            $map = [
+                'JNE'            => 'jne',
+                'TIKI'           => 'tiki',
+                'POS INDONESIA'  => 'pos',
+                'WAHANA'         => 'wahana',
+                'SICEPAT'        => 'sicepat',
+                'J&T'            => 'jnt',
+                'LION'           => 'lion',
+                'ANTERAJA'       => 'anteraja',
+                'ID EXPRESS'     => 'ide',
+            ];
+            return $map[strtoupper(trim($namaEkspedisi))] ?? '';
+        }
+    }
+
+    // Cek resi lewat lacakResiKomerce(), dan kalau hasilnya sudah delivered langsung
+    // tandai orderkonsumen.status = 'Terkirim'. Guard: tidak pernah menimpa order yang
+    // sudah Terkirim/Selesai/Dibatalkan. Dipakai baik saat konsumen buka detail.php
+    // (real-time, on-view) maupun cron di server (real-time meski konsumen tidak buka halaman).
+    if (!function_exists('cekDanTandaiTerkirim')) {
+        /**
+         * @return array hasil tracking (['delivered'=>bool,'status'=>string,'manifest'=>array]),
+         *               kosong kalau tidak sempat dicek (resi/kurir kosong).
+         */
+        function cekDanTandaiTerkirim(mysqli $koneksi, int $idorder, string $statusSaatIni, string $noResi, string $kurirKode): array
+        {
+            if ($noResi === '' || $kurirKode === '') {
+                return [];
+            }
+
+            $tracking = lacakResiKomerce($noResi, $kurirKode);
+
+            $sudahDelivered = ($tracking['delivered'] ?? false) === true
+                || strtoupper($tracking['status'] ?? '') === 'DELIVERED';
+
+            if ($sudahDelivered && !in_array($statusSaatIni, ['Terkirim', 'Selesai', 'Dibatalkan'], true)) {
+                $stmt = $koneksi->prepare("UPDATE orderkonsumen SET status = 'Terkirim' WHERE idorder = ? AND status NOT IN ('Terkirim', 'Selesai', 'Dibatalkan')");
+                $stmt->bind_param('i', $idorder);
+                $stmt->execute();
+            }
+
+            return $tracking;
+        }
+    }

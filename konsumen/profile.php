@@ -164,6 +164,11 @@
                 <span class="label">Ubah Password</span>
                 <i class="bi bi-chevron-right chevron"></i>
             </a>
+            <a href="bantuan.php" class="menu-row">
+                <i class="bi bi-question-circle bi-icon"></i>
+                <span class="label">Bantuan</span>
+                <i class="bi bi-chevron-right chevron"></i>
+            </a>
         </div>
 
         <div class="menu-card mb-4">

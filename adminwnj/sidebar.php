@@ -273,6 +273,7 @@
             <a class="collapse-item" href="orderkonsumen.php">Order Konsumen</a>
             <a class="collapse-item" href="orderkonsumen_ambilbarang.php">Ambil Barang Konsumen</a>
             <a class="collapse-item" href="orderkonsumen_pengiriman.php">Pengiriman Konsumen</a>
+            <a class="collapse-item" href="orderkonsumen_cekresi.php">Cek &amp; Tandai Terkirim</a>
           </div>
         </div>
       </li>
@@ -361,6 +362,13 @@
         <a href="master_jenis.php" class="nav-link">
           <i class="fas fa-tags"></i>
           <span>Master Jenis Promo</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="faq.php" class="nav-link">
+          <i class="fas fa-question-circle"></i>
+          <span>Kelola Bantuan</span>
         </a>
       </li>
 
