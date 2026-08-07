@@ -1,6 +1,7 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    ini_set('log_errors', 1);
     error_reporting(E_ALL);
 
     include 'koneksi.php';
@@ -152,6 +153,7 @@
                 <div class="text-muted small">Sisa stok: <?= (int) $item['sisa_stock'] ?></div>
 
                 <form method="post" class="qty-form">
+                    <?= csrfField() ?>
                     <input type="hidden" name="idkeranjang" value="<?= (int) $item['idkeranjang'] ?>">
                     <input type="number" name="jmlh" value="<?= (int) $item['jmlh'] ?>" min="1" max="<?= (int) $item['jmlh'] + (int) $item['sisa_stock'] ?>">
                     <button type="submit" name="update_jmlh" value="1" class="btn btn-outline-secondary btn-sm">Update</button>
@@ -161,6 +163,7 @@
             <div class="text-right">
                 <div class="font-weight-bold mb-2 item-subtotal">Rp <?= number_format($item['subtotal']) ?></div>
                 <form method="post" onsubmit="return confirm('Hapus item ini dari keranjang?');">
+                    <?= csrfField() ?>
                     <input type="hidden" name="hapus" value="<?= (int) $item['idkeranjang'] ?>">
                     <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
                 </form>
@@ -331,6 +334,7 @@
     <?php include 'footer.php'; ?>
 
     <script>
+        var CSRF_TOKEN     = <?= json_encode(csrfToken()) ?>;
         var checkboxes    = document.querySelectorAll('.item-checkbox');
         var pilihSemua     = document.getElementById('pilihSemua');
         var totalDipilihEl = document.getElementById('totalDipilih');
@@ -378,6 +382,12 @@
             var form = document.createElement('form');
             form.method = 'post';
             form.action = 'checkout.php';
+
+            var tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = 'csrf_token';
+            tokenInput.value = CSRF_TOKEN;
+            form.appendChild(tokenInput);
 
             checked.forEach(function (cb) {
                 var input = document.createElement('input');

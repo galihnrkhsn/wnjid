@@ -1,6 +1,7 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    ini_set('log_errors', 1);
     error_reporting(E_ALL);
 
     include 'koneksi.php';
@@ -212,6 +213,7 @@
                     <?php endforeach; ?>
 
                     <form method="post" enctype="multipart/form-data" class="mt-4" autocomplete="off">
+                        <?= csrfField() ?>
                         <div class="form-group">
                             <label class="mb-1">Bank Pengirim</label>
                             <input type="text" class="form-control" name="bank_pengirim" placeholder="Contoh: BCA" required>
@@ -239,7 +241,8 @@
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
     <script>
-        var INVOICE = <?= json_encode($invoice) ?>;
+        var INVOICE    = <?= json_encode($invoice) ?>;
+        var CSRF_TOKEN = <?= json_encode(csrfToken()) ?>;
         var qrisTimer = null;
         var pollTimer = null;
         var currentExpiry = null;
@@ -274,7 +277,7 @@
         function startPolling() {
             clearInterval(pollTimer);
             pollTimer = setInterval(function () {
-                $.post('qrisly_status.php', { invoice: INVOICE }, function (res) {
+                $.post('qrisly_status.php', { invoice: INVOICE, csrf_token: CSRF_TOKEN }, function (res) {
                     if (!res.success) return;
                     if (res.payment_status === 'paid') {
                         clearInterval(pollTimer);
@@ -296,7 +299,7 @@
             $('#qrisError').hide();
             $('#qrisCode').empty();
 
-            $.post('qrisly_generate.php', { invoice: INVOICE }, function (res) {
+            $.post('qrisly_generate.php', { invoice: INVOICE, csrf_token: CSRF_TOKEN }, function (res) {
                 $('#qrisLoading').hide();
                 if (!res.success) {
                     $('#qrisError').text(res.message || 'Gagal memuat QRIS').show();

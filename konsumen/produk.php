@@ -1,6 +1,7 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    ini_set('log_errors', 1);
     error_reporting(E_ALL);
 
     include 'koneksi.php';
@@ -500,7 +501,8 @@
                     <?php elseif ($produk['idkategori'] >= 51): ?>
                         <p class="text-muted">Hubungi kami untuk informasi harga &amp; ketersediaan produk ini.</p>
                     <?php else: ?>
-                        <form method="get" action="add_chart.php" id="variantForm">
+                        <form method="post" action="add_chart.php" id="variantForm">
+                            <?= csrfField() ?>
                             <input type="hidden" name="pid" value="<?= (int) $produk['id'] ?>">
                             <input type="hidden" name="id" id="selectedVariantId" value="">
 

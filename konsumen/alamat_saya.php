@@ -1,6 +1,7 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    ini_set('log_errors', 1);
     error_reporting(E_ALL);
 
     include 'koneksi.php';
@@ -132,11 +133,13 @@
                     <div class="mt-2">
                         <?php if ((int) $alamat['is_utama'] !== 1): ?>
                             <form method="post" class="d-inline">
+                                <?= csrfField() ?>
                                 <input type="hidden" name="jadikan_utama" value="<?= (int) $alamat['idalamat'] ?>">
                                 <button type="submit" class="btn btn-outline-primary btn-sm">Jadikan Utama</button>
                             </form>
                         <?php endif; ?>
                         <form method="post" class="d-inline" onsubmit="return confirm('Hapus alamat ini?');">
+                            <?= csrfField() ?>
                             <input type="hidden" name="hapus" value="<?= (int) $alamat['idalamat'] ?>">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
                         </form>

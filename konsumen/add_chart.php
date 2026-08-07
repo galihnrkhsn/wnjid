@@ -1,6 +1,7 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    ini_set('log_errors', 1);
     error_reporting(E_ALL);
 
     include 'koneksi.php';
@@ -9,9 +10,12 @@
 
     date_default_timezone_set('Asia/Jakarta');
 
-    $idvariant  = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-    $idproduk   = isset($_GET['pid']) ? (int) $_GET['pid'] : 0;
-    $qty        = isset($_GET['qty']) ? (int) $_GET['qty'] : 1;
+    // POST (bukan GET) supaya perubahan stok ini tidak bisa dipicu dari luar (mis. <img> tag /
+    // link pancingan) - lihat csrfRequireValid() di sesKonsumen.php yang juga menolak POST
+    // tanpa token yang cocok.
+    $idvariant  = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+    $idproduk   = isset($_POST['pid']) ? (int) $_POST['pid'] : 0;
+    $qty        = isset($_POST['qty']) ? (int) $_POST['qty'] : 1;
     $idKonsumen = $_SESSION['idkonsumen'];
     $waktu      = date('H:i:s');
     $kembali    = $idproduk > 0 ? 'produk.php?id=' . $idproduk : 'index.php';

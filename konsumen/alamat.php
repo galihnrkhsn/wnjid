@@ -1,6 +1,7 @@
 <?php
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    ini_set('log_errors', 1);
     error_reporting(E_ALL);
 
     include 'koneksi.php';
@@ -314,6 +315,7 @@
             <?php endif; ?>
 
             <form method="post" id="formAlamat">
+                <?= csrfField() ?>
                 <input type="hidden" name="invoice" value="<?= htmlspecialchars($invoice) ?>">
                 <input type="hidden" name="ekspedisi_label" id="ekspedisi_label" value="">
 
@@ -449,7 +451,8 @@
     <?php include 'footer.php'; ?>
 
     <script>
-        var INVOICE = <?= json_encode($invoice) ?>;
+        var INVOICE    = <?= json_encode($invoice) ?>;
+        var CSRF_TOKEN = <?= json_encode(csrfToken()) ?>;
 
         function loadKota(provinsiId, selectedKotaId, cb) {
             if (!provinsiId) {
@@ -571,7 +574,7 @@
                 $.ajax({
                     type: 'POST',
                     url: 'cek_ongkir.php',
-                    data: { invoice: INVOICE, kecamatan_id: kecamatanId, kurir: kode },
+                    data: { invoice: INVOICE, kecamatan_id: kecamatanId, kurir: kode, csrf_token: CSRF_TOKEN },
                     success: function (data) {
                         $('#layanan').html(data);
                     }
