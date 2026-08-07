@@ -8,6 +8,7 @@
     include 'assets/components/Sessions/sesKonsumen.php';
     include '../includes/order_status_helper.php';
     include '../includes/rajaongkir_helper.php';
+    include '../includes/foto_helper.php';
 
     $idKonsumen = $_SESSION['idkonsumen'];
     $invoice    = trim($_GET['invoice'] ?? '');
@@ -31,6 +32,11 @@
     $stmtDetail->bind_param('i', $order['idorder']);
     $stmtDetail->execute();
     $items = $stmtDetail->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    foreach ($items as &$item) {
+        $item['foto_src'] = fotoUntukVariant($koneksi, (int) $item['idvariant']);
+    }
+    unset($item);
 
     // No. resi hidup di t_user (diisi lewat portal kurir), bukan di orderkonsumen sendiri
     $stmtResi = $koneksi->prepare("SELECT resi_pengiriman FROM t_user WHERE invoice = ? AND resi_pengiriman IS NOT NULL AND resi_pengiriman != '' ORDER BY id_user DESC LIMIT 1");
@@ -81,11 +87,24 @@
         .item-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            gap: .75rem;
             padding: .6rem 0;
             border-bottom: 1px solid var(--wnj-border);
         }
         .item-row:last-child {
             border-bottom: none;
+        }
+        .item-row img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .item-row .item-info {
+            flex-grow: 1;
+            min-width: 0;
         }
         .total-row {
             display: flex;
@@ -152,7 +171,8 @@
             <h6 class="font-weight-bold mb-3">Barang Dipesan</h6>
             <?php foreach ($items as $item): ?>
                 <div class="item-row">
-                    <div>
+                    <img src="<?= htmlspecialchars($item['foto_src']) ?>" alt="">
+                    <div class="item-info">
                         <div class="font-weight-bold"><?= htmlspecialchars($item['namaproduk']) ?></div>
                         <div class="text-muted small"><?= htmlspecialchars($item['variant']) ?> <?= htmlspecialchars($item['size'] ?? '') ?></div>
                         <div class="small">Rp <?= number_format($item['harga']) ?> &times; <?= (int) $item['jumlah'] ?></div>

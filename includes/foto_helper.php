@@ -29,3 +29,45 @@
             return $urlBasePath . 'nophoto.png';
         }
     }
+
+    // Foto utk 1 variant (dipakai konsumen/detail.php & riwayat_pesanan.php buat nampilin
+    // foto barang yang dipesan): utamakan foto variant itu sendiri, kalau variant itu tidak
+    // punya foto pakai foto variant lain dari produk yang sama, terakhir nophoto.png.
+    if (!function_exists('fotoUntukVariant')) {
+        function fotoUntukVariant(mysqli $koneksi, ?int $idvariant, string $checkBasePath = '../image/produk/', ?string $urlBasePath = null): string
+        {
+            if (empty($idvariant)) {
+                return fotoProdukSrc(null, null, $checkBasePath, $urlBasePath);
+            }
+
+            $stmtOwn = $koneksi->prepare("SELECT v.idproducts, fp.foto AS foto_file, mf.name AS nama_folder
+                                            FROM variants v
+                                            LEFT JOIN foto_produk fp ON fp.id = v.foto
+                                            LEFT JOIN master_folder mf ON mf.id = fp.folder
+                                            WHERE v.id = ?");
+            $stmtOwn->bind_param('i', $idvariant);
+            $stmtOwn->execute();
+            $own = $stmtOwn->get_result()->fetch_assoc();
+
+            $fotoFile   = $own['foto_file'] ?? null;
+            $namaFolder = $own['nama_folder'] ?? null;
+
+            if (empty($fotoFile) && !empty($own['idproducts'])) {
+                $stmtFallback = $koneksi->prepare("SELECT fp.foto AS foto_file, mf.name AS nama_folder
+                                                    FROM variants v2
+                                                    JOIN foto_produk fp ON fp.id = v2.foto
+                                                    LEFT JOIN master_folder mf ON mf.id = fp.folder
+                                                    WHERE v2.idproducts = ? AND v2.foto IS NOT NULL
+                                                    ORDER BY v2.id ASC LIMIT 1");
+                $stmtFallback->bind_param('i', $own['idproducts']);
+                $stmtFallback->execute();
+                $fallback = $stmtFallback->get_result()->fetch_assoc();
+                if ($fallback) {
+                    $fotoFile   = $fallback['foto_file'];
+                    $namaFolder = $fallback['nama_folder'];
+                }
+            }
+
+            return fotoProdukSrc($namaFolder, $fotoFile, $checkBasePath, $urlBasePath);
+        }
+    }

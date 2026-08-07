@@ -7,6 +7,7 @@
     include 'koneksi.php';
     include 'assets/components/Sessions/sesKonsumen.php';
     include '../includes/order_status_helper.php';
+    include '../includes/foto_helper.php';
 
     $idKonsumen = $_SESSION['idkonsumen'];
 
@@ -53,6 +54,20 @@
     $stmtList->execute();
     $daftarOrder = $stmtList->get_result()->fetch_all(MYSQLI_ASSOC);
     $totalHalaman = max(1, (int) ceil($totalOrder / $perHalaman));
+
+    // Barang per order, buat preview "1 barang + N lainnya" di tiap kartu
+    $stmtItems = $koneksi->prepare("SELECT namaproduk, variant, size, jumlah, idvariant
+                                        FROM orderkonsumen_detail WHERE idorder = ? ORDER BY iddetail ASC");
+    foreach ($daftarOrder as &$order) {
+        $stmtItems->bind_param('i', $order['idorder']);
+        $stmtItems->execute();
+        $order['items'] = $stmtItems->get_result()->fetch_all(MYSQLI_ASSOC);
+        foreach ($order['items'] as &$item) {
+            $item['foto_src'] = fotoUntukVariant($koneksi, (int) $item['idvariant']);
+        }
+        unset($item);
+    }
+    unset($order);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,16 +92,63 @@
             border-radius: 10px;
             padding: 1rem;
             margin-bottom: .75rem;
+        }
+        .order-card:hover {
+            border-color: var(--wnj-cta);
+        }
+        .order-card:last-child { margin-bottom: 0; }
+        .order-card-link {
             display: block;
             color: inherit;
             text-decoration: none;
         }
-        .order-card:hover {
-            border-color: var(--wnj-cta);
-            text-decoration: none;
+        .order-card-link:hover {
             color: inherit;
+            text-decoration: none;
         }
-        .order-card:last-child { margin-bottom: 0; }
+        .order-item-preview {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding-top: .6rem;
+            margin-top: .6rem;
+            border-top: 1px dashed var(--wnj-border);
+        }
+        .order-item-preview img {
+            width: 42px;
+            height: 42px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .order-item-info {
+            min-width: 0;
+        }
+        .order-item-toggle {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: .5rem 0 0;
+            text-align: left;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--wnj-cta);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .order-item-toggle .bi {
+            transition: transform .15s ease-in-out;
+        }
+        .order-item-toggle.open .bi {
+            transform: rotate(180deg);
+        }
+        .order-item-more {
+            display: none;
+        }
+        .order-item-more.open {
+            display: block;
+        }
         .status-tabs {
             display: flex;
             gap: .5rem;
@@ -148,16 +210,51 @@
 
             <?php foreach ($daftarOrder as $order): ?>
                 <?php [$badgeColor, $badgeLabel] = orderKonsumenStatusBadge($order['status']); ?>
-                <a href="detail.php?invoice=<?= urlencode($order['invoice']) ?>" class="order-card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="mb-2 badge badge-<?= $badgeColor ?> p-2"><?= htmlspecialchars($badgeLabel) ?></span>
-                            <div class="font-weight-bold"><?= htmlspecialchars($order['invoice']) ?></div>
-                            <div class="text-muted small"><?= date('d M Y H:i', strtotime($order['tgl'])) ?></div>
+                <div class="order-card">
+                    <a href="detail.php?invoice=<?= urlencode($order['invoice']) ?>" class="order-card-link">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="mb-2 badge badge-<?= $badgeColor ?> p-2"><?= htmlspecialchars($badgeLabel) ?></span>
+                                <div class="font-weight-bold"><?= htmlspecialchars($order['invoice']) ?></div>
+                                <div class="text-muted small"><?= date('d M Y H:i', strtotime($order['tgl'])) ?></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mt-2 font-weight-bold">Rp <?= number_format($order['total']) ?></div>
-                </a>
+                        <div class="mt-2 font-weight-bold">Rp <?= number_format($order['total']) ?></div>
+                    </a>
+
+                    <?php if (!empty($order['items'])): ?>
+                        <?php
+                            $itemPertama = $order['items'][0];
+                            $sisaItem    = array_slice($order['items'], 1);
+                        ?>
+                        <div class="order-item-preview">
+                            <img src="<?= htmlspecialchars($itemPertama['foto_src']) ?>" alt="">
+                            <div class="order-item-info">
+                                <div class="font-weight-bold"><?= htmlspecialchars($itemPertama['namaproduk']) ?></div>
+                                <div class="text-muted small"><?= htmlspecialchars($itemPertama['variant']) ?> <?= htmlspecialchars($itemPertama['size'] ?? '') ?> &times; <?= (int) $itemPertama['jumlah'] ?></div>
+                            </div>
+                        </div>
+
+                        <?php if (!empty($sisaItem)): ?>
+                            <button type="button" class="order-item-toggle" onclick="toggleOrderItems(this)"
+                                    data-label-closed="Lihat <?= count($sisaItem) ?> barang lainnya" data-label-open="Sembunyikan">
+                                <span>Lihat <?= count($sisaItem) ?> barang lainnya</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="order-item-more">
+                                <?php foreach ($sisaItem as $item): ?>
+                                    <div class="order-item-preview">
+                                        <img src="<?= htmlspecialchars($item['foto_src']) ?>" alt="">
+                                        <div class="order-item-info">
+                                            <div class="font-weight-bold"><?= htmlspecialchars($item['namaproduk']) ?></div>
+                                            <div class="text-muted small"><?= htmlspecialchars($item['variant']) ?> <?= htmlspecialchars($item['size'] ?? '') ?> &times; <?= (int) $item['jumlah'] ?></div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             <?php endforeach; ?>
         </div>
 
@@ -176,6 +273,14 @@
 
     <?php include 'footer.php'; ?>
 
+    <script>
+        function toggleOrderItems(btn) {
+            var more = btn.nextElementSibling;
+            var isOpen = more.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
+            btn.querySelector('span').textContent = isOpen ? btn.dataset.labelOpen : btn.dataset.labelClosed;
+        }
+    </script>
     <script src="/home/assets/js/jquery.min.js"></script>
     <script src="/home/assets/js/bootstrap.bundle.min.js"></script>
 </body>
