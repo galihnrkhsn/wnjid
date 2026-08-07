@@ -33,7 +33,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Wanoja | <?= $queryUser['namamitra'] ?></title>
+    <title>WNJ.ID | <?= $queryUser['namamitra'] ?></title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

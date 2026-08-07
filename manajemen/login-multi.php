@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Wanoja | Manajemen</title>
+    <title>WNJ.ID | Manajemen</title>
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="template/images/logo.png">
     <link href="template/css/style.css" rel="stylesheet">
