@@ -1,7 +1,7 @@
-<?php 
-session_start();
-
-include 'koneksi.php'; 
+<?php
+// Portal marketer belum jalan (masih maintenance) - blokir login di sini dulu.
+header('Location: maintenance.php');
+exit;
 ?>
 <!DOCTYPE html>
 <html lang="en">

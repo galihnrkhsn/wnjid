@@ -1,8 +1,7 @@
-<?php 
-session_start();
-
-include 'koneksi.php';
-// include '../distributor/cek_keterangan.php';
+<?php
+// Portal reseller belum jalan (masih maintenance) - blokir login di sini dulu.
+header('Location: maintenance.php');
+exit;
 ?>
 <!DOCTYPE html>
 <html lang="en">

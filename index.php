@@ -52,22 +52,12 @@
             header('Location: ../agen/index3.php');
             exit;
          } elseif ($role == "reseller") {
-            $stmtReseller = $koneksi->prepare("SELECT idmitrareseller FROM mitrareseller WHERE iduser = ?");
-            $stmtReseller->bind_param('i', $id);
-            $stmtReseller->execute();
-            $resellerData                = $stmtReseller->get_result()->fetch_assoc();
-            $_SESSION["idmitrareseller"] = $resellerData["idmitrareseller"] ?? null;
-
-            header('Location: ../reseller/index3.php');
+            // Portal reseller belum jalan (masih maintenance) - jangan lanjut ke dashboard-nya dulu.
+            header('Location: ../reseller/maintenance.php');
             exit;
          } elseif ($role == "marketer") {
-            $stmtMarketer = $koneksi->prepare("SELECT idmitramarketer FROM mitramarketer WHERE iduser = ?");
-            $stmtMarketer->bind_param('i', $id);
-            $stmtMarketer->execute();
-            $marketerData                = $stmtMarketer->get_result()->fetch_assoc();
-            $_SESSION["idmitramarketer"] = $marketerData["idmitramarketer"] ?? null;
-
-            header('Location: ../marketer/index2.php');
+            // Portal marketer belum jalan (masih maintenance) - jangan lanjut ke dashboard-nya dulu.
+            header('Location: ../marketer/maintenance.php');
             exit;
          } elseif ($role == "konsumen") {
             $stmtKonsumen = $koneksi->prepare("SELECT idkonsumen FROM konsumen WHERE iduser = ?");
