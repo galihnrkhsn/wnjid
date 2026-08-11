@@ -40,8 +40,13 @@
             <i class="bi bi-tools"></i>
             <h5 class="font-weight-bold mt-3">Sedang Dalam Perbaikan</h5>
             <p class="text-muted mb-0">
-                Portal Marketer WNJ.ID sedang dalam perbaikan/maintenance.
-                Mohon coba lagi beberapa saat lagi. Terima kasih atas pengertiannya.
+               Portal Marketer WNJ.ID sedang dalam proses perbaikan dan maintenance agar dapat memberikan pelayanan yang lebih baik, insyaAllah.
+
+               Mohon berkenan menunggu dan mencoba kembali beberapa saat lagi.
+
+               Jazakumullahu khairan atas kesabaran, doa, dan pengertiannya.
+
+               Semoga Allah senantiasa memberikan kemudahan dan keberkahan dalam setiap urusan kita. 🤲
             </p>
          </div>
       </div>
