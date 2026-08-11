@@ -8,7 +8,7 @@
 
     // Banner promosi - sumbernya sama dengan yang dikelola adminwnj/banner.php, filenya
     // disimpan di distributor/assets/img/news/ (folder dipakai bareng, bukan punya mitra/ sendiri).
-    $bannerList = $koneksi->query("SELECT foto FROM slider WHERE tipe = 'banner' ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
+    $bannerList = $koneksi->query("SELECT foto FROM slider ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -187,7 +187,7 @@
             <div class="promo-slider">
                 <div class="promo-slider-track" id="promoSliderTrack">
                     <?php foreach ($bannerList as $i => $banner): ?>
-                        <img src="../distributor/assets/img/news/<?= htmlspecialchars($banner['foto']) ?>" alt="Promo">
+                        <img src="../image/carousel/<?= htmlspecialchars($banner['foto']) ?>" alt="Promo">
                     <?php endforeach; ?>
                 </div>
                 <?php if (count($bannerList) > 1): ?>
