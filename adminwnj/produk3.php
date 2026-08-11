@@ -51,6 +51,7 @@
             </div>
             <a class="btn btn-primary" href="tambah_produk"><span class="fas fa-plus"></span> Tambah Produk</a>
             <a class="btn btn-primary" href="update_produk.php"><span class="fas fa-pen"></span> Update Produk</a>
+            <a class="btn btn-primary" href="maintenance_produk.php"><span class="fas fa-pen"></span> Maintenance Produk</a>
             <a class="btn btn-primary" href="foto_produk"><span class="fas fa-plus"></span> Tambah Foto</a>
             <br><br>
             <form action="excelproduk3.php" method="GET">
