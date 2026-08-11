@@ -18,119 +18,89 @@ $draw   = isset($_GET['draw'])   ? intval($_GET['draw'])   : 1;
 $start  = isset($_GET['start'])  ? intval($_GET['start'])  : 0;
 $length = isset($_GET['length']) ? intval($_GET['length']) : 10;
 
-$search = $_GET['search']['value'] ?? '';
+$search           = $_GET['search']['value'] ?? '';
 $orderColumnIndex = $_GET['order'][0]['column'] ?? 0;
 $orderDir         = $_GET['order'][0]['dir'] ?? 'asc';
+$tab              = ($_GET['tab'] ?? 'publish') === 'unpublish' ? 'unpublish' : 'publish';
 
-// Mapping kolom sesuai UI
+// Mapping kolom sesuai UI - produk-level, sebagian kolom agregat dari variants
 $columns = [
-    0  => 'v.id',          // No (dummy, urutan nanti dari $draw/$start)
-    1  => 'v.id',          // Checkbox (id variant)
-    2  => 'v.idproducts',          // Checkbox (id variant)
-    3  => 'v.status',
-    4  => 'pk.namakategori',
-    5  => 'p.namaproduk',
-    6  => 'v.variant',
-    7  => 'v.size',
-    8  => 'v.harga',
-    9  => 'v.berat',
-    10  => 'k.namakategori', // Grade
-    11 => 'v.stock',
-    12 => 'v.stock',       // Opsi Stock (input manual, jadi tidak sorting real)
-    13 => 'v.disc',
-    14 => 'k.idkategori',  // Opsi Diskon Kategori
-    15 => 'v.id'           // Action (Edit)
+    0 => 'p.id',              // No (dummy, urutan nanti dari $draw/$start)
+    1 => 'p.id',               // Checkbox (id produk)
+    2 => 'p.namaproduk',
+    3 => 'pk.namakategori',
+    4 => 'k.namakategori',
+    5 => 'jumlah_varian',
+    6 => 'total_stock',
+    7 => 'jumlah_publish',     // dasar badge status
+    8 => 'p.id'                // Aksi (Edit)
 ];
+$orderColumn = $columns[$orderColumnIndex] ?? 'p.id';
+$orderDir    = strtolower($orderDir) === 'desc' ? 'DESC' : 'ASC';
 
-$orderColumn = $columns[$orderColumnIndex] ?? 'v.id';
-
-// Hitung total data
-$totalQuery = $koneksi->query("SELECT COUNT(*) as total FROM variants");
-$totalData = $totalQuery->fetch_assoc()['total'];
-
-// Filtering
 $where = "";
 if (!empty($search)) {
     $search = $koneksi->real_escape_string($search);
-    $where = "WHERE p.namaproduk LIKE '%$search%' 
-              OR v.variant LIKE '%$search%' 
-              OR k.namakategori LIKE '%$search%' 
-              OR pk.namakategori LIKE '%$search%'";
+    $where  = "WHERE (p.namaproduk LIKE '%$search%' OR k.namakategori LIKE '%$search%' OR pk.namakategori LIKE '%$search%')";
 }
 
-// Hitung total setelah filter
-$filteredQuery = $koneksi->query("
-    SELECT COUNT(*) as total 
-    FROM variants v
-    INNER JOIN products p ON v.idproducts = p.id
-    INNER JOIN kategori k ON p.idkategori = k.idkategori
-    INNER JOIN pkategori pk ON p.idpkategori = pk.idpkategori
-    $where
-");
-$totalFiltered = $filteredQuery->fetch_assoc()['total'];
+// tab publish = produk dengan minimal 1 varian aktif (status=0), unpublish = tidak ada sama sekali
+$having = $tab === 'publish' ? "HAVING jumlah_publish > 0" : "HAVING jumlah_publish = 0";
 
-// length = -1 artinya "All" dipilih di lengthMenu, jadi tanpa LIMIT.
+$baseFrom = "
+    FROM products p
+    LEFT JOIN variants v ON v.idproducts = p.id
+    LEFT JOIN kategori k ON p.idkategori = k.idkategori
+    LEFT JOIN pkategori pk ON p.idpkategori = pk.idpkategori
+    $where
+    GROUP BY p.id
+    $having
+";
+
+$totalData = $koneksi->query("SELECT COUNT(*) c FROM products")->fetch_assoc()['c'];
+
+// GROUP BY + HAVING butuh dibungkus subquery buat dihitung total barisnya - alias jumlah_publish
+// yang dipakai HAVING harus ikut di-select juga di subquery ini (bukan cuma p.id).
+$totalFiltered = $koneksi->query("
+    SELECT COUNT(*) c FROM (
+        SELECT p.id, SUM(CASE WHEN v.status = 0 THEN 1 ELSE 0 END) AS jumlah_publish
+        $baseFrom
+    ) t
+")->fetch_assoc()['c'];
+
 $limitSql = ($length == -1) ? "" : "LIMIT $start, $length";
 
-// Ambil data utama
 $query = $koneksi->query("
-    SELECT v.id, v.size, v.variant, v.berat, v.harga, v.hargacoret, v.stock, v.foto, v.status,
-           p.id as idproducts, p.namaproduk, v.disc,
-           k.idkategori, k.namakategori AS kategori, pk.namakategori AS pkategori
-    FROM variants v
-    INNER JOIN products p ON v.idproducts = p.id
-    INNER JOIN kategori k ON p.idkategori = k.idkategori
-    INNER JOIN pkategori pk ON p.idpkategori = pk.idpkategori
-    $where
+    SELECT p.id, p.namaproduk, pk.namakategori AS pkategori, k.namakategori AS kategori,
+           COUNT(v.id) AS jumlah_varian,
+           COALESCE(SUM(v.stock), 0) AS total_stock,
+           SUM(CASE WHEN v.status = 0 THEN 1 ELSE 0 END) AS jumlah_publish
+    $baseFrom
     ORDER BY $orderColumn $orderDir
     $limitSql
 ");
 
-// Opsi dropdown kategori diskon sama untuk semua baris, jadi diambil sekali saja
-// di luar loop (dulu di-query ulang tiap baris - sangat lambat untuk data besar/"All").
-$kategoriOptions = "";
-$ambil = $koneksi->query("SELECT * FROM kategori ORDER BY idkategori ASC");
-while ($opt = $ambil->fetch_assoc()) {
-    $kategoriOptions .= "<option value='{$opt['idkategori']}'>{$opt['namakategori']}</option>";
-}
-
 $data = [];
 $no = $start + 1;
 while ($row = $query->fetch_assoc()) {
-    // Status badge
-    $status = ($row['status'] == 0) 
-        ? "<span class='badge bg-success text-white'>Publish</span>" 
+    $isPublish = (int) $row['jumlah_publish'] > 0;
+    $status    = $isPublish
+        ? "<span class='badge bg-success text-white'>Publish</span>"
         : "<span class='badge bg-danger text-white'>Unpublish</span>";
 
-    // Checkbox
-    $checkbox       = "<input type='checkbox' class='check-item' name='id[]' value='{$row['id']}'>";
-    $inputVariant   = "<input type='text' class='form-control' value='{$row['variant']}' name='variant[{$row['id']}]' size='50'>";
-    $inputHarga     = "<input type='number' class='form-control' value='{$row['harga']}' name='harga[{$row['id']}]' size='50'>";
-    $inputStock     = "<input type='number' class='form-control' value='{$row['stock']}' name='stock[{$row['id']}]' size='1'>";
-    $inputDisc      = "<input type='number' class='form-control' value='{$row['disc']}' name='diskon[{$row['id']}]' size='1'>";
-    $inputSize      = "<input type='text' class='form-control' value='{$row['size']}' name='size[{$row['id']}]' size='25'>";
-    $inputBerat     = "<input type='number' class='form-control' value='{$row['berat']}' name='berat[{$row['id']}]' size='1'>";
-    $idproducts     = $row['idproducts'] . '-' . $row['id'];
-    $selectKategori = "<select class='form-control' name='idkategori[{$row['id']}]'>$kategoriOptions</select>";
-
-    // Action
-    $action = "<a href='#' class='btn-delete' data-id='{$row['id']}'><i class='fas fa-trash text-danger'></i></a>";
+    $checkbox = "<input type='checkbox' name='id[]' value='" . (int) $row['id'] . "'>";
+    $aksi     = "<a href='maintenance_produk.php?id=" . (int) $row['id'] . "' class='btn btn-sm btn-outline-primary' title='Kelola varian & detail produk'><i class='fas fa-pen'></i> Edit</a>";
 
     $data[] = [
         $no++,
         $checkbox,
-        $idproducts,
+        htmlspecialchars($row['namaproduk']),
+        htmlspecialchars($row['pkategori'] ?? '-'),
+        htmlspecialchars($row['kategori'] ?? '-'),
+        (int) $row['jumlah_varian'],
+        (int) $row['total_stock'],
         $status,
-        $row['pkategori'],
-        $row['namaproduk'],
-        $inputVariant,
-        $inputSize,
-        $inputHarga,
-        $inputBerat,
-        $selectKategori,
-        $inputStock,
-        $inputDisc,
-        $action
+        $aksi
     ];
 }
 

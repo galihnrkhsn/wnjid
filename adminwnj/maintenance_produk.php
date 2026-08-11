@@ -26,6 +26,7 @@
         $deskripsi   = trim($_POST['deskripsi'] ?? '');
         $jenisInput  = trim($_POST['jenis'] ?? '');
         $jenis       = $jenisInput !== '' ? $jenisInput : null;
+        $discAll     = (int) ($_POST['disc_all'] ?? 0);
 
         $access = 0;
         foreach ($_POST['access'] ?? [] as $bit) {
@@ -49,6 +50,11 @@
                 $stmtSyncVarian->bind_param('si', $jenis, $id);
                 $stmtSyncVarian->execute();
 
+                // Diskon sekarang 1 input buat semua varian produk ini (bukan per-varian lagi).
+                $stmtDiscAll = $koneksi->prepare("UPDATE variants SET disc = ?, updated_at = NOW() WHERE idproducts = ?");
+                $stmtDiscAll->bind_param('ii', $discAll, $id);
+                $stmtDiscAll->execute();
+
                 $koneksi->commit();
                 $pesan = 'Data produk berhasil diperbarui';
             } catch (Exception $e) {
@@ -61,14 +67,12 @@
 
     // ---- Tambah variant baru ----
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_variant'])) {
-        $idproduk   = (int) $_POST['idproduk'];
-        $variant    = trim($_POST['variant'] ?? '');
-        $size_id    = (int) ($_POST['size_id'] ?? 0);
-        $berat      = (int) ($_POST['berat'] ?? 0);
-        $harga      = (int) ($_POST['harga'] ?? 0);
-        $hargacoret = (int) ($_POST['hargacoret'] ?? 0);
-        $disc       = (int) ($_POST['disc'] ?? 0);
-        $stock      = (int) ($_POST['stock'] ?? 0);
+        $idproduk = (int) $_POST['idproduk'];
+        $variant  = trim($_POST['variant'] ?? '');
+        $size_id  = (int) ($_POST['size_id'] ?? 0);
+        $berat    = (int) ($_POST['berat'] ?? 0);
+        $harga    = (int) ($_POST['harga'] ?? 0);
+        $stock    = (int) ($_POST['stock'] ?? 0);
 
         if ($variant === '' || $size_id <= 0 || $harga <= 0) {
             $error = 'Nama varian, ukuran, dan harga wajib diisi';
@@ -79,16 +83,25 @@
             $stmtJenisProduk->execute();
             $jenis = $stmtJenisProduk->get_result()->fetch_assoc()['jenis'] ?? null;
 
+            // Diskon ikut nilai yang sudah berlaku buat produk ini (diatur lewat 1 field di form
+            // Data Produk), supaya varian baru otomatis konsisten tanpa perlu diisi manual lagi.
+            $stmtDiscSaatIni = $koneksi->prepare("SELECT disc FROM variants WHERE idproducts = ? LIMIT 1");
+            $stmtDiscSaatIni->bind_param('i', $idproduk);
+            $stmtDiscSaatIni->execute();
+            $discSaatIni = (int) ($stmtDiscSaatIni->get_result()->fetch_assoc()['disc'] ?? 0);
+
             $stmtCheck = $koneksi->prepare("SELECT id FROM variants WHERE idproducts = ? AND variant = ? AND size_id = ?");
             $stmtCheck->bind_param('isi', $idproduk, $variant, $size_id);
             $stmtCheck->execute();
             if ($stmtCheck->get_result()->fetch_assoc()) {
                 $error = 'Kombinasi varian + ukuran ini sudah ada';
             } else {
+                // hargacoret tidak diisi dari sini lagi (0), tetap ada di tabel karena masih
+                // dipakai tampilan harga coret di konsumen/index.php & produk.php.
                 $stmt = $koneksi->prepare("INSERT INTO variants
                                             (idproducts, variant, size, size_id, berat, harga, hargacoret, disc, stock, status, jenis, tgl, updated_at)
-                                            VALUES (?, ?, (SELECT nama_size FROM master_size WHERE id = ?), ?, ?, ?, ?, ?, ?, 0, ?, NOW(), NOW())");
-                $stmt->bind_param('isiiiiiiis', $idproduk, $variant, $size_id, $size_id, $berat, $harga, $hargacoret, $disc, $stock, $jenis);
+                                            VALUES (?, ?, (SELECT nama_size FROM master_size WHERE id = ?), ?, ?, ?, 0, ?, ?, 0, ?, NOW(), NOW())");
+                $stmt->bind_param('isiiiiiis', $idproduk, $variant, $size_id, $size_id, $berat, $harga, $discSaatIni, $stock, $jenis);
                 if ($stmt->execute()) {
                     $pesan = 'Varian berhasil ditambahkan';
                 } else {
@@ -98,20 +111,18 @@
         }
     }
 
-    // ---- Edit variant ----
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_variant'])) {
-        $idvariant  = (int) $_POST['idvariant'];
-        $idproduk   = (int) $_POST['idproduk'];
-        $variant    = trim($_POST['variant'] ?? '');
-        $size_id    = (int) ($_POST['size_id'] ?? 0);
-        $berat      = (int) ($_POST['berat'] ?? 0);
-        $harga      = (int) ($_POST['harga'] ?? 0);
-        $hargacoret = (int) ($_POST['hargacoret'] ?? 0);
-        $disc       = (int) ($_POST['disc'] ?? 0);
-        $stock      = (int) ($_POST['stock'] ?? 0);
+    // ---- Simpan perubahan varian terpilih (checklist, langsung dari table - bukan modal) ----
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_variant_terpilih'])) {
+        $idproduk    = (int) ($_POST['idproduk'] ?? 0);
+        $pilih       = array_map('intval', $_POST['pilih'] ?? []);
+        $variantPost = $_POST['variant'] ?? [];
+        $sizePost    = $_POST['size_id'] ?? [];
+        $beratPost   = $_POST['berat'] ?? [];
+        $hargaPost   = $_POST['harga'] ?? [];
+        $stockPost   = $_POST['stock'] ?? [];
 
-        if ($variant === '' || $size_id <= 0 || $harga <= 0) {
-            $error = 'Nama varian, ukuran, dan harga wajib diisi';
+        if (empty($pilih)) {
+            $error = 'Centang minimal 1 varian terlebih dahulu.';
         } else {
             // jenis ikut produk induknya (dikelola sekali di form Data Produk), bukan per-varian lagi.
             $stmtJenisProduk = $koneksi->prepare("SELECT jenis FROM products WHERE id = ?");
@@ -121,15 +132,33 @@
 
             $stmt = $koneksi->prepare("UPDATE variants
                                         SET variant = ?, size = (SELECT nama_size FROM master_size WHERE id = ?), size_id = ?,
-                                            berat = ?, harga = ?, hargacoret = ?, disc = ?, stock = ?, jenis = ?, updated_at = NOW()
-                                        WHERE id = ?");
-            $stmt->bind_param('siiiiiiisi', $variant, $size_id, $size_id, $berat, $harga, $hargacoret, $disc, $stock, $jenis, $idvariant);
-            if ($stmt->execute()) {
-                $pesan = 'Varian berhasil diperbarui';
-            } else {
-                $error = 'Gagal memperbarui varian';
+                                            berat = ?, harga = ?, stock = ?, jenis = ?, updated_at = NOW()
+                                        WHERE id = ? AND idproducts = ?");
+            $sukses = 0;
+            $dilewati = 0;
+            foreach ($pilih as $idvariant) {
+                $variant = trim($variantPost[$idvariant] ?? '');
+                $size_id = (int) ($sizePost[$idvariant] ?? 0);
+                $berat   = (int) ($beratPost[$idvariant] ?? 0);
+                $harga   = (int) ($hargaPost[$idvariant] ?? 0);
+                $stock   = (int) ($stockPost[$idvariant] ?? 0);
+
+                if ($variant === '' || $size_id <= 0 || $harga <= 0) {
+                    $dilewati++;
+                    continue; // baris tidak valid dilewati, tidak menggagalkan baris lain
+                }
+
+                $stmt->bind_param('siiiiisii', $variant, $size_id, $size_id, $berat, $harga, $stock, $jenis, $idvariant, $idproduk);
+                $stmt->execute();
+                $sukses++;
+            }
+
+            $pesan = "$sukses varian berhasil disimpan";
+            if ($dilewati > 0) {
+                $pesan .= ", $dilewati dilewati (data tidak lengkap)";
             }
         }
+        $idproduk = $idproduk;
     }
 
     // ---- Toggle status (aktif/nonaktif) - soft "hapus", konsisten dgn status<>1 = aktif di semua halaman konsumen ----
@@ -171,6 +200,13 @@
             $stmtV->execute();
             $variants = $stmtV->get_result()->fetch_all(MYSQLI_ASSOC);
         }
+    }
+
+    // Diskon ditampilkan 1 nilai buat semua varian - ambil dari varian pertama sebagai representasi
+    // nilai yang sedang berlaku (form ini yang jadi satu-satunya cara ubahnya, jadi selalu seragam).
+    $discSaatIni = 0;
+    if (!empty($variants)) {
+        $discSaatIni = (int) $variants[0]['disc'];
     }
 ?>
 <!DOCTYPE html>
@@ -279,6 +315,11 @@
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
+                                        <div class="col-md-2 form-group">
+                                            <label>Diskon (%)</label>
+                                            <input type="number" name="disc_all" class="form-control" value="<?= $discSaatIni ?>" min="0" max="100">
+                                            <small class="text-muted">Berlaku untuk semua varian produk ini.</small>
+                                        </div>
                                         <div class="col-md-4 form-group">
                                             <label>Kode Artikel <span class="text-muted small">(opsional, buat promo B1G1)</span></label>
                                             <input type="text" name="kode_artikel" class="form-control" value="<?= htmlspecialchars($produk['kode_artikel'] ?? '') ?>">
@@ -330,122 +371,76 @@
                                     <i class="fa fa-plus"></i> Tambah Varian
                                 </button>
                             </div>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover mb-0">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th>Varian</th>
-                                            <th>Ukuran</th>
-                                            <th>Harga</th>
-                                            <th>Harga Coret</th>
-                                            <th>Disc</th>
-                                            <th>Stok</th>
-                                            <th>Jenis</th>
-                                            <th>Status</th>
-                                            <th width="140" class="text-right">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php if (empty($variants)): ?>
-                                            <tr><td colspan="9" class="text-center text-muted py-4">Belum ada varian untuk produk ini</td></tr>
-                                        <?php endif; ?>
-                                        <?php foreach ($variants as $v): ?>
+                            <form method="POST" id="formVarian">
+                                <input type="hidden" name="idproduk" value="<?= (int) $idproduk ?>">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover mb-0">
+                                        <thead class="thead-light">
                                             <tr>
-                                                <td><?= htmlspecialchars($v['variant']) ?></td>
-                                                <td><?= htmlspecialchars($v['nama_size'] ?? $v['size']) ?></td>
-                                                <td>Rp <?= number_format($v['harga']) ?></td>
-                                                <td><?= $v['hargacoret'] > 0 ? 'Rp ' . number_format($v['hargacoret']) : '-' ?></td>
-                                                <td><?= $v['disc'] > 0 ? $v['disc'] . '%' : '-' ?></td>
-                                                <td><?= (int) $v['stock'] ?></td>
-                                                <td><?= htmlspecialchars($v['jenis'] ?: '-') ?></td>
-                                                <td>
-                                                    <?php if ($v['status'] != 1): ?>
-                                                        <span class="status-badge status-aktif">Aktif</span>
-                                                    <?php else: ?>
-                                                        <span class="status-badge status-nonaktif">Nonaktif</span>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td class="text-right">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#modalEditVariant<?= (int) $v['id'] ?>">
-                                                        <i class="fa fa-edit"></i>
-                                                    </button>
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('<?= $v['status'] != 1 ? 'Nonaktifkan' : 'Aktifkan' ?> varian ini?');">
-                                                        <input type="hidden" name="idvariant" value="<?= (int) $v['id'] ?>">
-                                                        <input type="hidden" name="idproduk" value="<?= (int) $idproduk ?>">
-                                                        <button type="submit" name="toggle_status" class="btn btn-sm <?= $v['status'] != 1 ? 'btn-outline-danger' : 'btn-outline-success' ?>">
+                                                <th><input type="checkbox" id="checkAllVarian"></th>
+                                                <th>Varian</th>
+                                                <th>Ukuran</th>
+                                                <th>Berat (gr)</th>
+                                                <th>Harga</th>
+                                                <th>Stok</th>
+                                                <th>Jenis</th>
+                                                <th>Status</th>
+                                                <th width="70" class="text-right">Toggle</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (empty($variants)): ?>
+                                                <tr><td colspan="9" class="text-center text-muted py-4">Belum ada varian untuk produk ini</td></tr>
+                                            <?php endif; ?>
+                                            <?php foreach ($variants as $v): ?>
+                                                <tr>
+                                                    <td class="align-middle"><input type="checkbox" name="pilih[]" value="<?= (int) $v['id'] ?>" class="varian-checkbox"></td>
+                                                    <td><input type="text" name="variant[<?= (int) $v['id'] ?>]" class="form-control form-control-sm" value="<?= htmlspecialchars($v['variant']) ?>" required></td>
+                                                    <td>
+                                                        <select name="size_id[<?= (int) $v['id'] ?>]" class="form-control form-control-sm">
+                                                            <?php foreach ($sizePerKategori as $kat => $items): ?>
+                                                                <optgroup label="<?= htmlspecialchars($kat) ?>">
+                                                                    <?php foreach ($items as $sz): ?>
+                                                                        <option value="<?= (int) $sz['id'] ?>" <?= $sz['id'] == $v['size_id'] ? 'selected' : '' ?>>
+                                                                            <?= htmlspecialchars($sz['nama_size']) ?>
+                                                                        </option>
+                                                                    <?php endforeach; ?>
+                                                                </optgroup>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </td>
+                                                    <td><input type="number" name="berat[<?= (int) $v['id'] ?>]" class="form-control form-control-sm" value="<?= (int) $v['berat'] ?>" min="0" style="width:90px"></td>
+                                                    <td><input type="number" name="harga[<?= (int) $v['id'] ?>]" class="form-control form-control-sm" value="<?= (int) $v['harga'] ?>" min="0" style="width:110px"></td>
+                                                    <td><input type="number" name="stock[<?= (int) $v['id'] ?>]" class="form-control form-control-sm" value="<?= (int) $v['stock'] ?>" min="0" style="width:80px"></td>
+                                                    <td class="align-middle"><?= htmlspecialchars($v['jenis'] ?: '-') ?></td>
+                                                    <td class="align-middle">
+                                                        <?php if ($v['status'] != 1): ?>
+                                                            <span class="status-badge status-aktif">Aktif</span>
+                                                        <?php else: ?>
+                                                            <span class="status-badge status-nonaktif">Nonaktif</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="text-right align-middle">
+                                                        <button type="button" class="btn btn-sm <?= $v['status'] != 1 ? 'btn-outline-danger' : 'btn-outline-success' ?> btn-toggle-status"
+                                                                data-idvariant="<?= (int) $v['id'] ?>" data-idproduk="<?= (int) $idproduk ?>"
+                                                                title="<?= $v['status'] != 1 ? 'Nonaktifkan' : 'Aktifkan' ?> varian ini">
                                                             <i class="fa <?= $v['status'] != 1 ? 'fa-ban' : 'fa-check' ?>"></i>
                                                         </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-
-                                            <!-- Modal Edit Variant -->
-                                            <div class="modal fade" id="modalEditVariant<?= (int) $v['id'] ?>" tabindex="-1" role="dialog">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <form method="POST">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Ubah Varian</h5>
-                                                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <input type="hidden" name="idvariant" value="<?= (int) $v['id'] ?>">
-                                                                <input type="hidden" name="idproduk" value="<?= (int) $idproduk ?>">
-                                                                <div class="form-group">
-                                                                    <label>Nama Varian</label>
-                                                                    <input type="text" name="variant" class="form-control" value="<?= htmlspecialchars($v['variant']) ?>" required>
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Ukuran</label>
-                                                                    <select name="size_id" class="form-control" required>
-                                                                        <?php foreach ($sizePerKategori as $kat => $items): ?>
-                                                                            <optgroup label="<?= htmlspecialchars($kat) ?>">
-                                                                                <?php foreach ($items as $sz): ?>
-                                                                                    <option value="<?= (int) $sz['id'] ?>" <?= $sz['id'] == $v['size_id'] ? 'selected' : '' ?>>
-                                                                                        <?= htmlspecialchars($sz['nama_size']) ?>
-                                                                                    </option>
-                                                                                <?php endforeach; ?>
-                                                                            </optgroup>
-                                                                        <?php endforeach; ?>
-                                                                    </select>
-                                                                </div>
-                                                                <div class="form-row">
-                                                                    <div class="col form-group">
-                                                                        <label>Berat (gram)</label>
-                                                                        <input type="number" name="berat" class="form-control" value="<?= (int) $v['berat'] ?>" min="0">
-                                                                    </div>
-                                                                    <div class="col form-group">
-                                                                        <label>Stok</label>
-                                                                        <input type="number" name="stock" class="form-control" value="<?= (int) $v['stock'] ?>" min="0">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="form-row">
-                                                                    <div class="col form-group">
-                                                                        <label>Harga</label>
-                                                                        <input type="number" name="harga" class="form-control" value="<?= (int) $v['harga'] ?>" min="0" required>
-                                                                    </div>
-                                                                    <div class="col form-group">
-                                                                        <label>Harga Coret</label>
-                                                                        <input type="number" name="hargacoret" class="form-control" value="<?= (int) $v['hargacoret'] ?>" min="0">
-                                                                    </div>
-                                                                    <div class="col form-group">
-                                                                        <label>Disc (%)</label>
-                                                                        <input type="number" name="disc" class="form-control" value="<?= (int) $v['disc'] ?>" min="0" max="100">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                                                <button type="submit" name="edit_variant" class="btn btn-primary">Simpan</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php if (!empty($variants)): ?>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-2"><i class="fa fa-info-circle"></i> Centang varian yang mau disimpan perubahannya (nama/ukuran/berat/harga/stok), lalu klik Simpan.</p>
+                                        <button type="submit" name="simpan_variant_terpilih" class="btn btn-primary" onclick="return konfirmasiSimpanVarian();">
+                                            <i class="fa fa-save"></i> Simpan Varian Terpilih
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+                            </form>
                         </div>
 
                         <!-- Modal Tambah Variant -->
@@ -491,21 +486,11 @@
                                                     <input type="number" name="stock" class="form-control" min="0" value="0">
                                                 </div>
                                             </div>
-                                            <div class="form-row">
-                                                <div class="col form-group">
-                                                    <label>Harga</label>
-                                                    <input type="number" name="harga" class="form-control" min="0" required>
-                                                </div>
-                                                <div class="col form-group">
-                                                    <label>Harga Coret</label>
-                                                    <input type="number" name="hargacoret" class="form-control" min="0" value="0">
-                                                </div>
-                                                <div class="col form-group">
-                                                    <label>Disc (%)</label>
-                                                    <input type="number" name="disc" class="form-control" min="0" max="100" value="0">
-                                                </div>
+                                            <div class="form-group">
+                                                <label>Harga</label>
+                                                <input type="number" name="harga" class="form-control" min="0" required>
                                             </div>
-                                            <small class="text-muted">Jenis promo ikut produk induk (atur di form Data Produk di atas).</small>
+                                            <small class="text-muted">Diskon &amp; jenis promo ikut produk induk (atur di form Data Produk di atas).</small>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
@@ -578,6 +563,44 @@
             if (!$(e.target).closest('#productSearchInput, #productSearchResults').length) {
                 $('#productSearchResults').hide();
             }
+        });
+
+        // Checklist varian - centang semua
+        $('#checkAllVarian').change(function () {
+            $('.varian-checkbox').prop('checked', $(this).is(':checked'));
+        });
+        $(document).on('click', '.varian-checkbox', function () {
+            var totalCb = $('.varian-checkbox').length;
+            var checkedCb = $('.varian-checkbox:checked').length;
+            $('#checkAllVarian').prop('checked', totalCb === checkedCb);
+        });
+
+        function konfirmasiSimpanVarian() {
+            var jumlah = $('.varian-checkbox:checked').length;
+            if (jumlah === 0) {
+                alert('Centang minimal 1 varian terlebih dahulu.');
+                return false;
+            }
+            return confirm('Simpan perubahan untuk ' + jumlah + ' varian terpilih?');
+        }
+
+        // Toggle aktif/nonaktif langsung lewat AJAX (bukan submit form biasa, supaya tidak
+        // bentrok dengan form besar Varian & Ukuran yang membungkus seluruh table).
+        $(document).on('click', '.btn-toggle-status', function () {
+            var btn = $(this);
+            var label = btn.hasClass('btn-outline-danger') ? 'Nonaktifkan' : 'Aktifkan';
+            if (!confirm(label + ' varian ini?')) {
+                return;
+            }
+            $.post('maintenance_produk.php', {
+                toggle_status: 1,
+                idvariant: btn.data('idvariant'),
+                idproduk: btn.data('idproduk')
+            }).done(function () {
+                window.location.href = 'maintenance_produk.php?id=' + btn.data('idproduk');
+            }).fail(function () {
+                alert('Gagal mengubah status, silakan coba lagi.');
+            });
         });
     </script>
 </body>
