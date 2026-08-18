@@ -1,7 +1,7 @@
 <?php
     session_start();
     include 'includes/db.php';
-    include 'includes/mail_helper.php';
+    include 'includes/otp_helper.php';
 
     $pesan = '';
 
@@ -17,19 +17,8 @@
             $user = $stmt->get_result()->fetch_assoc();
 
             if ($user) {
-                $tokenBaru = bin2hex(random_bytes(32));
-                $stmtToken = $koneksi->prepare("UPDATE users SET verification_token = ? WHERE id = ?");
-                $stmtToken->bind_param('si', $tokenBaru, $user['id']);
-                $stmtToken->execute();
-
-                $linkVerifikasi = 'https://wnj.id/verify_email.php?token=' . $tokenBaru;
-                kirimEmailNotifikasi($email, $user['name'], 'Verifikasi Email Akun WNJ.ID', emailTemplate('Verifikasi Email Kamu',
-                    '<p>Halo ' . htmlspecialchars($user['name']) . ',</p>'
-                    . '<p>Klik tombol di bawah untuk verifikasi email dan aktifkan akun kamu.</p>'
-                    . '<p style="text-align:center; margin:20px 0;">'
-                    . '<a href="' . htmlspecialchars($linkVerifikasi) . '" style="background:#C67C4E; color:#fff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:600;">Verifikasi Email</a>'
-                    . '</p>'
-                    . '<p style="font-size:12px; color:#6E655D;">Atau salin link berikut: ' . htmlspecialchars($linkVerifikasi) . '</p>'));
+                kirimKodeVerifikasi($koneksi, $user['id'], $email, $user['name']);
+                $_SESSION['otp_user_id'] = $user['id'];
             }
         }
 
@@ -108,6 +97,9 @@
                </div>
                <button type="submit" class="btn btn-primary btn-block">Kirim Ulang</button>
                <p class="text-center mt-3 mb-0">
+                  Sudah punya kode? <a href="verifikasi_otp.php">Masukkan di sini</a>
+               </p>
+               <p class="text-center mt-2 mb-0">
                   <a href="index.php">Kembali ke Login</a>
                </p>
             </form>

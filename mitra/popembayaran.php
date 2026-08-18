@@ -5,6 +5,10 @@
 
     $kolomRole = mitraKolomPomitra($mitraRole);
 
+    // rekeningku pakai nama kolom "idadmin" buat distributor (bukan "idmitra" seperti di
+    // pomitra) - 3 role lain kebetulan sama namanya (idmitraagen/idmitrareseller/idmitramarketer).
+    $kolomRekening = $mitraRole === 'distributor' ? 'idadmin' : $kolomRole;
+
     $grandtotal = $_GET['total']   ?? 0;
     $invoice    = $_GET['invoice'] ?? '';
 
@@ -23,7 +27,7 @@
     }
 
     // rekeningku juga sudah punya kolom per role (idadmin/idmitraagen/idmitrareseller/idmitramarketer)
-    $stmtBank = $koneksi->prepare("SELECT COUNT(*) as bank FROM rekeningku WHERE $kolomRole = ?");
+    $stmtBank = $koneksi->prepare("SELECT COUNT(*) as bank FROM rekeningku WHERE $kolomRekening = ?");
     $stmtBank->bind_param('i', $idMitra);
     $stmtBank->execute();
     $adaRekening = (int) ($stmtBank->get_result()->fetch_assoc()['bank'] ?? 0);
@@ -200,7 +204,7 @@
                         <label>Nama Bank Pengirim</label>
                         <select name="bankpengirim" class="form-control">
                             <?php
-                                $stmtRek = $koneksi->prepare("SELECT bank FROM rekeningku WHERE $kolomRole = ?");
+                                $stmtRek = $koneksi->prepare("SELECT bank FROM rekeningku WHERE $kolomRekening = ?");
                                 $stmtRek->bind_param('i', $idMitra);
                                 $stmtRek->execute();
                                 foreach ($stmtRek->get_result()->fetch_all(MYSQLI_ASSOC) as $rek):
@@ -213,7 +217,7 @@
                         <label>Nama / Nomor Rekening Pengirim</label>
                         <select name="rekeningpengirim" class="form-control" required>
                             <?php
-                                $stmtRek2 = $koneksi->prepare("SELECT namapemilik, rekening FROM rekeningku WHERE $kolomRole = ?");
+                                $stmtRek2 = $koneksi->prepare("SELECT namapemilik, rekening FROM rekeningku WHERE $kolomRekening = ?");
                                 $stmtRek2->bind_param('i', $idMitra);
                                 $stmtRek2->execute();
                                 foreach ($stmtRek2->get_result()->fetch_all(MYSQLI_ASSOC) as $rek):
