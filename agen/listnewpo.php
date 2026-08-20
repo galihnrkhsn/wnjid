@@ -1,313 +1,251 @@
 <?php
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
     session_start();
     include 'koneksi.php';
     include 'assets/components/Sessions/sesAgen.php';
 
-    $idmitraagen=$_SESSION["idmitraagen"];
-    $ambil=$koneksi->query("SELECT mitraagen.idmitraagen, mitraagen.namaagen, mitraagen.mode FROM mitraagen where idmitraagen='$idmitraagen' ");
-    $mode=$ambil->fetch_assoc();
+    $idmitraagen = $_SESSION["idmitraagen"];
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agen | WNJ.ID</title>
-    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
-    crossorigin="anonymous">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .aText {
-            color: red;
+            color: #c21b1b;
+        }
+        .po-highlight {
+            margin-bottom: 1.5rem;
+        }
+        .po-highlight .btn {
+            white-space: normal;
+        }
+        .po-highlight .countdown {
+            color: #6c757d;
+            font-size: .9rem;
+            margin-top: .25rem;
+        }
+        .empty-state {
+            padding: 3rem 1rem;
+            text-align: center;
+            color: #6c757d;
         }
     </style>
-</head>
-<body>
+<title>Pre Order | WNJ.ID</title>
+    <!-- Load File bootstrap.min.css yang ada difolder css -->
+  </head>
+  <body>
     <!-- NAVBAR -->
-    <?php include 'assets/components/Navbar/navbar.php'; ?>
-    <!-- NAVBAR END -->
+    <?php include "assets/components/Navbar/navbar.php"; ?>
+    <!-- END NAVBAR -->
 
-    <!-- MAIN CONTENT -->
-    <div class="container">
-    <!--<div class="jumbotron" >-->
+    <div class="container mt-5">
+        <?php
+            $stmtOpenPo = $koneksi->prepare("SELECT
+                                                bukapo.idbpo,
+                                                bukapo.jenis_mitra,
+                                                bukapo.jenis_po,
+                                                bukapo.idpoproduk,
+                                                bukapo.tgl,
+                                                bukapo.tgl_dropship,
+                                                bukapo.status,
+                                                poproduk.namapo
+                                            FROM bukapo
+                                            INNER JOIN poproduk ON bukapo.idpoproduk = poproduk.idpoproduk
+                                            WHERE bukapo.status = 'PUBLISH'
+                                            AND (bukapo.jenis_mitra = 'Semua Mitra' OR bukapo.jenis_mitra = 'Agen')
+                                            ORDER BY bukapo.tgl DESC");
+            $stmtOpenPo->execute();
+            $dataproduk = $stmtOpenPo->get_result();
 
-    <!--  <div class="row ">-->
-          
-    
-    <!--  <div class="col-2">-->
-    <!--    <img src="foto/<?php echo $mode['foto'] ?>" style="width:55px;height:55px;border-radius: 50%;">-->
-    <!--  </div>-->
-    <!--  <div class="col-6"><b><?php echo $mode['namamitra'] ?></b><br>-->
-    <!--<b style="font-size: 13px"><?php echo "(Distributor_".$mode['idmitraagen'].')';?></b><br>-->
-    
-    <!--  </div>-->
-    
-    <!--  <div class="col-1"> -->
-          
-    <!--  </div>-->
-    <!--  <div class="col-2">-->
-    <!--    <a href="logout.php"><i class="fa fa-power-off logout-mobile" style="font-size:36px;color:primary;"></i></a>-->
-    <!--  </div>-->
-    <!--  <div class="col-1"> -->
-          
-    <!--  </div>-->
-    <!--</div>-->
-    <!--</div>-->
-</div>
+            $jenisPoRoutes  = [
+                'PO dengan Stok'                => 'formpostok',
+                'PO tanpa Stok'                  => 'formpoku',
+                'PO Custom Tab'                  => 'formpo_tab',
+                'PO Custom Tab Stok'             => 'formpo_tabstok',
+                'PO Custom Tab Stok Max'         => 'formpo_tabstokmax',
+                'PO Konin'                       => 'pokonin.php',
+                'PO Kolibri'                     => 'pokolibri',
+                'PO Miki Custom'                 => 'formpomikicustom',
+                'PO Miki Polos'                  => 'formpomikipolos',
+                'PO Brooch Custom'               => 'formpobrooch_custom',
+                'PO Bagi Rata'                   => 'formbagirata',
+                'PO Hampers'                     => 'formpo_thr',
+                'PO Karakter Stok'               => 'formpo_karakterstok',
+                'PO Custom Inner'                => 'formpoinner_custom',
+                'PO custom Rocela'               => 'formporocela',
+                'PO custom Goura'                => 'formpogoura',
+                'PO custom Bundling'             => 'formpocustomgabungan',
+                'PO Bundling 1'                  => 'formpobundling1.php',
+                'PO Bundling 2'                  => 'formpobundling2.php',
+                'PO Tab tanpa stok'              => 'formpobundling2.php',
+                'PO Bundling Custom'             => 'formpobundling.php',
+                'PO Ducula Stok'                 => 'formpoducula.php',
+                'PO Tazmahal'                    => 'formpotazmahal.php',
+                'PO Bundling 5'                  => 'formpobundling5.php',
+                'PO Set'                         => 'formpobundlingset.php',
+                'PO Mandiri'                     => 'formpo_mandiri.php',
+                'PO Custom'                      => 'pocustom.php',
+                'PO Custom Inisial'              => 'formpocustom.php',
+                'PO Custom Template'             => 'formpocustomtemplate.php'
+            ];
 
-<!--================ NAVBARU END =================-->
+            $produkSpecial  = [
+                '328' => 'pocustom.php',
+                '331' => 'pocustom.php',
+                '260' => 'formpocustomlegging',
+                '261' => 'formpocustomlegging2',
+                '269' => 'formpomatari',
+                '289' => 'formposongkok.php',
+                '299' => 'formpovoal_custom.php',
+                '301' => 'formpovoal_custom.php',
+                '315' => 'formpocustom.php',
+                '506' => 'formpocustom.php',
+                '307' => 'formpoinner.php',
+                '314' => 'formpoinner.php',
+                '317' => 'formpoinner.php',
+                '325' => 'formpoinner.php',
+                '339' => 'formpoinner.php',
+                '335' => 'formpoinner2.php'
+            ];
 
-
-<div class="container mt-5" align="center">
-<?php
-  $dataproduk=$koneksi->query("SELECT bukapo.idbpo,
-                                    bukapo.jenis_mitra,
-                                    bukapo.jenis_po,
-                                    bukapo.idpoproduk,
-                                    bukapo.tgl,
-                                    bukapo.tgl_dropship,
-                                    bukapo.status,
-                                    poproduk.namapo 
-                                FROM bukapo inner join poproduk on bukapo.idpoproduk = poproduk.idpoproduk 
-                                WHERE bukapo.status = 'PUBLISH' 
-                                and (bukapo.jenis_mitra = 'Semua Mitra') 
-                                order by bukapo.tgl desc
-                              ");
-  while($tampilkan=$dataproduk->fetch_assoc()){
-?>
-
-      <button type="submit" class="btn btn-primary btn-lg" name="cari" id="linkmiki<?= $tampilkan['idbpo']; ?>" style="white-space: normal;width: auto;">
-        <?php if ($tampilkan['jenis_po']=="PO dengan Stok"): ?>
-            <a  style="color:white" href="formpostok?id=<?php echo $tampilkan['idpoproduk']; ?>">Link <?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Custom Inisial"): ?>
-            <a  style="color:white" href="formpocustominisial?id=<?php echo $tampilkan['idpoproduk']; ?>">Link <?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Custom Template"): ?>
-            <a  style="color:white" href="formpocustomtemplate?id=<?php echo $tampilkan['idpoproduk']; ?>">Link <?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO tanpa Stok" && $tampilkan['idpoproduk'] != '299'): ?>
-            <a  style="color:white" href="formpoku?id=<?php echo $tampilkan['idpoproduk']; ?>">Link <?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Custom Tab"): ?>
-            <a  style="color:white" href="formpo_tab?id=<?php echo $tampilkan['idpoproduk']; ?>">Link <?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Custom Tab Stok"): ?>
-            <a  style="color:white" href="formpo_tabstok?id=<?php echo $tampilkan['idpoproduk']; ?>">Link <?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>      
-        <?php if ($tampilkan['jenis_po']=="PO Custom Tab Stok Max"): ?>
-            <a  style="color:white" href="formpo_tabstokmax?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>      
-
-        <?php if ($tampilkan['jenis_po']=="PO Konin"): ?>
-            <a  style="color:white" href="pokonin.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Kolibri"): ?>
-            <a  style="color:white" href="pokolibri?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Miki Custom"): ?>
-            <a  style="color:white" href="formpomikicustomstock?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?> (Custom)</a>
-        <?php endif ?>
-        <?php if ($tampilkan['jenis_po']=="PO Miki Polos"): ?>
-            <a  style="color:white" href="formpomikipolosstock?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?> (Polos)</a>
-        <?php endif ?>
-
-
-        <?php if ($tampilkan['jenis_po']=="PO Brooch Custom"): ?>
-            <a  style="color:white" href="formpobrooch_custom?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>  
-        <?php if ($tampilkan['jenis_po']=="PO Bagi Rata"): ?>
-            <a  style="color:white" href="formbagirata?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>    
-        <?php if ($tampilkan['jenis_po']=="PO Hampers"): ?>
-            <a  style="color:white" href="formpo_thr?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>  
-
-        <?php if ($tampilkan['jenis_po']=="PO Karakter Stok"): ?>
-            <a  style="color:white" href="formpo_karakterstok?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?> (Custom)</a>
-        <?php endif ?>                          
-        
-        <?php if ($tampilkan['jenis_po'] == "PO Bundling 2"): ?>
-            <a  style="color:white" href="formpobundling2?id=<?php echo $tampilkan['idpoproduk']; ?>&idadmin=<?= $idmitra ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-
-        <?php if ($tampilkan['jenis_po'] == "PO Set"): ?>
-            <a  style="color:white" href="formpobundlingset?id=<?php echo $tampilkan['idpoproduk']; ?>&idadmin=<?= $idmitra ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        
-        <?php if ($tampilkan['jenis_po']=="PO custom Rocela"): ?>
-            <a  style="color:white" href="formporocela?id=<?php echo $tampilkan['idpoproduk']; ?>&idmitraagen=<?= $idmitraagen ?>"><?php echo $tampilkan['namapo']; ?> (Custom)</a>
-        <?php endif ?>                          
-        
-        <?php if ($tampilkan['jenis_po']=="PO custom Goura"): ?>
-            <a  style="color:white" href="formpogoura?id=<?php echo $tampilkan['idpoproduk']; ?>&idmitraagen=<?= $idmitraagen ?>"><?php echo $tampilkan['namapo']; ?> (Custom)</a>
-        <?php endif ?>                          
-        
-        <?php if ($tampilkan['jenis_po']=="PO custom Bundling"): ?>
-            <a  style="color:white" href="formpocustomgabungan?id=<?php echo $tampilkan['idpoproduk']; ?>&idmitraagen=<?= $idmitraagen ?>"><?php echo $tampilkan['namapo']; ?> (Custom)</a>
-        <?php endif ?>
-        
-        <?php if ($tampilkan['jenis_po']=="PO Custom Inner"): ?>
-            <a  style="color:white" href="formpoinner.php?id=<?php echo $tampilkan['idpoproduk']; ?>&idmitraagen=<?= $idmitraagen ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif ?>
-        
-        <?php if ($tampilkan['idpoproduk'] == 260 ): ?>
-            <!--nama file nya formpocustomlegging.php?id=260-->
-            <a  style="color:white" href="formpocustomlegging?id=<?php echo $tampilkan['idpoproduk']; ?>&idmitraagen=<?= $idmitraagen ?>"><?php echo $tampilkan['namapo']; ?></a>
+            $hasOpenPo = $dataproduk->num_rows > 0;
+        ?>
+        <?php if (!$hasOpenPo): ?>
+            <div class="empty-state">
+                <i class="fa-solid fa-calendar-xmark fa-2x mb-2"></i><br>
+                Belum ada PO yang sedang dibuka saat ini.
+            </div>
         <?php endif; ?>
-        
-        <?php if ($tampilkan['idpoproduk'] == 261 ): ?>
-            <!--nama file nya formpocustomlegging2.php?id=261-->
-            <a  style="color:white" href="formpocustomlegging2?id=<?php echo $tampilkan['idpoproduk']; ?>&idmitraagen=<?= $idmitraagen ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-        
-        <?php if ($tampilkan['idpoproduk'] == 269 ): ?>
-            <!--nama file nya formpocustomlegging2.php?id=261-->
-            <a  style="color:white" href="formpomatari.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-        
-        <?php if ($tampilkan['jenis_po'] == "PO Ducula Stok" ): ?>
-            <!--nama file nya formpocustomlegging2.php?id=261-->
-            <a  style="color:white" href="formpoducula.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-
-        <?php if ($tampilkan['jenis_po'] == "PO Tazmahal" ): ?>
-            <!--nama file nya formpocustomlegging2.php?id=261-->
-            <a  style="color:white" href="formpotazmahal.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-        
-        <?php if ($tampilkan['idpoproduk'] == "289" ): ?>
-            <a  style="color:white" href="formposongkok.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-
-        <?php if ($tampilkan['idpoproduk'] == "331" ): ?>
-            <a  style="color:white" href="pocustom.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-
-        <?php if ($tampilkan['jenis_po']=="PO Bundling Custom"): ?>
-            <a  style="color:white" href="formpobundling.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-        
-        <?php if ($tampilkan['idpoproduk'] == "299" or $tampilkan['idpoproduk'] == "301"): ?>
-            <a  style="color:white" href="formpovoal_custom.php?id=<?php echo $tampilkan['idpoproduk']; ?>"><?php echo $tampilkan['namapo']; ?></a>
-        <?php endif; ?>
-
-
-      </button>
-      <p id="demomiki<?= $tampilkan['idbpo']; ?>" class="countdown" data-countdown-target="<?= htmlspecialchars($tampilkan['tgl']); ?> 23:59:00" data-link="linkmiki<?= (int) $tampilkan['idbpo']; ?>"></p>
-      <br>
-
-<?php } ?>
-<script>
-(function () {
-    var items = Array.prototype.map.call(document.querySelectorAll('.countdown[data-countdown-target]'), function (el) {
-        return {
-            el: el,
-            target: new Date(el.dataset.countdownTarget).getTime(),
-            link: document.getElementById(el.dataset.link)
-        };
-    });
-    if (!items.length) return;
-    var timer;
-    function tick() {
-        var now = Date.now();
-        items = items.filter(function (item) {
-            var distance = item.target - now;
-            if (distance < 0) {
-                item.el.innerHTML = "Link PO tidak tersedia";
-                if (item.link) item.link.style.display = "none";
-                return false;
-            }
-            var days = Math.floor(distance / 86400000);
-            var hours = Math.floor((distance % 86400000) / 3600000);
-            var minutes = Math.floor((distance % 3600000) / 60000);
-            var seconds = Math.floor((distance % 60000) / 1000);
-            item.el.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
-            return true;
-        });
-        if (!items.length) clearInterval(timer);
-    }
-    tick();
-    timer = setInterval(tick, 1000);
-})();
-</script>
-
-      
-      <div class="text-center mt-5 mb-5" style="color: var(--color1)">
-        <h3>PO Regular</h3>
-      </div> 
-
-      <div class="table-responsive">
-      <table class="table table-bordered table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th class="col-4 text-center">Tanggal</th>
-                    <th class="col-6 text-center">Nama PO</th>
-                </tr>
-            </thead>
-            <tbody>
+        <?php while ($row = $dataproduk->fetch_assoc()): ?>
+            <div class="po-highlight text-center">
                 <?php
-                $stmtRegular = $koneksi->prepare("SELECT
-                        pomitra.tgl,
-                        pomitra.status AS pomitra_status,
-                        pomitra.invoice,
-                        poproduk.namapo,
-                        poproduk.idpoproduk,
-                        poproduk.status AS poproduk_status,
-                        poproduk.jenis
-                    FROM
-                        pomitra
-                    INNER JOIN
-                        poproduk ON pomitra.idpoproduk = poproduk.idpoproduk
-                    WHERE
-                        pomitra.idmitraagen = ?
-                        AND poproduk.status = 'Open'
-                        AND poproduk.tipe = 'Normal'
-                    GROUP BY
-                        poproduk.idpoproduk, poproduk.namapo, poproduk.status
-                    ORDER BY
-                        pomitra.tgl DESC
-                ");
-                $stmtRegular->bind_param('s', $idmitraagen);
-                $stmtRegular->execute();
-                $sql = $stmtRegular->get_result();
-
-                while($data = mysqli_fetch_array($sql)){
-                    $idpoproduk = $data['idpoproduk'];
+                    $id     = $row['idpoproduk'];
+                    $link   = '#';
+                    $text   = $row['namapo'];
+                    if (isset($jenisPoRoutes[$row['jenis_po']])) {
+                        $link = $jenisPoRoutes[$row['jenis_po']] . '?id=' . $id;
+                    } elseif (isset($produkSpecial[$id])) {
+                        $link = $produkSpecial[$id] . '?id=' . $id;
+                        if (in_array($id, ['260', '261'])) $link .= '&idmitraagen=' . urlencode($idmitraagen);
+                    }
                 ?>
-                <tr>
-                    <td class="text-center"><?php echo htmlspecialchars($data['tgl']); ?></td>
-                    <td class="text-center">
-                        <?php if ($data['jenis'] == 'Kolibri'): ?>
-                            <a href="detailkolibri?id=<?php echo $data['idpoproduk']; ?>"><?php echo htmlspecialchars($data['namapo']); ?></a>
-                        <?php elseif($data['idpoproduk'] == '259' || $data['idpoproduk'] == '267'): ?>
-                            <a href="detailkonin?id=<?php echo $data['idpoproduk']; ?>"><?php echo htmlspecialchars($data['namapo']); ?></a>
-                        <?php elseif($data['idpoproduk'] == '343'): ?>
-                            <a href="detailpokonin.php?id=<?php echo $data['idpoproduk']; ?>" class="aText"><?php echo htmlspecialchars($data['namapo']); ?></a>
-                        <?php else: ?>
-                            <a href="detailpo?id=<?php echo $data['idpoproduk']; ?>" class="aText"><?php echo htmlspecialchars($data['namapo']); ?></a>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php } ?>
-            </tbody>
-        </table>
-      </div>
-</div>
-    <!-- MAIN CONTENT END -->
+                <a type="submit" class="btn btn-primary btn-lg" name="cari" id="linkmiki<?= $row['idbpo'] ?>" style="color:white;" href="<?= htmlspecialchars($link) ?>"><?= htmlspecialchars($text) ?></a>
+                <p class="countdown" id="demomiki<?= $row['idbpo'] ?>" data-countdown-target="<?= htmlspecialchars($row['tgl']) ?> 23:59:00" data-link="linkmiki<?= (int) $row['idbpo'] ?>"></p>
+            </div>
+        <?php endwhile; ?>
+        <?php if ($hasOpenPo): ?>
+        <script>
+            (function () {
+                var items = Array.prototype.map.call(document.querySelectorAll('.countdown[data-countdown-target]'), function (el) {
+                    return {
+                        el: el,
+                        target: new Date(el.dataset.countdownTarget).getTime(),
+                        link: document.getElementById(el.dataset.link)
+                    };
+                });
+                if (!items.length) return;
+                var timer;
+                function tick() {
+                    var now = Date.now();
+                    items = items.filter(function (item) {
+                        var distance = item.target - now;
+                        if (distance < 0) {
+                            item.el.innerHTML = "Link PO tidak tersedia";
+                            if (item.link) item.link.style.display = "none";
+                            return false;
+                        }
+                        var days = Math.floor(distance / 86400000);
+                        var hours = Math.floor((distance % 86400000) / 3600000);
+                        var minutes = Math.floor((distance % 3600000) / 60000);
+                        var seconds = Math.floor((distance % 60000) / 1000);
+                        item.el.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                        return true;
+                    });
+                    if (!items.length) clearInterval(timer);
+                }
+                tick();
+                timer = setInterval(tick, 1000);
+            })();
+        </script>
+        <?php endif; ?>
+        <div class="text-center mt-5 mb-5" style="color: var(--color1)">
+            <h3>PO Regular</h3>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th class="col-4 text-center">Tanggal</th>
+                        <th class="col-6 text-center">Nama PO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        $stmtRegular = $koneksi->prepare("SELECT
+                                                    x.tgl,
+                                                    pr.namapo,
+                                                    pr.idpoproduk,
+                                                    pr.jenis,
+                                                    bo.jenis_po
+                                                FROM (
+                                                    SELECT
+                                                        p.idpoproduk,
+                                                        MAX(p.tgl) AS tgl
+                                                    FROM pomitra p
+                                                    WHERE
+                                                        p.idmitraagen = ?
+                                                        OR p.idmitrareseller IN (SELECT idmitrareseller FROM mitrareseller WHERE idmitraagen = ?)
+                                                        OR p.idmitramarketer IN (SELECT idmitramarketer FROM mitramarketer WHERE idmitraagen = ?)
+                                                    GROUP BY p.idpoproduk
+                                                ) x
+                                                JOIN poproduk pr ON pr.idpoproduk = x.idpoproduk
+                                                LEFT JOIN bukapo bo ON bo.idpoproduk = pr.idpoproduk
+                                                WHERE
+                                                    pr.status = 'open'
+                                                    AND pr.tipe = 'Normal'
+                                                    AND pr.idpoproduk > 233
+                                                ORDER BY x.tgl DESC");
+                        $stmtRegular->bind_param('sss', $idmitraagen, $idmitraagen, $idmitraagen);
+                        $stmtRegular->execute();
+                        $sqlRegular = $stmtRegular->get_result();
+
+                        if ($sqlRegular->num_rows === 0):
+                    ?>
+                    <tr>
+                        <td colspan="2" class="text-center text-muted">Belum ada PO reguler yang tersedia.</td>
+                    </tr>
+                    <?php
+                        endif;
+                        while ($data = $sqlRegular->fetch_assoc()):
+                    ?>
+                    <tr>
+                        <td class="text-center"><?= htmlspecialchars($data['tgl']) ?></td>
+                        <td class="text-center">
+                            <?php if ($data['jenis'] == 'Kolibri'): ?>
+                                <a href="detailkolibri?id=<?= (int) $data['idpoproduk'] ?>"><?= htmlspecialchars($data['namapo']) ?></a>
+                            <?php elseif ($data['idpoproduk'] == '259' || $data['idpoproduk'] == '267'): ?>
+                                <a href="detailkonin?id=<?= (int) $data['idpoproduk'] ?>"><?= htmlspecialchars($data['namapo']) ?></a>
+                            <?php elseif ($data['jenis_po'] === 'PO Konin') : ?>
+                                <a href="detailpokonin.php?id=<?= (int) $data['idpoproduk'] ?>" class="aText"><?= htmlspecialchars($data['namapo']) ?></a>
+                            <?php elseif ($data['jenis_po'] === 'PO Custom Inisial') : ?>
+                                <a href="detailpo.php?id=<?= (int) $data['idpoproduk'] ?>" class="aText"><?= htmlspecialchars($data['namapo']) ?></a>
+                            <?php else: ?>
+                                <a href="detailpo?id=<?= (int) $data['idpoproduk'] ?>" class="aText"><?= htmlspecialchars($data['namapo']) ?></a>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
     <br><br><br><br>
-
-    <!-- FOOTER -->
-    <?php include 'menubawah.php'; ?>
-    <!-- FOOTER END -->
-
-    <!-- PHP -->
-    <?php include "settingdatatables.php"; ?>
-    <!-- PHP END -->
-
-    <!-- SCRIPT -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <!-- SCRIPT END -->
+    <?php include "menubawah.php" ?>
 </body>
 </html>
