@@ -242,7 +242,7 @@
                 echo "<script>alert('Total Qty tidak boleh lebih dari 2!');</script>";
                 echo "<script>location='formpoku.php?id=$idpoproduk';</script>";
                 exit();
-            } elseif ($idpoproduk == 545) {
+            } elseif ($idpoproduk == 545 || $idpoproduk == 575) {
                 $total = array_sum($jmlh);
                 if ($total % 2 != 0) {
                     echo "<script>alert('Total Qty Harus kelipatan 2!');</script>";
