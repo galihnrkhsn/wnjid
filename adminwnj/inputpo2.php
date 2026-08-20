@@ -188,7 +188,7 @@
                 $defTipe       = $_POST['tipe'] ?? ($prefillPo['tipe'] ?? 'normal');
                 $defPembayaran = $_POST['pembayaran'] ?? ($prefillPo['pembayaran'] ?? 'DP');
                 $defDiskon     = $_POST['diskon'] ?? ($prefillPo['diskon'] ?? 0);
-                $defTglselesai = $_POST['tglselesai'] ?? ($prefillPo ? date('Y-m-d', strtotime($prefillPo['tglselesai'])) : '');
+                $defTglselesai = date('Y-m-t');
             ?>
 <form method="POST" id="formPo">
     <div class="card shadow mb-4">
