@@ -19,7 +19,6 @@
 <?php
     if ($type == 'alamat') {
         if (!empty($ids)) {
-            // Ambil semua baris dropship yang diminta dalam satu query (hindari N+1 SELECT per item)
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
             $stmtAlamat = $koneksi->prepare("SELECT
                                             podropship.iddropship,
@@ -89,52 +88,72 @@
                     $logIdmitrareseller = ($idmitra == $data['idmitrareseller']) ? $idmitra : null;
                     $logIdmitramarketer = ($idmitra == $data['idmitramarketer']) ? $idmitra : null;
 
-                    $stmtLog = $koneksi->prepare("INSERT INTO logistik3
-                                                        (`idlogistik`,
-                                                         `tgl`, `penerima`, `ekspedisi`, `noresi`, `biayakirim`, `jumlah_koli`,
-                                                         `keterangan`, `status`, `idadmin`, `idmitraagen`, `idmitrareseller`, `idmitramarketer`,
-                                                         `namacs`, `no_sj`, `jenis_mitra`, `jenis_pengiriman`, `detail_pengiriman`)
-                                                    VALUES (NULL,
-                                                            ?, ?, ?, NULL, 0, 0,
-                                                            ?, NULL, ?, ?, ?, ?,
-                                                            ?, NULL, ?, 'PO', ?)");
-                    $stmtLog->bind_param(
-                        'sssssssssss',
-                        $tanggal, $penerima, $ekspedisi, $keterangan, $idadmin_mitra,
-                        $logIdmitraagen, $logIdmitrareseller, $logIdmitramarketer,
-                        $namacs, $jenisMitra, $idpoproduk
-                    );
-                    $ins_log = $stmtLog->execute();
-                    if (!$ins_log) {
-                        echo "Error: " . $stmtLog->error;
-                    }
-                    if ($ins_log) {
-                        $idlogistik_baru = $stmtLog->insert_id;
-                        if (!$idlogistik_baru) {
-                            die("Gagal mendapatkan idlogistik_baru: " . $koneksi->error);
-                        }
+                    // Cek dulu apakah invoice+alamat ini sudah pernah diproses sebelumnya (kunci yang
+                    // sama seperti dipakai blok batalproses di bawah untuk mencari record ini balik) -
+                    // supaya print ulang tidak bikin baris baru dobel di logistik3/t_user.
+                    $stmtCekTuser = $koneksi->prepare("SELECT id_user, idlogistik FROM t_user WHERE invoice = ? AND alamat = ? LIMIT 1");
+                    $stmtCekTuser->bind_param('ss', $invoice, $alamat);
+                    $stmtCekTuser->execute();
+                    $existingTuser = $stmtCekTuser->get_result()->fetch_assoc();
 
-                        $stmtTuser = $koneksi->prepare("INSERT INTO `t_user`
-                                                            (`id_user`, `idlogistik`, `namacs`, `nama`, `teleponpengirim`, `nama_penerima`, `teleponpenerima`,
-                                                             `alamat`, `keterangan`, `ekspedisi`, `invoice`, `status`,
-                                                             `created_date`, `modified_date`, `resi_pengiriman`, `ongkir`, `pcs`, `marketplace`, `namamitra`, `idadmin`, `no_sj`,
-                                                             `jenis_mitra`)
-                                                        VALUES (NULL, ?, ?, ?, ?, ?, ?,
-                                                                ?, NULL, ?, ?, NULL, NOW(),
-                                                                NOW(), NULL, NULL, NULL, NULL, ?, ?, NULL,
-                                                                ?)");
-                        $stmtTuser->bind_param(
-                            'ssssssssssss',
-                            $idlogistik_baru, $namacs, $pengirim, $telp_pengirim, $penerima, $telp_penerima,
-                            $alamat, $ekspedisi, $invoice, $pengirim, $idadmin_mitra, $jenisMitra
+                    $idlogistik_baru = null;
+                    $idTuser         = null;
+
+                    if ($existingTuser) {
+                        $idlogistik_baru = (int) $existingTuser['idlogistik'];
+                        $idTuser         = (int) $existingTuser['id_user'];
+                    } else {
+                        $stmtLog = $koneksi->prepare("INSERT INTO logistik3
+                                                            (`idlogistik`,
+                                                             `tgl`, `penerima`, `ekspedisi`, `noresi`, `biayakirim`, `jumlah_koli`,
+                                                             `keterangan`, `status`, `idadmin`, `idmitraagen`, `idmitrareseller`, `idmitramarketer`,
+                                                             `namacs`, `no_sj`, `jenis_mitra`, `jenis_pengiriman`, `detail_pengiriman`)
+                                                        VALUES (NULL,
+                                                                ?, ?, ?, NULL, 0, 0,
+                                                                ?, NULL, ?, ?, ?, ?,
+                                                                ?, NULL, ?, 'PO', ?)");
+                        $stmtLog->bind_param(
+                            'sssssssssss',
+                            $tanggal, $penerima, $ekspedisi, $keterangan, $idadmin_mitra,
+                            $logIdmitraagen, $logIdmitrareseller, $logIdmitramarketer,
+                            $namacs, $jenisMitra, $idpoproduk
                         );
-                        $ins_tuser = $stmtTuser->execute();
-                        if ($ins_tuser) {
-                            $idTuser = $stmtTuser->insert_id;
-                            // $response = file_get_contents("http://localhost/api/generate_qr_api.php?id=$idTuser");
-                            $response = file_get_contents("https://wnj.id/api/generate_qr_api.php?id=$idTuser");
+                        $ins_log = $stmtLog->execute();
+                        if (!$ins_log) {
+                            echo "Error: " . $stmtLog->error;
+                        }
+                        if ($ins_log) {
+                            $idlogistik_baru = $stmtLog->insert_id;
+                            if (!$idlogistik_baru) {
+                                die("Gagal mendapatkan idlogistik_baru: " . $koneksi->error);
+                            }
 
-                            if ($response !== false) {
+                            $stmtTuser = $koneksi->prepare("INSERT INTO `t_user`
+                                                                (`id_user`, `idlogistik`, `namacs`, `nama`, `teleponpengirim`, `nama_penerima`, `teleponpenerima`,
+                                                                 `alamat`, `keterangan`, `ekspedisi`, `invoice`, `status`,
+                                                                 `created_date`, `modified_date`, `resi_pengiriman`, `ongkir`, `pcs`, `marketplace`, `namamitra`, `idadmin`, `no_sj`,
+                                                                 `jenis_mitra`)
+                                                            VALUES (NULL, ?, ?, ?, ?, ?, ?,
+                                                                    ?, NULL, ?, ?, NULL, NOW(),
+                                                                    NOW(), NULL, NULL, NULL, NULL, ?, ?, NULL,
+                                                                    ?)");
+                            $stmtTuser->bind_param(
+                                'ssssssssssss',
+                                $idlogistik_baru, $namacs, $pengirim, $telp_pengirim, $penerima, $telp_penerima,
+                                $alamat, $ekspedisi, $invoice, $pengirim, $idadmin_mitra, $jenisMitra
+                            );
+                            $ins_tuser = $stmtTuser->execute();
+                            if ($ins_tuser) {
+                                $idTuser = $stmtTuser->insert_id;
+                            }
+                        }
+                    }
+
+                    if ($idlogistik_baru && $idTuser) {
+                        // $response = file_get_contents("http://localhost/api/generate_qr_api.php?id=$idTuser");
+                        $response = file_get_contents("https://wnj.id/api/generate_qr_api.php?id=$idTuser");
+
+                        if ($response !== false) {
                                 $qrData = json_decode($response, true);
                                 $qrUrl = $qrData['qr_url'] ?? '';
                                 $qrId  = $qrData['id'] ?? '';
@@ -284,7 +303,6 @@
                             <?php
                             }
                         }
-                    }
                 } catch (\Throwable $e) {
                     echo "<!-- Gagal memproses iddropship=" . htmlspecialchars((string) $updateid) . ": " . htmlspecialchars($e->getMessage()) . " -->";
                 }
