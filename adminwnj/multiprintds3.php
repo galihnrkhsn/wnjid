@@ -605,19 +605,46 @@
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
         }
-    } elseif (isset($_POST['but_hapus'])) {
-        if($ids){
-            foreach($ids as $updateid) {
-                $tampil = $koneksi->query("SELECT invoice FROM podropship where iddropship='$updateid' ");
-                $tampilMar=$tampil->fetch_assoc();
-                $id= $tampilMar['invoice'];
-                $delete = "DELETE FROM podropship where iddropship='$updateid'";
-                $sql = mysqli_query( $koneksi, $delete);
+    } elseif ($type == 'hapus') {
+        if (!empty($ids)) {
+            $stmtInvoice = $koneksi->prepare("SELECT invoice FROM podropship WHERE iddropship = ?");
+            $stmtDelete  = $koneksi->prepare("DELETE FROM podropship WHERE iddropship = ?");
+            $invoiceHapus = null;
+
+            foreach ($ids as $updateid) {
+                $stmtInvoice->bind_param('i', $updateid);
+                $stmtInvoice->execute();
+                $row = $stmtInvoice->get_result()->fetch_assoc();
+                if ($row) {
+                    $invoiceHapus = $row['invoice'];
+                }
+
+                $stmtDelete->bind_param('i', $updateid);
+                $stmtDelete->execute();
             }
-            if ($sql) {
-                echo "<script>alert('data berhasil dihapus');</script>";
-                echo "<script>location='detaildropship.php?id=$id';</script>";
+
+            if ($invoiceHapus !== null) {
+                echo "
+                    <script>
+                        alert('Data berhasil dihapus');
+                        location='detaildropship.php?id=" . rawurlencode($invoiceHapus) . "';
+                    </script>
+                ";
+            } else {
+                echo "
+                    <script>
+                        alert('Data tidak ditemukan!');
+                        location='daftards.php';
+                    </script>
+                ";
             }
+        } else {
+            echo "
+                <script>
+                    alert('Pilih data yang ingin dihapus!');
+                    location='daftards.php';
+                </script>
+            ";
         }
     } elseif ($type == 'batalproses') {
         try {

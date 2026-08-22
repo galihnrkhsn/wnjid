@@ -124,7 +124,9 @@
                             <button type='submit' class="btn btn-warning mb-4" onclick="redirectPrint('batalproses')">
                                 Batal Proses
                             </button>
-                            <input type='submit' class="btn btn-danger mb-4" value='Hapus Dropship' name='but_hapus' onclick="return confirm('Yakin Akan Menghapus Dropship?');">      
+                            <button type='button' class="btn btn-danger mb-4" onclick="if (confirm('Yakin Akan Menghapus Dropship?')) { redirectPrint('hapus'); }">
+                                Hapus Dropship
+                            </button>
                             <table class="table table-bordered" id="tb_pods">
                                 <thead>
                                     <tr>
