@@ -607,20 +607,37 @@
         }
     } elseif ($type == 'hapus') {
         if (!empty($ids)) {
-            $stmtInvoice = $koneksi->prepare("SELECT invoice FROM podropship WHERE iddropship = ?");
-            $stmtDelete  = $koneksi->prepare("DELETE FROM podropship WHERE iddropship = ?");
-            $invoiceHapus = null;
+            $stmtInvoice    = $koneksi->prepare("SELECT invoice, no_ds FROM podropship WHERE iddropship = ?");
+            $stmtDeletePods = $koneksi->prepare("DELETE FROM pods WHERE no_ds = ?");
+            $stmtDelete     = $koneksi->prepare("DELETE FROM podropship WHERE iddropship = ?");
+            $invoiceHapus   = null;
 
-            foreach ($ids as $updateid) {
-                $stmtInvoice->bind_param('i', $updateid);
-                $stmtInvoice->execute();
-                $row = $stmtInvoice->get_result()->fetch_assoc();
-                if ($row) {
-                    $invoiceHapus = $row['invoice'];
+            $koneksi->begin_transaction();
+            try {
+                foreach ($ids as $updateid) {
+                    $stmtInvoice->bind_param('i', $updateid);
+                    $stmtInvoice->execute();
+                    $row = $stmtInvoice->get_result()->fetch_assoc();
+                    if ($row) {
+                        $invoiceHapus = $row['invoice'];
+
+                        // Hapus dropship = rollback: variant yang sudah dialokasikan ke
+                        // pengiriman ini (baris pods, terikat via no_ds) ikut dihapus supaya
+                        // sisa/stok-nya balik lagi dan bisa dipakai buat pengiriman lain.
+                        if (!empty($row['no_ds'])) {
+                            $stmtDeletePods->bind_param('s', $row['no_ds']);
+                            $stmtDeletePods->execute();
+                        }
+                    }
+
+                    $stmtDelete->bind_param('i', $updateid);
+                    $stmtDelete->execute();
                 }
-
-                $stmtDelete->bind_param('i', $updateid);
-                $stmtDelete->execute();
+                $koneksi->commit();
+            } catch (Throwable $e) {
+                $koneksi->rollback();
+                error_log($e->getMessage());
+                $invoiceHapus = null;
             }
 
             if ($invoiceHapus !== null) {
