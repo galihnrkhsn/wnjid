@@ -8,4 +8,4 @@ Kumpulan catatan teknis untuk perubahan-perubahan yang sudah didiskusikan dan di
 
 ## Konteks proyek
 
-WNJ.ID (Wanoja) adalah aplikasi e-commerce fashion muslim, PHP polos + mysqli (prepared statement wajib), tanpa framework. Ada beberapa portal terpisah per role mitra: `distributor/`, `agen/`, `reseller/`, `marketer/` — kode `distributor/` adalah acuan paling up-to-date, portal lain cenderung tertinggal/menyimpang (beda logic, beda persentase diskon, dst). Sedang berjalan juga migrasi bertahap ke satu direktori terpadu `mitra/` yang role-aware (belum dibahas di dokumentasi ini, lihat riwayat percakapan lain).
+WNJ.ID (Wanoja) adalah aplikasi e-commerce fashion muslim, PHP native + mysqli (prepared statement wajib), tanpa framework. Ada beberapa portal terpisah per role mitra: `distributor/`, `agen/`, `reseller/`, `marketer/` — kode `distributor/` adalah acuan paling up-to-date, portal lain cenderung tertinggal/menyimpang (beda logic, beda persentase diskon, dst). Sedang berjalan juga migrasi bertahap ke satu direktori terpadu `mitra/` yang role-aware (belum dibahas di dokumentasi ini, lihat riwayat percakapan lain).
