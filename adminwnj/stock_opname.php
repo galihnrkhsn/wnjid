@@ -98,6 +98,10 @@ if ($idproduk > 0) {
             display: none; position: absolute; z-index: 30; width: 100%;
             max-height: 300px; overflow-y: auto;
         }
+        .stock-focused td {
+            background-color: #e8f1ff !important;
+            transition: background-color .2s ease;
+        }
     </style>
 </head>
 <body id="page-top">
@@ -157,7 +161,8 @@ if ($idproduk > 0) {
                                             <td><?= htmlspecialchars($v['variant']) ?></td>
                                             <td><?= htmlspecialchars($v['nama_size'] ?: $v['size']) ?></td>
                                             <td><?= (int) $v['stock'] ?></td>
-                                            <td><input type="number" min="0" step="1" required class="form-control" name="stock[<?= (int) $v['id'] ?>]" value="<?= (int) $v['stock'] ?>"></td>
+                                            <td><input type="number" min="0" step="1" required class="form-control stock-opname-input"
+                                                       name="stock[<?= (int) $v['id'] ?>]" value="<?= (int) $v['stock'] ?>"></td>
                                         </tr>
                                     <?php endforeach; ?>
                                     </tbody>
@@ -225,6 +230,15 @@ if ($idproduk > 0) {
         if (!$(event.target).closest('#productSearchInput, #productSearchResults').length) {
             $('#productSearchResults').hide();
         }
+    });
+
+    $(document).on('focus', '.stock-opname-input', function () {
+        $('.stock-focused').removeClass('stock-focused');
+        $(this).closest('tr').addClass('stock-focused');
+    });
+
+    $(document).on('blur', '.stock-opname-input', function () {
+        $(this).closest('tr').removeClass('stock-focused');
     });
 
     function konfirmasiStockOpname(event) {
