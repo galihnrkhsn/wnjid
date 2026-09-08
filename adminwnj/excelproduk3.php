@@ -27,7 +27,7 @@ ob_start();
             <th>No</th>
             <th>Nama Produk</th>
             <th>Variant</th>
-            <th>Foto</th>
+            <th>Link Foto</th>
             <th>Size</th>
             <th>Harga</th>
             <th>Berat</th>
@@ -68,9 +68,13 @@ ob_start();
                     <td><?php echo $no++; ?></td>
                     <td><?php echo htmlspecialchars($tampilkan['namaproduk']); ?></td>
                     <td><?php echo htmlspecialchars($tampilkan['variant']); ?></td>
-                    <td style="width: 80px; height: 80px; text-align: center; vertical-align: middle;">
-                        <?php $fotoSrc = fotoProdukSrc($tampilkan['nama_folder'] ?? null, $tampilkan['nama_foto'] ?? null); ?>
-                        <img src="<?= htmlspecialchars($fotoSrc) ?>" alt="Foto <?= htmlspecialchars($tampilkan['variant']) ?>" width="70" height="70" style="object-fit: contain;">
+                    <td>
+                        <?php if (!empty($tampilkan['nama_foto'])): ?>
+                            <?php $fotoSrc = fotoProdukSrc($tampilkan['nama_folder'] ?? null, $tampilkan['nama_foto']); ?>
+                            <a href="<?= htmlspecialchars($fotoSrc) ?>" target="_blank" rel="noopener noreferrer">Lihat Foto</a>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
                     </td>
                     <td><?php echo htmlspecialchars($tampilkan['size']); ?></td>
                     <td><?php echo $tampilkan['harga']; ?></td>
