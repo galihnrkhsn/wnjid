@@ -1,8 +1,8 @@
 <?php
 
 // Set headers for Excel export
-header("Content-type: application/vnd-ms-excel");
-header("Content-Disposition: attachment; filename=Data_Produk.xls");
+// header("Content-type: application/vnd-ms-excel");
+// header("Content-Disposition: attachment; filename=Data_Produk.xls");
 
 session_start();
 error_reporting(E_ALL);
@@ -39,7 +39,7 @@ ob_start();
     </thead>
     <tbody>
         <?php
-        $no = 1; // Initialize $no
+            $no = 1; // Initialize $no
             $queryProduk = $koneksi->query("SELECT pkategori.namakategori,
                                                 kategori.namakategori AS grrade,
                                                 variants.id,
@@ -62,16 +62,16 @@ ob_start();
                                             LEFT JOIN master_folder mf ON mf.id = fp.folder
                                             ORDER BY variants.id DESC");
 
-            while ($tampilkan = $queryProduk->fetch_assoc()) {
+                    while ($tampilkan = $queryProduk->fetch_assoc()) {
                 ?>
                 <tr>
                     <td><?php echo $no++; ?></td>
                     <td><?php echo htmlspecialchars($tampilkan['namaproduk']); ?></td>
                     <td><?php echo htmlspecialchars($tampilkan['variant']); ?></td>
                     <td>
-                        <?php if (!empty($tampilkan['nama_foto'])): ?>
+                        <?php if (!empty($tampilkan['nama_foto']) && $tampilkan['nama_foto'] !== 'nophoto.png'): ?>
                             <?php $fotoSrc = fotoProdukSrc($tampilkan['nama_folder'] ?? null, $tampilkan['nama_foto']); ?>
-                            <a href="<?= htmlspecialchars($fotoSrc) ?>" target="_blank" rel="noopener noreferrer">Lihat Foto</a>
+                            <a href="https://wnj.id/<?= htmlspecialchars($fotoSrc) ?>" target="_blank" rel="noopener noreferrer">Lihat Foto</a>
                         <?php else: ?>
                             -
                         <?php endif; ?>
