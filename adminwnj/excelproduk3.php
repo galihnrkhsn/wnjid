@@ -8,6 +8,7 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 include 'koneksi.php';
+require_once '../includes/foto_helper.php';
 
 if (!isset($_SESSION["administrator"])) {
     echo "<script>alert('anda harus login terlebih dahulu');</script>";
@@ -26,6 +27,7 @@ ob_start();
             <th>No</th>
             <th>Nama Produk</th>
             <th>Variant</th>
+            <th>Foto</th>
             <th>Size</th>
             <th>Harga</th>
             <th>Berat</th>
@@ -49,21 +51,28 @@ ob_start();
                                                 variants.harga,
                                                 variants.tgl,
                                                 variants.stock,
-                                                variants.foto,
+                                                fp.foto AS nama_foto,
+                                                mf.name AS nama_folder,
                                                 variants.size
                                             FROM products  
                                             LEFT JOIN kategori ON products.idkategori = kategori.idkategori 
                                             LEFT JOIN pkategori ON pkategori.idpkategori = products.idpkategori
                                             LEFT JOIN variants ON variants.idproducts = products.id
+                                            LEFT JOIN foto_produk fp ON fp.id = variants.foto
+                                            LEFT JOIN master_folder mf ON mf.id = fp.folder
                                             ORDER BY variants.id DESC");
 
             while ($tampilkan = $queryProduk->fetch_assoc()) {
                 ?>
                 <tr>
                     <td><?php echo $no++; ?></td>
-                    <td><?php echo $tampilkan['namaproduk']; ?></td>
-                    <td><?php echo $tampilkan['variant']; ?></td>
-                    <td><?php echo $tampilkan['size']; ?></td>
+                    <td><?php echo htmlspecialchars($tampilkan['namaproduk']); ?></td>
+                    <td><?php echo htmlspecialchars($tampilkan['variant']); ?></td>
+                    <td style="width: 80px; height: 80px; text-align: center; vertical-align: middle;">
+                        <?php $fotoSrc = fotoProdukSrc($tampilkan['nama_folder'] ?? null, $tampilkan['nama_foto'] ?? null); ?>
+                        <img src="<?= htmlspecialchars($fotoSrc) ?>" alt="Foto <?= htmlspecialchars($tampilkan['variant']) ?>" width="70" height="70" style="object-fit: contain;">
+                    </td>
+                    <td><?php echo htmlspecialchars($tampilkan['size']); ?></td>
                     <td><?php echo $tampilkan['harga']; ?></td>
                     <td><?php echo $tampilkan['berat']; ?></td>
                     <td><?php echo $tampilkan['namakategori']; ?></td>
