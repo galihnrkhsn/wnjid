@@ -1,8 +1,8 @@
 <?php
 
 // Set headers for Excel export
-// header("Content-type: application/vnd-ms-excel");
-// header("Content-Disposition: attachment; filename=Data_Produk.xls");
+header("Content-type: application/vnd-ms-excel");
+header("Content-Disposition: attachment; filename=Data_Produk.xls");
 
 session_start();
 error_reporting(E_ALL);
