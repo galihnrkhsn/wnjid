@@ -531,8 +531,15 @@
     <script>
         const ALL_PRODUCTS = <?= json_encode($allProducts) ?>;
 
+        function normalisasiPencarianProduk(text) {
+            return String(text)
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+        }
+
         $('#productSearchInput').on('input', function () {
-            const q       = $(this).val().trim().toLowerCase();
+            const q       = normalisasiPencarianProduk($(this).val());
             const results = $('#productSearchResults');
             results.empty();
 
@@ -541,7 +548,13 @@
                 return;
             }
 
-            const matches = ALL_PRODUCTS.filter(p => p.namaproduk.toLowerCase().includes(q)).slice(0, 20);
+            // Setiap kata harus ditemukan, tetapi posisi/urutannya bebas.
+            // Contoh: "bergo konin 21" tetap menemukan "konin 21 bergo".
+            const kataKunci = q.split(/\s+/);
+            const matches = ALL_PRODUCTS.filter(function (p) {
+                const namaProduk = normalisasiPencarianProduk(p.namaproduk);
+                return kataKunci.every(kata => namaProduk.includes(kata));
+            }).slice(0, 20);
 
             if (matches.length === 0) {
                 results.html('<div class="list-group-item text-muted small">Produk tidak ditemukan</div>').show();
