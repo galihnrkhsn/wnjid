@@ -10,7 +10,7 @@
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name           = trim($_POST['name'] ?? '');
-        $email          = trim($_POST['email'] ?? '');
+        $email          = strtolower(trim($_POST['email'] ?? ''));
         $whatsapp       = trim($_POST['whatsapp'] ?? '');
         $password       = $_POST['password'] ?? '';
         $passwordUlang  = $_POST['password_confirm'] ?? '';
