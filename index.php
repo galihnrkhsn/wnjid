@@ -18,8 +18,9 @@
       $data = $stmtUser->get_result()->fetch_assoc();
 
       if ($data && password_verify($pass, $data['password']) && empty($data['email_verified_at'])) {
+         $_SESSION['otp_user_id'] = $data['id'];
          $loginError         = 'Email belum diverifikasi. Cek inbox kamu, atau kirim ulang link verifikasi.';
-         $loginErrorRedirect = 'resend_verifikasi.php';
+         $loginErrorRedirect = 'verifikasi_otp.php';
       } elseif ($data && password_verify($pass, $data['password'])) {
          session_regenerate_id(true);
 
