@@ -128,7 +128,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resetPassword'])) {
       </div>
 
       <div>
-        <h3><strong>Mitra</strong></h3><br>
+        <div class="d-flex justify-content-between align-items-center mb-3"> 
+          <h3><strong>Mitra</strong></h3><br>
+          <a href="input_mitra.php" type="button" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Mitra</a>
+        </div>
       </div>
 
       <ul class="nav nav-tabs">
@@ -141,10 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resetPassword'])) {
 
         <!-- AGEN -->
         <div id="agen" class="tab-pane fade show active" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3"> 
-            <h3 class="mb-0">Data Agen</h3> 
-            <a href="" type="button" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Agen</a> 
-          </div>
+          <h3 class="mb-0">Data Agen</h3>
           <button class="btn btn-outline-success btn-icon-split mb-3" onclick="window.location.href='subdb/excel_agen.php';">
             <span class="icon text-white-50 bg-success"><i class="fas fa-download" style="margin-top:20%;"></i></span>
             <span class="text">Download Excel Agen</span>
